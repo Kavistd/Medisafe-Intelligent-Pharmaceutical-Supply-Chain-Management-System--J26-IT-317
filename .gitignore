@@ -1,0 +1,18 @@
+node_modules/
+.env
+__pycache__/
+*.pyc
+venv/
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+blockchain/artifacts/
+blockchain/cache/
+
+# Large data and trained models: ignore contents but keep the folders
+ai/component2/data/**
+!ai/component2/data/**/
+!ai/component2/data/**/.gitkeep
+ai/component2/models/**
+!ai/component2/models/**/
+!ai/component2/models/**/.gitkeep
