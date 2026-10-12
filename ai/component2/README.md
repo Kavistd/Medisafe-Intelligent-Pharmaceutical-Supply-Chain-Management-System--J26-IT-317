@@ -19,3 +19,14 @@ Provide `batch_id`, `Name`, `Category`, `Dosage Form`, `Strength`, `Manufacturer
 ## Risk bands
 
 `0.00-0.39`: Low; `0.40-0.69`: Medium; `0.70-1.00`: High.
+
+## Run the API
+
+After training a selected model, run:
+
+```bash
+cd backend/component2-risk-scoring
+PYTHONPATH=../.. uvicorn main:app --reload
+```
+
+The health endpoint is `GET /health`; submit a medicine batch to `POST /api/v1/risk/assess`.
