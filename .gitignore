@@ -1,6 +1,10 @@
-.venv-component2/
+﻿node_modules
+.env
+artifacts
+cache
+.DS_Store
+
+*.joblib
+*.pkl
 __pycache__/
-*.py[cod]
-ai/component2/models/**/*.joblib
-ai/component2/models/**/metrics.json
-ai/component2/models/**/selection.json
+*.pyc

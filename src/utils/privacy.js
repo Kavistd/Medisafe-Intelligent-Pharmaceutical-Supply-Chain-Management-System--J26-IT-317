@@ -93,6 +93,14 @@ function generateSalt(byteLength = 32) {
 }
 
 /**
+ * Alias used by the Component 4 backend service layer.
+ * @see hashPatientIdentity
+ */
+function generatePatientHash(identityData, salt) {
+  return hashPatientIdentity(identityData, salt);
+}
+
+/**
  * Performs client-side off-chain Keccak-256 patient identity hashing using ethers.js.
  * Combines the canonical patient identity data with a cryptographic salt to produce
  * a bytes32 hash safe for on-chain storage.
@@ -210,7 +218,7 @@ function createPrescriptionPayload({
   customSalt = null,
 }) {
   const salt = customSalt || generateSalt();
-  const patientHash = hashPatientIdentity(identityData, salt);
+  const patientHash = generatePatientHash(identityData, salt);
   const prescriptionId = generatePrescriptionId(doctorAddress, patientHash);
 
   const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -238,6 +246,7 @@ module.exports = {
   normalizeIdentityData,
   generateSalt,
   hashPatientIdentity,
+  generatePatientHash,
   verifyPatientIdentity,
   generatePrescriptionId,
   createPrescriptionPayload,
