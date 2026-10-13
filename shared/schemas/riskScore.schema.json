@@ -1,1 +1,13 @@
-{ "$schema": "http://json-schema.org/draft-07/schema#", "title": "riskScore.schema.json", "type": "object" }
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Medicine risk assessment",
+  "type": "object",
+  "required": ["batch_id", "risk_score", "risk_level", "explanation"],
+  "properties": {
+    "batch_id": {"type": "string", "minLength": 1},
+    "risk_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "risk_level": {"type": "string", "enum": ["Low", "Medium", "High"]},
+    "explanation": {"type": "array", "items": {"type": "object", "required": ["feature", "contribution", "direction"]}}
+  },
+  "additionalProperties": false
+}
