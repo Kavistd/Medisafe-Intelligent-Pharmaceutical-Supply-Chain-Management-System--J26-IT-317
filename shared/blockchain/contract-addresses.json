@@ -1,1 +1,27 @@
-{}
+{
+  "_comment": "Deployed contract addresses per network. Update after each deployment.",
+  "hardhat": {
+    "PrescriptionRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "MedicineRiskRegistry": "",
+    "PharmacyTrust": "",
+    "MedicineTraceability": ""
+  },
+  "localhost": {
+    "PrescriptionRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "MedicineRiskRegistry": "",
+    "PharmacyTrust": "",
+    "MedicineTraceability": ""
+  },
+  "sepolia": {
+    "PrescriptionRegistry": "",
+    "MedicineRiskRegistry": "",
+    "PharmacyTrust": "",
+    "MedicineTraceability": ""
+  },
+  "mainnet": {
+    "PrescriptionRegistry": "",
+    "MedicineRiskRegistry": "",
+    "PharmacyTrust": "",
+    "MedicineTraceability": ""
+  }
+}
