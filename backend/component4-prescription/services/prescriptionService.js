@@ -24,9 +24,7 @@ const contractAddresses = require(path.resolve(
 ));
 
 const {
-  generatePatientHash,
   generatePrescriptionId,
-  generateSalt,
   verifyPatientIdentity,
 } = require(path.resolve(__dirname, "../../../src/utils/privacy"));
 
@@ -54,6 +52,12 @@ function getSigner() {
   return _signer;
 }
 
+function getConfiguredSignerAddress() {
+  const privateKey = process.env.PRIVATE_KEY;
+  if (!privateKey) return null;
+  return new ethers.Wallet(privateKey).address;
+}
+
 /**
  * Returns the deployed PrescriptionRegistry contract instance.
  * @param {boolean} [readOnly=false] - If true, uses provider (no signing needed).
@@ -75,6 +79,17 @@ function getContract(readOnly = false) {
 
   const runnerOrSigner = readOnly ? getProvider() : getSigner();
   return new ethers.Contract(contractAddress, PrescriptionRegistryABI.abi, runnerOrSigner);
+}
+
+async function assertSignerRole(roleName) {
+  const signer = getSigner();
+  const contract = getContract(true);
+  const address = await signer.getAddress();
+  const role = roleName === "doctor" ? await contract.DOCTOR_ROLE() : await contract.PHARMACY_ROLE();
+  if (!(await contract.hasRole(role, address))) {
+    throw Object.assign(new Error(`Configured service signer does not have ${roleName} role.`), { statusCode: 503, code: "SIGNER_ROLE_MISMATCH" });
+  }
+  return address;
 }
 
 const PRESCRIPTION_STATUS = {
@@ -105,9 +120,8 @@ function formatPrescription(raw) {
  * Patient identity is hashed off-chain with generatePatientHash; IDs come from generatePrescriptionId.
  */
 async function issuePrescription({
-  patientNationalId,
-  patientFullName,
-  patientDateOfBirth,
+  patientHash,
+  salt,
   medicineId,
   batchId,
   expiryDays = 30,
@@ -115,15 +129,8 @@ async function issuePrescription({
   const signer = getSigner();
   const contract = getContract(false);
   const doctorAddress = await signer.getAddress();
+  await assertSignerRole("doctor");
 
-  const identityData = {
-    nationalId: patientNationalId,
-    fullName: patientFullName,
-    dateOfBirth: patientDateOfBirth,
-  };
-
-  const salt = generateSalt();
-  const patientHash = generatePatientHash(identityData, salt);
   const prescriptionId = generatePrescriptionId(doctorAddress, patientHash);
   const expiryTime = Math.floor(Date.now() / 1000) + expiryDays * 24 * 60 * 60;
 
@@ -142,7 +149,6 @@ async function issuePrescription({
     message: "Prescription issued successfully on-chain.",
     data: {
       prescriptionId,
-      patientHash,
       medicineId,
       batchId,
       expiryTime: new Date(expiryTime * 1000).toISOString(),
@@ -151,8 +157,6 @@ async function issuePrescription({
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed.toString(),
       salt,
-      privacyNote:
-        "The salt must be stored securely by the patient. It is required to re-verify identity at dispensing time.",
     },
   };
 }
@@ -160,16 +164,33 @@ async function issuePrescription({
 /**
  * Verifies a prescription on-chain and dispenses it (marks USED).
  */
-async function dispensePrescription({ prescriptionId, presentedPatientHash }) {
+async function dispensePrescription({
+  prescriptionId,
+  patientNationalId,
+  patientFullName,
+  patientDateOfBirth,
+  salt,
+}) {
   const signer = getSigner();
   const contract = getContract(false);
-
-  let tx;
-  if (presentedPatientHash) {
-    tx = await contract.verifyAndDispenseWithPatientHash(prescriptionId, presentedPatientHash);
-  } else {
-    tx = await contract.verifyAndDispense(prescriptionId);
+  await assertSignerRole("pharmacy");
+  if (!patientNationalId || !patientFullName || !patientDateOfBirth || !salt) {
+    throw Object.assign(new Error("Patient identity and salt are required for dispensing."), { statusCode: 400, code: "PATIENT_IDENTITY_REQUIRED" });
   }
+  const raw = await contract.getPrescription(prescriptionId);
+  const identityData = {
+    nationalId: patientNationalId,
+    fullName: patientFullName,
+    dateOfBirth: patientDateOfBirth,
+  };
+  if (!verifyPatientIdentity(identityData, salt, raw.patientHash)) {
+    throw Object.assign(new Error("Patient identity verification failed."), {
+      statusCode: 403,
+      code: "PATIENT_IDENTITY_MISMATCH",
+    });
+  }
+
+  const tx = await contract.verifyAndDispenseWithPatientHash(prescriptionId, raw.patientHash);
 
   const receipt = await tx.wait();
 
@@ -179,7 +200,7 @@ async function dispensePrescription({ prescriptionId, presentedPatientHash }) {
     data: {
       prescriptionId,
       pharmacyAddress: await signer.getAddress(),
-      patientVerified: !!presentedPatientHash,
+      patientVerified: true,
       transactionHash: receipt.hash,
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed.toString(),
@@ -193,6 +214,7 @@ const verifyAndDispense = dispensePrescription;
 async function revokePrescription({ prescriptionId, reason }) {
   const signer = getSigner();
   const contract = getContract(false);
+  await assertSignerRole("doctor");
 
   const tx = await contract.revokePrescription(prescriptionId, reason);
   const receipt = await tx.wait();
@@ -212,15 +234,19 @@ async function revokePrescription({ prescriptionId, reason }) {
   };
 }
 
+async function getPrescriptionIssuer(prescriptionId) {
+  const contract = getContract(true);
+  const raw = await contract.getPrescription(prescriptionId);
+  return raw.doctorAddress;
+}
+
 async function getPrescription(prescriptionId) {
   const contract = getContract(true);
   const raw = await contract.getPrescription(prescriptionId);
   const formatted = formatPrescription(raw);
 
-  return {
-    success: true,
-    data: formatted,
-  };
+  const { issuedAt, expiryTime, isExpired, status, statusCode } = formatted;
+  return { success: true, data: { prescriptionId, issuedAt, expiryTime, isExpired, status, statusCode } };
 }
 
 async function verifyPrescription({
@@ -232,8 +258,6 @@ async function verifyPrescription({
 }) {
   const contract = getContract(true);
   const raw = await contract.getPrescription(prescriptionId);
-  const formatted = formatPrescription(raw);
-
   let identityVerified = null;
 
   if (patientNationalId && patientFullName && patientDateOfBirth && salt) {
@@ -242,20 +266,16 @@ async function verifyPrescription({
       fullName: patientFullName,
       dateOfBirth: patientDateOfBirth,
     };
-    identityVerified = verifyPatientIdentity(identityData, salt, formatted.patientHash);
+    identityVerified = verifyPatientIdentity(identityData, salt, raw.patientHash);
   }
 
   return {
     success: true,
     data: {
-      ...formatted,
+      prescriptionId: raw.prescriptionId,
+      status: PRESCRIPTION_STATUS[Number(raw.status)] || "UNKNOWN",
+      expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
       identityVerified,
-      verificationNote:
-        identityVerified === null
-          ? "Patient identity fields and salt not provided — identity not verified."
-          : identityVerified
-            ? "Patient identity verified successfully off-chain."
-            : "Patient identity verification FAILED — hash mismatch.",
     },
   };
 }
@@ -284,8 +304,12 @@ module.exports = {
   dispensePrescription,
   verifyAndDispense,
   revokePrescription,
+  getPrescriptionIssuer,
   getPrescription,
   verifyPrescription,
   getPrescriptionsByDoctor,
   getContract,
+  formatPrescription,
+  assertSignerRole,
+  getConfiguredSignerAddress,
 };

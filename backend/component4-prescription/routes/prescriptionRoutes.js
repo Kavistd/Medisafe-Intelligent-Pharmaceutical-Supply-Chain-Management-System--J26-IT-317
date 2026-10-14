@@ -15,17 +15,26 @@ const {
   validateIssuePrescription,
   validateDispensePrescription,
   validatePrescriptionIdParam,
+  validateVerifyPrescription,
+  validateRevokePrescription,
 } = require("../validators/prescriptionValidator");
+const { createChallenge, exchangeSignature, authenticate, authorize } = require("../middleware/auth");
 const {
   issuePrescription,
   dispensePrescription,
   getPrescription,
+  verifyPrescription,
+  revokePrescription,
 } = require("../controllers/prescriptionController");
 
 const router = express.Router();
 
-router.post("/issue", validateIssuePrescription, issuePrescription);
-router.post("/dispense", validateDispensePrescription, dispensePrescription);
-router.get("/:id", validatePrescriptionIdParam, getPrescription);
+router.post("/auth/challenge", createChallenge);
+router.post("/auth/token", exchangeSignature);
+router.post("/issue", authenticate, authorize("doctor"), validateIssuePrescription, issuePrescription);
+router.post("/dispense", authenticate, authorize("pharmacy"), validateDispensePrescription, dispensePrescription);
+router.post("/:id/verify", authenticate, authorize("patient"), validatePrescriptionIdParam, validateVerifyPrescription, verifyPrescription);
+router.post("/:id/revoke", authenticate, authorize("doctor"), validatePrescriptionIdParam, validateRevokePrescription, revokePrescription);
+router.get("/:id", authenticate, authorize("doctor"), validatePrescriptionIdParam, getPrescription);
 
 module.exports = router;

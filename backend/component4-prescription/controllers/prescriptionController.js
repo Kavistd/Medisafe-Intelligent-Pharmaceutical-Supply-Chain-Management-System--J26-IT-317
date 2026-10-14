@@ -67,8 +67,43 @@ async function getPrescription(req, res) {
   }
 }
 
+async function verifyPrescription(req, res) {
+  try {
+    const result = await prescriptionService.verifyPrescription({
+      prescriptionId: req.params.id,
+      ...req.body,
+    });
+    if (!result.data.identityVerified) {
+      return res.status(403).json({ success: false, error: "PATIENT_IDENTITY_MISMATCH", message: "Patient identity verification failed." });
+    }
+    return res.status(200).json(result);
+  } catch (err) {
+    const mapped = mapError(err);
+    return res.status(mapped.statusCode).json(mapped.body);
+  }
+}
+
+async function revokePrescription(req, res) {
+  try {
+    const issuer = await prescriptionService.getPrescriptionIssuer(req.params.id);
+    if (issuer.toLowerCase() !== req.auth.address.toLowerCase()) {
+      return res.status(403).json({ success: false, error: "FORBIDDEN", message: "Only the issuing doctor may revoke this prescription." });
+    }
+    const result = await prescriptionService.revokePrescription({
+      prescriptionId: req.params.id,
+      reason: req.body.reason,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    const mapped = mapError(err);
+    return res.status(mapped.statusCode).json(mapped.body);
+  }
+}
+
 module.exports = {
   issuePrescription,
   dispensePrescription,
   getPrescription,
+  verifyPrescription,
+  revokePrescription,
 };

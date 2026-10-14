@@ -18,25 +18,7 @@ const bytes32Hex = Joi.string()
  * Raw patient identity is accepted here and hashed off-chain by the service layer.
  */
 const issuePrescriptionSchema = Joi.object({
-  patientNationalId: Joi.string().trim().min(5).max(30).required(),
-  patientFullName: Joi.string().trim().min(2).max(100).required(),
-  patientDateOfBirth: Joi.string()
-    .trim()
-    .pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .required()
-    .custom((value, helpers) => {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return helpers.error("any.invalid");
-      }
-      if (date > new Date()) {
-        return helpers.message("patientDateOfBirth cannot be in the future.");
-      }
-      return value;
-    })
-    .messages({
-      "string.pattern.base": "patientDateOfBirth must be in YYYY-MM-DD format.",
-    }),
+  patientHash: bytes32Hex.required().label("patientHash"),
   medicineId: Joi.string()
     .trim()
     .min(2)
@@ -65,7 +47,21 @@ const issuePrescriptionSchema = Joi.object({
  */
 const dispensePrescriptionSchema = Joi.object({
   prescriptionId: bytes32Hex.required().label("prescriptionId"),
-  presentedPatientHash: bytes32Hex.optional().label("presentedPatientHash"),
+  patientNationalId: Joi.string().trim().min(5).max(30).required(),
+  patientFullName: Joi.string().trim().min(2).max(100).required(),
+  patientDateOfBirth: Joi.string().trim().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  salt: bytes32Hex.required().label("salt"),
+});
+
+const verifyPrescriptionSchema = Joi.object({
+  patientNationalId: Joi.string().trim().min(5).max(30).required(),
+  patientFullName: Joi.string().trim().min(2).max(100).required(),
+  patientDateOfBirth: Joi.string().trim().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  salt: bytes32Hex.required().label("salt"),
+});
+
+const revokePrescriptionSchema = Joi.object({
+  reason: Joi.string().trim().min(1).max(500).required(),
 });
 
 /**
@@ -111,13 +107,19 @@ function validate(schema, property = "body") {
 const validateIssuePrescription = validate(issuePrescriptionSchema, "body");
 const validateDispensePrescription = validate(dispensePrescriptionSchema, "body");
 const validatePrescriptionIdParam = validate(prescriptionIdParamSchema, "params");
+const validateVerifyPrescription = validate(verifyPrescriptionSchema, "body");
+const validateRevokePrescription = validate(revokePrescriptionSchema, "body");
 
 module.exports = {
   issuePrescriptionSchema,
   dispensePrescriptionSchema,
   prescriptionIdParamSchema,
+  verifyPrescriptionSchema,
+  revokePrescriptionSchema,
   validate,
   validateIssuePrescription,
   validateDispensePrescription,
   validatePrescriptionIdParam,
+  validateVerifyPrescription,
+  validateRevokePrescription,
 };

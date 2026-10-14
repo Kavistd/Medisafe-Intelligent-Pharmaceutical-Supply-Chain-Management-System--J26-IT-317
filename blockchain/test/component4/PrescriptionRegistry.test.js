@@ -257,6 +257,19 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
           .verifyAndDispenseWithPatientHash(prescriptionId, patientHash)
       ).to.emit(prescriptionRegistry, "PrescriptionDispensed");
     });
+
+    it("Should reject dispensing without the patient's matching hash", async function () {
+      await expect(
+        prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, ethers.ZeroHash)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "PatientHashMismatch");
+    });
+
+    it("Should not allow repeated dispensing after a successful verified dispense", async function () {
+      await prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, patientHash);
+      await expect(
+        prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, patientHash)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "PrescriptionNotActive");
+    });
   });
 
   describe("5. Unauthorized Access Rejections", function () {
