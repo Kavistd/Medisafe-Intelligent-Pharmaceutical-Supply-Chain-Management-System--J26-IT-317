@@ -4,6 +4,7 @@ const prescriptionService = require("../services/prescriptionService");
 
 const TOKEN_TTL_SECONDS = 5 * 60;
 const MAX_CHALLENGE_AGE_SECONDS = 5 * 60;
+const MAX_PENDING_CHALLENGES = 5000;
 const issuedChallenges = new Map();
 
 function unauthorized(res, message = "Authentication required.") {
@@ -21,6 +22,9 @@ function createChallenge(req, res) {
   const nonce = ethers.hexlify(ethers.randomBytes(16));
   for (const [issuedNonce, challenge] of issuedChallenges) {
     if (issuedAt - challenge.issuedAt > MAX_CHALLENGE_AGE_SECONDS) issuedChallenges.delete(issuedNonce);
+  }
+  if (issuedChallenges.size >= MAX_PENDING_CHALLENGES) {
+    return res.status(429).json({ success: false, error: "CHALLENGE_CAPACITY_REACHED", message: "Too many pending login challenges. Wait briefly and try again." });
   }
   const patient = req.body.patient === true;
   const prescriptionId = req.body.prescriptionId || null;
@@ -93,7 +97,10 @@ async function exchangeSignature(req, res) {
   }
 }
 
-function hasValidSecret() { return typeof process.env.AUTH_TOKEN_SECRET === "string" && process.env.AUTH_TOKEN_SECRET.length >= 32; }
+function hasValidSecret() {
+  const secret = process.env.AUTH_TOKEN_SECRET;
+  return typeof secret === "string" && secret.length >= 32 && !secret.startsWith("replace-with-");
+}
 
 function configurationError(res, message) { return res.status(503).json({ success: false, error: "AUTH_CONFIGURATION_ERROR", message }); }
 
@@ -129,11 +136,13 @@ function authenticate(req, res, next) {
 
 function authorize(role) {
   return (req, res, next) => {
-    const allowed = req.auth?.roles.includes(role) || (role === "patient" && req.auth?.roles.includes("patient") && req.auth.prescriptionId === req.params.id.toLowerCase());
+    const allowed = role === "patient"
+      ? req.auth?.roles.includes("patient") && typeof req.body?.prescriptionId === "string" && req.auth.prescriptionId === req.body.prescriptionId.toLowerCase()
+      : req.auth?.roles.includes(role);
     return allowed
       ? next()
       : res.status(403).json({ success: false, error: "FORBIDDEN", message: `The ${role} role is required.` });
   };
 }
 
-module.exports = { createChallenge, exchangeSignature, authenticate, authorize, issuedChallenges, TOKEN_TTL_SECONDS, MAX_CHALLENGE_AGE_SECONDS };
+module.exports = { createChallenge, exchangeSignature, authenticate, authorize, issuedChallenges, TOKEN_TTL_SECONDS, MAX_CHALLENGE_AGE_SECONDS, MAX_PENDING_CHALLENGES };

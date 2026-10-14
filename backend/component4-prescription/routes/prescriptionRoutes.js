@@ -4,19 +4,14 @@
  *              Mount at `/api/v1/prescriptions`.
  * @author R.A.M.A. Ranasinghe (IT23142978) - Component 4
  *
- * Endpoints:
- *   POST /api/v1/prescriptions/issue
- *   POST /api/v1/prescriptions/dispense
- *   GET  /api/v1/prescriptions/:id
+ * Wallet writes remain authenticated API paths for a clear migration error,
+ * but return 410 and never submit a transaction. Reads stay on the backend.
  */
 
 const express = require("express");
 const {
-  validateIssuePrescription,
-  validateDispensePrescription,
-  validatePrescriptionIdParam,
+  validatePrescriptionLookup,
   validateVerifyPrescription,
-  validateRevokePrescription,
 } = require("../validators/prescriptionValidator");
 const { createChallenge, exchangeSignature, authenticate, authorize } = require("../middleware/auth");
 const {
@@ -31,10 +26,10 @@ const router = express.Router();
 
 router.post("/auth/challenge", createChallenge);
 router.post("/auth/token", exchangeSignature);
-router.post("/issue", authenticate, authorize("doctor"), validateIssuePrescription, issuePrescription);
-router.post("/dispense", authenticate, authorize("pharmacy"), validateDispensePrescription, dispensePrescription);
-router.post("/:id/verify", authenticate, authorize("patient"), validatePrescriptionIdParam, validateVerifyPrescription, verifyPrescription);
-router.post("/:id/revoke", authenticate, authorize("doctor"), validatePrescriptionIdParam, validateRevokePrescription, revokePrescription);
-router.get("/:id", authenticate, authorize("doctor"), validatePrescriptionIdParam, getPrescription);
+router.post("/issue", authenticate, authorize("doctor"), issuePrescription);
+router.post("/dispense", authenticate, authorize("pharmacy"), dispensePrescription);
+router.post("/verify", authenticate, validateVerifyPrescription, authorize("patient"), verifyPrescription);
+router.post("/lookup", authenticate, validatePrescriptionLookup, authorize("doctor"), getPrescription);
+router.post("/revoke", authenticate, authorize("doctor"), revokePrescription);
 
 module.exports = router;

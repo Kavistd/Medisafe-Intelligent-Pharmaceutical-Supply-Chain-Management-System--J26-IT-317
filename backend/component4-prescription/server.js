@@ -24,13 +24,16 @@ const prescriptionRoutes = require("./routes/prescriptionRoutes");
 const app = express();
 const PORT = Number(process.env.PORT) || 5004;
 
-app.use(express.json());
+app.use(express.json({ limit: "16kb" }));
 
 app.use((req, res, next) => {
   const origin = process.env.CORS_ORIGIN || "http://localhost:5173";
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
   if (req.method === "OPTIONS") return res.sendStatus(204);
   return next();
 });
@@ -46,6 +49,16 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/v1/prescriptions", prescriptionRoutes);
+
+app.use((error, _req, res, _next) => {
+  if (error?.type === "entity.too.large") {
+    return res.status(413).json({ success: false, error: "REQUEST_TOO_LARGE", message: "Request body exceeds the allowed size." });
+  }
+  if (error instanceof SyntaxError && error.status === 400 && Object.prototype.hasOwnProperty.call(error, "body")) {
+    return res.status(400).json({ success: false, error: "INVALID_JSON", message: "Request body must be valid JSON." });
+  }
+  return res.status(500).json({ success: false, error: "INTERNAL_ERROR", message: "The Component 4 API could not complete this request." });
+});
 
 if (require.main === module) {
   app.listen(PORT, () => {
