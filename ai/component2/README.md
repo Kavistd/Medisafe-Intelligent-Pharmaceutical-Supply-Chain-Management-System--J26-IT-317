@@ -30,3 +30,11 @@ PYTHONPATH=../.. uvicorn main:app --reload
 ```
 
 The health endpoint is `GET /health`; submit a medicine batch to `POST /api/v1/risk/assess`.
+
+## Build a blockchain transaction
+
+Set `WEB3_RPC_URL` and `MEDICINE_RISK_REGISTRY_ADDRESS`, then submit the same
+medicine payload plus a wallet `sender` address to
+`POST /api/v1/risk/assess/transaction`. The response contains the assessment
+and an unsigned `setBatchRisk` transaction. The sender's wallet must sign and
+broadcast that transaction and must hold the registry's `ORACLE_ROLE`.
