@@ -1,0 +1,72 @@
+"""Integration tests for the Component 2 FastAPI endpoints."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Any
+
+from fastapi.testclient import TestClient
+
+COMPONENT_ROOT = Path(__file__).resolve().parents[1]
+if str(COMPONENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(COMPONENT_ROOT))
+
+import api.risk_routes as risk_routes
+from main import app
+
+
+client = TestClient(app)
+
+
+def valid_payload() -> dict[str, str]:
+    return {
+        "batch_id": "BATCH-001",
+        "Name": "Cefvir",
+        "Category": "Antiseptic",
+        "Dosage Form": "Injection",
+        "Strength": "419 mg",
+        "Manufacturer": "GlaxoSmithKline plc",
+        "Indication": "Virus",
+        "Classification": "Over-the-Counter",
+    }
+
+
+def test_health_endpoint_reports_component_status() -> None:
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "service": "component2-risk-scoring",
+    }
+
+
+def test_assess_endpoint_returns_risk_result(monkeypatch: Any) -> None:
+    expected = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.82,
+        "risk_level": "High",
+        "explanation": [{"feature": "Strength", "impact": 0.31}],
+    }
+
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            assert medicine == valid_payload()
+            return expected
+
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+
+    response = client.post("/api/v1/risk/assess", json=valid_payload())
+
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+def test_assess_endpoint_rejects_missing_required_input() -> None:
+    payload = valid_payload()
+    del payload["Manufacturer"]
+
+    response = client.post("/api/v1/risk/assess", json=payload)
+
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "Manufacturer"]
