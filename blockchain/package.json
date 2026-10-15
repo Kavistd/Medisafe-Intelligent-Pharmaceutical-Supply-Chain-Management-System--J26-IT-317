@@ -7,7 +7,9 @@
   },
   "scripts": {
     "test": "hardhat test",
-    "compile": "hardhat compile"
+    "compile": "hardhat compile",
+    "deploy:risk:local": "hardhat run scripts/deploy/deploy_risk_registry.js --network localhost --config hardhat.risk.config.js",
+    "deploy:risk:sepolia": "hardhat run scripts/deploy/deploy_risk_registry.js --network sepolia --config hardhat.risk.config.js"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
