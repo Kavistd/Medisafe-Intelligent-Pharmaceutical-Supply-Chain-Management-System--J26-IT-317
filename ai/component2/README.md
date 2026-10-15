@@ -44,3 +44,15 @@ is loaded from `shared/blockchain/contract-addresses.json`; an explicit
 `MEDICINE_RISK_REGISTRY_ADDRESS` overrides that value for temporary
 deployments. `GET /health/blockchain` verifies the RPC connection, chain ID,
 and deployed contract code without exposing the RPC URL.
+
+## Assess a Component 1 batch
+
+Set `TRACEABILITY_NETWORK` to the network containing the registered batch. It
+defaults to `RISK_REGISTRY_NETWORK`, so both contracts normally share one
+chain. The API loads `MedicineTraceability` from
+`shared/blockchain/contract-addresses.json`; set
+`MEDICINE_TRACEABILITY_ADDRESS` only to override it temporarily.
+
+Call `POST /api/v1/risk/assess/batch/{batch_id}` with no request body. The API
+reads `MedicineTraceability.getBatch`, maps only the approved model fields, and
+returns the normal risk assessment response.

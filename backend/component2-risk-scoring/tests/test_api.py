@@ -113,6 +113,66 @@ def test_assess_endpoint_rejects_missing_required_input() -> None:
     assert response.json()["detail"][0]["loc"] == ["body", "Manufacturer"]
 
 
+def test_assess_registered_batch_reads_component1_and_scores_it(
+    monkeypatch: Any,
+) -> None:
+    medicine = valid_payload()
+    expected = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.18,
+        "risk_level": "Low",
+        "explanation": [],
+    }
+
+    class StubTraceabilityClient:
+        def get_risk_payload(self, batch_id: str) -> dict[str, str]:
+            assert batch_id == "BATCH-001"
+            return medicine
+
+    class StubRiskService:
+        def assess(self, payload: dict[str, Any]) -> dict[str, Any]:
+            assert payload == medicine
+            return expected
+
+    monkeypatch.setattr(risk_routes, "TraceabilityClient", StubTraceabilityClient)
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-001")
+
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+def test_assess_registered_batch_returns_not_found(monkeypatch: Any) -> None:
+    class MissingBatchClient:
+        def get_risk_payload(self, batch_id: str) -> dict[str, str]:
+            raise risk_routes.BatchNotFoundError(f"Batch {batch_id} was not found")
+
+    monkeypatch.setattr(risk_routes, "TraceabilityClient", MissingBatchClient)
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-404")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Batch BATCH-404 was not found"}
+
+
+def test_assess_registered_batch_reports_traceability_unavailable(
+    monkeypatch: Any,
+) -> None:
+    class UnavailableTraceabilityClient:
+        def __init__(self) -> None:
+            raise RuntimeError("Traceability RPC unavailable")
+
+    monkeypatch.setattr(
+        risk_routes, "TraceabilityClient", UnavailableTraceabilityClient
+    )
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-001")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Traceability RPC unavailable"}
+
+
 def test_transaction_endpoint_returns_assessment_and_unsigned_transaction(
     monkeypatch: Any,
 ) -> None:
