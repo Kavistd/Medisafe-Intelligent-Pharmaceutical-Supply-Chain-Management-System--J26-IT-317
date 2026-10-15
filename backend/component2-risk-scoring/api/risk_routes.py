@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import sys
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Path as ApiPath
 from pydantic import BaseModel, Field
 
 # This backend component directory is intentionally named with hyphens. Add its
@@ -13,6 +13,7 @@ if str(COMPONENT_ROOT) not in sys.path:
     sys.path.insert(0, str(COMPONENT_ROOT))
 from services.risk_service import RiskService
 from blockchain.web3_service import RiskRegistryClient
+from integrations.traceability_client import BatchNotFoundError, TraceabilityClient
 
 router = APIRouter(prefix="/api/v1/risk", tags=["medicine-risk"])
 
@@ -38,6 +39,22 @@ def assess_medicine(payload: MedicineRequest) -> dict[str, Any]:
         return RiskService().assess(payload.model_dump(by_alias=True))
     except (ValueError, FileNotFoundError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/assess/batch/{batch_id}")
+def assess_registered_batch(
+    batch_id: str = ApiPath(min_length=1),
+) -> dict[str, Any]:
+    """Read a registered Component 1 batch and assess it with Component 2."""
+    try:
+        medicine = TraceabilityClient().get_risk_payload(batch_id)
+        return RiskService().assess(medicine)
+    except BatchNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/assess/transaction")
