@@ -70,3 +70,73 @@ def test_assess_endpoint_rejects_missing_required_input() -> None:
 
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "Manufacturer"]
+
+
+def test_transaction_endpoint_returns_assessment_and_unsigned_transaction(
+    monkeypatch: Any,
+) -> None:
+    assessment = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.82,
+        "risk_level": "High",
+        "explanation": [],
+    }
+    transaction = {
+        "from": "0x0000000000000000000000000000000000000001",
+        "to": "0x0000000000000000000000000000000000000002",
+        "nonce": 4,
+        "data": "0x1234",
+    }
+
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            assert medicine == valid_payload()
+            return assessment
+
+    class StubRegistryClient:
+        def build_record_transaction(
+            self, batch_id: str, risk_score: float, sender: str
+        ) -> dict[str, Any]:
+            assert batch_id == "BATCH-001"
+            assert risk_score == 0.82
+            assert sender == "0x0000000000000000000000000000000000000001"
+            return transaction
+
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", StubRegistryClient)
+
+    payload = {
+        **valid_payload(),
+        "sender": "0x0000000000000000000000000000000000000001",
+    }
+    response = client.post("/api/v1/risk/assess/transaction", json=payload)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "assessment": assessment,
+        "transaction": transaction,
+    }
+
+
+def test_transaction_endpoint_reports_missing_blockchain_configuration(
+    monkeypatch: Any,
+) -> None:
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            return {"risk_score": 0.2}
+
+    class UnconfiguredRegistryClient:
+        def __init__(self) -> None:
+            raise RuntimeError("blockchain configuration is missing")
+
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", UnconfiguredRegistryClient)
+
+    payload = {
+        **valid_payload(),
+        "sender": "0x0000000000000000000000000000000000000001",
+    }
+    response = client.post("/api/v1/risk/assess/transaction", json=payload)
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "blockchain configuration is missing"}
