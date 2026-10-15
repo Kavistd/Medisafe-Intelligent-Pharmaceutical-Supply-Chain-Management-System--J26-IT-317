@@ -6,6 +6,7 @@ const {
   writeAddress,
   paths,
 } = require("../lib/risk-registry");
+const exportAbi = require("./export_risk_registry_abi");
 
 /** Deploy Component 2 and record addresses only for persistent networks. */
 async function main(options = {}) {
@@ -37,6 +38,10 @@ async function main(options = {}) {
   if (network !== "hardhat") {
     writeAddress(addressesPath, network, contractAddress);
   }
+  await exportAbi({
+    hre: runtime,
+    outputPath: options.abiPath || paths.abi,
+  });
 
   if (!options.quiet) {
     console.log(

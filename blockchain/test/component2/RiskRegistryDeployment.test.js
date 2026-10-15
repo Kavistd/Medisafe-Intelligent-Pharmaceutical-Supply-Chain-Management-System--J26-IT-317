@@ -6,6 +6,7 @@ const hre = require("hardhat");
 const { ethers } = hre;
 
 const deploy = require("../../scripts/deploy/deploy_risk_registry");
+const exportAbi = require("../../scripts/deploy/export_risk_registry_abi");
 const {
   checkNetwork,
   writeAddress,
@@ -24,12 +25,14 @@ async function rejects(promise, message) {
 describe("Component 2: deployment and address configuration", function () {
   let directory;
   let addressesPath;
+  let abiPath;
   let original;
   let signers;
 
   beforeEach(async function () {
     directory = fs.mkdtempSync(path.join(os.tmpdir(), "medisafe-risk-registry-"));
     addressesPath = path.join(directory, "addresses.json");
+    abiPath = path.join(directory, "MedicineRiskRegistry.json");
     original = JSON.parse(
       fs.readFileSync(
         path.resolve(__dirname, "../../../shared/blockchain/contract-addresses.json"),
@@ -45,7 +48,7 @@ describe("Component 2: deployment and address configuration", function () {
   });
 
   function options(extra = {}) {
-    return { env: {}, addressesPath, quiet: true, ...extra };
+    return { env: {}, addressesPath, abiPath, quiet: true, ...extra };
   }
 
   it("deploys with the local signer as admin and does not record ephemeral addresses", async function () {
@@ -62,6 +65,10 @@ describe("Component 2: deployment and address configuration", function () {
       )
     ).to.equal(true);
     expect(fs.readFileSync(addressesPath, "utf8")).to.equal(before);
+    const exportedAbi = JSON.parse(fs.readFileSync(abiPath, "utf8"));
+    expect(exportedAbi).to.deep.equal(
+      (await hre.artifacts.readArtifact("MedicineRiskRegistry")).abi
+    );
   });
 
   it("supports an explicit administrator distinct from the deployer", async function () {
@@ -92,6 +99,7 @@ describe("Component 2: deployment and address configuration", function () {
   it("records the deployed address in a persistent localhost slot", async function () {
     const localRuntime = {
       ethers: hre.ethers,
+      artifacts: hre.artifacts,
       network: { name: "localhost" },
     };
 
@@ -171,6 +179,18 @@ describe("Component 2: deployment and address configuration", function () {
         })
       ),
       "RISK_REGISTRY_ADMIN must be"
+    );
+  });
+
+  it("exports a deterministic ABI identical to the checked-in shared ABI", async function () {
+    await exportAbi({ outputPath: abiPath });
+    const first = fs.readFileSync(abiPath, "utf8");
+
+    await exportAbi({ outputPath: abiPath });
+
+    expect(fs.readFileSync(abiPath, "utf8")).to.equal(first);
+    expect(JSON.parse(first)).to.deep.equal(
+      require("../../../shared/blockchain/abi/MedicineRiskRegistry.json")
     );
   });
 });
