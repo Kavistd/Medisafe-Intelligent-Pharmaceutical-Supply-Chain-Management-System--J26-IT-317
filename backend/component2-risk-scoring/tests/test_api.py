@@ -12,6 +12,7 @@ if str(COMPONENT_ROOT) not in sys.path:
     sys.path.insert(0, str(COMPONENT_ROOT))
 
 import api.risk_routes as risk_routes
+import main as main_module
 from main import app
 
 
@@ -38,6 +39,46 @@ def test_health_endpoint_reports_component_status() -> None:
     assert response.json() == {
         "status": "ok",
         "service": "component2-risk-scoring",
+    }
+
+
+def test_blockchain_health_reports_verified_connection(monkeypatch: Any) -> None:
+    class ConnectedRegistryClient:
+        def connection_status(self) -> dict[str, Any]:
+            return {
+                "connected": True,
+                "network": "localhost",
+                "chain_id": 31337,
+                "contract_address": "0x0000000000000000000000000000000000000001",
+            }
+
+    monkeypatch.setattr(main_module, "RiskRegistryClient", ConnectedRegistryClient)
+
+    response = client.get("/health/blockchain")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "connected": True,
+        "network": "localhost",
+        "chain_id": 31337,
+        "contract_address": "0x0000000000000000000000000000000000000001",
+    }
+
+
+def test_blockchain_health_reports_unavailable_configuration(monkeypatch: Any) -> None:
+    class UnavailableRegistryClient:
+        def __init__(self) -> None:
+            raise RuntimeError("WEB3_RPC_URL is required for blockchain access.")
+
+    monkeypatch.setattr(main_module, "RiskRegistryClient", UnavailableRegistryClient)
+
+    response = client.get("/health/blockchain")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "unavailable",
+        "detail": "WEB3_RPC_URL is required for blockchain access.",
     }
 
 

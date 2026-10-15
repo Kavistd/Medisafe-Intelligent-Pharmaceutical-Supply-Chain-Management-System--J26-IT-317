@@ -72,8 +72,13 @@ Use the same RPC endpoint and the address recorded by the deployment:
 
 ```bash
 export WEB3_RPC_URL=https://YOUR_RPC_URL
-export MEDICINE_RISK_REGISTRY_ADDRESS=0xDEPLOYED_REGISTRY_ADDRESS
+export RISK_REGISTRY_NETWORK=localhost
 ```
+
+The API reads `MedicineRiskRegistry` from the selected network in
+`shared/blockchain/contract-addresses.json`. Set
+`MEDICINE_RISK_REGISTRY_ADDRESS` only when intentionally overriding the shared
+registry, such as for a temporary deployment.
 
 Start the API and submit a medicine payload plus `sender` to
 `POST /api/v1/risk/assess/transaction`. The endpoint returns an unsigned
@@ -82,6 +87,17 @@ Start the API and submit a medicine payload plus `sender` to
 The sender must hold `ORACLE_ROLE`. The deployment administrator receives
 `DEFAULT_ADMIN_ROLE` and `ORACLE_ROLE` initially and may grant oracle access to
 the backend publisher account.
+
+Confirm runtime readiness before requesting a transaction:
+
+```bash
+curl http://127.0.0.1:8000/health/blockchain
+```
+
+The endpoint returns HTTP 200 only when the RPC is reachable, the selected
+chain ID matches, and deployed bytecode exists at the configured address. It
+returns HTTP 503 with a non-secret diagnostic when configuration is incomplete
+or invalid.
 
 ## Deployment output and verification
 

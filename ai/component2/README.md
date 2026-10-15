@@ -33,8 +33,14 @@ The health endpoint is `GET /health`; submit a medicine batch to `POST /api/v1/r
 
 ## Build a blockchain transaction
 
-Set `WEB3_RPC_URL` and `MEDICINE_RISK_REGISTRY_ADDRESS`, then submit the same
-medicine payload plus a wallet `sender` address to
+Set `WEB3_RPC_URL` and `RISK_REGISTRY_NETWORK`, then submit the same medicine
+payload plus a wallet `sender` address to
 `POST /api/v1/risk/assess/transaction`. The response contains the assessment
 and an unsigned `setBatchRisk` transaction. The sender's wallet must sign and
 broadcast that transaction and must hold the registry's `ORACLE_ROLE`.
+
+Set `RISK_REGISTRY_NETWORK` to `localhost` or `sepolia`. The contract address
+is loaded from `shared/blockchain/contract-addresses.json`; an explicit
+`MEDICINE_RISK_REGISTRY_ADDRESS` overrides that value for temporary
+deployments. `GET /health/blockchain` verifies the RPC connection, chain ID,
+and deployed contract code without exposing the RPC URL.
