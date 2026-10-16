@@ -24,12 +24,14 @@ describe("Component 2: MedicineRiskRegistry", function () {
   });
 
   it("records and updates a batch risk assessment", async function () {
+    expect(await registry.hasRiskAssessment("BATCH-001")).to.equal(false);
     await expect(registry.setBatchRisk("BATCH-001", 24, true))
       .to.emit(registry, "BatchRiskUpdated")
       .withArgs("BATCH-001", 24, true, anyValue);
 
     expect(await registry.getRiskScore("BATCH-001")).to.equal(24);
     expect(await registry.isBatchSafe("BATCH-001")).to.equal(true);
+    expect(await registry.hasRiskAssessment("BATCH-001")).to.equal(true);
 
     await registry.setBatchRisk("BATCH-001", 82, false);
     expect(await registry.getRiskScore("BATCH-001")).to.equal(82);
@@ -52,8 +54,9 @@ describe("Component 2: MedicineRiskRegistry", function () {
       .withArgs(outsider.address, await registry.ORACLE_ROLE());
   });
 
-  it("treats an unknown batch as safe with a zero score", async function () {
+  it("treats an unknown batch as unassessed and unsafe", async function () {
     expect(await registry.getRiskScore("UNKNOWN")).to.equal(0);
-    expect(await registry.isBatchSafe("UNKNOWN")).to.equal(true);
+    expect(await registry.hasRiskAssessment("UNKNOWN")).to.equal(false);
+    expect(await registry.isBatchSafe("UNKNOWN")).to.equal(false);
   });
 });

@@ -41,10 +41,11 @@ contract MedicineRiskRegistry is AccessControl {
         return _batchRisks[batchId].riskScore;
     }
 
+    function hasRiskAssessment(string calldata batchId) external view returns (bool) {
+        return _batchRisks[batchId].evaluatedAt != 0;
+    }
+
     function isBatchSafe(string calldata batchId) external view returns (bool) {
-        if (_batchRisks[batchId].evaluatedAt == 0) {
-            return true;
-        }
-        return _batchRisks[batchId].isSafe;
+        return _batchRisks[batchId].evaluatedAt != 0 && _batchRisks[batchId].isSafe;
     }
 }

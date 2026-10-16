@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * @notice Interface for Component 2 (AI-based Risk Scoring)
  */
 interface IMedicineRiskRegistry {
+    function hasRiskAssessment(string calldata batchId) external view returns (bool);
     function getRiskScore(string calldata batchId) external view returns (uint256);
     function isBatchSafe(string calldata batchId) external view returns (bool);
 }
@@ -112,6 +113,7 @@ contract PrescriptionRegistry is AccessControl {
     error PrescriptionExpired(bytes32 prescriptionId, uint256 expiryTime, uint256 currentTimestamp);
     error PatientHashMismatch(bytes32 expected, bytes32 provided);
     error HighMedicineRisk(string batchId, uint256 riskScore, uint256 maxAllowed);
+    error MedicineRiskNotAssessed(string batchId);
     error MedicineBatchUnsafe(string batchId);
     error LowPharmacyTrust(address pharmacy, uint256 trustScore, uint256 minRequired);
     error PharmacyNotTrusted(address pharmacy);
@@ -245,6 +247,9 @@ contract PrescriptionRegistry is AccessControl {
 
         // Component 2 (AI Risk Scoring) Oracle Check
         if (address(riskRegistry) != address(0)) {
+            if (!riskRegistry.hasRiskAssessment(p.batchId)) {
+                revert MedicineRiskNotAssessed(p.batchId);
+            }
             uint256 riskScore = riskRegistry.getRiskScore(p.batchId);
             if (riskScore > maxAllowedRiskScore) {
                 revert HighMedicineRisk(p.batchId, riskScore, maxAllowedRiskScore);
