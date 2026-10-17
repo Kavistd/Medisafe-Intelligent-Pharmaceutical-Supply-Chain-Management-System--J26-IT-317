@@ -10,8 +10,9 @@ interface IMedicineRiskRegistryV2 {
     function isBatchSafe(string calldata batchId) external view returns (bool);
 }
 
-/** @dev Component 3 interface. Kept local to V2; Component 3 is not modified. */
+/** @dev V2-local Component 3 interface; V1's separate interface stays unchanged. */
 interface IPharmacyTrustV2 {
+    function isPharmacyRegistered(address pharmacyAddress) external view returns (bool);
     function getTrustScore(address pharmacyAddress) external view returns (uint256);
     function isPharmacyTrusted(address pharmacyAddress) external view returns (bool);
 }
@@ -89,6 +90,7 @@ contract PrescriptionRegistryV2 is AccessControl {
     error EmptyMedicineId();
     error EmptyBatchId();
     error PrescriptionNotActive(bytes32 prescriptionId, PrescriptionStatus currentStatus);
+    error PrescriptionNotExpired(bytes32 prescriptionId, uint256 expiryTime, uint256 currentTimestamp);
     error WrongIntendedPharmacy(address expected, address caller);
     error PatientAuthorizationUnavailable();
     error RiskRegistryNotConfigured();
@@ -99,6 +101,7 @@ contract PrescriptionRegistryV2 is AccessControl {
     error HighMedicineRisk(string batchId, uint256 riskScore, uint256 maxAllowed);
     error InvalidRiskThreshold(uint256 maxAllowed);
     error PharmacyTrustRegistryUnavailable();
+    error PharmacyNotRegistered(address pharmacy);
     error LowPharmacyTrust(address pharmacy, uint256 trustScore, uint256 minRequired);
     error PharmacyNotTrusted(address pharmacy);
 
@@ -200,6 +203,22 @@ contract PrescriptionRegistryV2 is AccessControl {
         emit PrescriptionStatusChanged(prescriptionId, PrescriptionStatus.REVOKED, block.timestamp);
     }
 
+    /** @notice Anyone may finalize an active prescription after its expiry time. */
+    function expirePrescription(bytes32 prescriptionId) external {
+        Prescription storage prescription = _prescriptions[prescriptionId];
+        if (prescription.prescriptionId == bytes32(0)) revert PrescriptionNotFound(prescriptionId);
+
+        if (prescription.status != PrescriptionStatus.ACTIVE) {
+            revert PrescriptionNotActive(prescriptionId, prescription.status);
+        }
+        if (block.timestamp < prescription.expiryTime) {
+            revert PrescriptionNotExpired(prescriptionId, prescription.expiryTime, block.timestamp);
+        }
+
+        prescription.status = PrescriptionStatus.EXPIRED;
+        emit PrescriptionStatusChanged(prescriptionId, PrescriptionStatus.EXPIRED, block.timestamp);
+    }
+
     function getPrescription(bytes32 prescriptionId) external view returns (Prescription memory prescription) {
         prescription = _prescriptions[prescriptionId];
         if (prescription.prescriptionId == bytes32(0)) revert PrescriptionNotFound(prescriptionId);
@@ -273,8 +292,11 @@ contract PrescriptionRegistryV2 is AccessControl {
 
     function _checkPharmacyTrust(address pharmacy) internal view {
         address registryAddress = address(pharmacyTrustRegistry);
-        if (registryAddress == address(0)) return; // Matches the current V1 optional-registry policy.
+        if (registryAddress == address(0)) revert PharmacyTrustRegistryUnavailable();
         if (registryAddress.code.length == 0) revert PharmacyTrustRegistryUnavailable();
+        if (!pharmacyTrustRegistry.isPharmacyRegistered(pharmacy)) {
+            revert PharmacyNotRegistered(pharmacy);
+        }
 
         uint256 trustScore = pharmacyTrustRegistry.getTrustScore(pharmacy);
         if (trustScore < minRequiredTrustScore) {

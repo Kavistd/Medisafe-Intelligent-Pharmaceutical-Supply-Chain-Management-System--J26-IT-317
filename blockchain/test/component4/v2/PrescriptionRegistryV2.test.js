@@ -143,6 +143,26 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
         .withArgs(prescriptionId, 2);
     });
 
+    it("allows anyone to persist expiry and emits the status change at the exact expiry time", async function () {
+      await time.increaseTo(Number(expiryTime));
+
+      await expect(registry.connect(unauthorized).expirePrescription(prescriptionId))
+        .to.emit(registry, "PrescriptionStatusChanged");
+
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(2n); // EXPIRED
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PrescriptionNotActive")
+        .withArgs(prescriptionId, 2);
+    });
+
+    it("rejects expiry finalization before the prescription expires", async function () {
+      const currentTimestamp = BigInt(await time.latest()) + 1n;
+      await expect(registry.connect(unauthorized).expirePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PrescriptionNotExpired")
+        .withArgs(prescriptionId, expiryTime, currentTimestamp);
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
     it("allows the issuing doctor to revoke an active prescription", async function () {
       await expect(registry.connect(doctor).revokePrescription(prescriptionId))
         .to.emit(registry, "PrescriptionRevoked");
@@ -171,9 +191,84 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
       await issue();
     });
 
-    it("does not dispense while no validated real verifier is integrated", async function () {
+    it("lets a registered trusted pharmacy reach the patient-authorization block", async function () {
       await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
         .to.be.revertedWithCustomError(registry, "PatientAuthorizationUnavailable");
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks dispensing when the pharmacy-trust registry is unconfigured", async function () {
+      await registry.setPharmacyTrustRegistry(ethers.ZeroAddress);
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PharmacyTrustRegistryUnavailable");
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks dispensing when the pharmacy-trust registry address has no contract code", async function () {
+      await registry.setPharmacyTrustRegistry(unauthorized.address);
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PharmacyTrustRegistryUnavailable");
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks an unknown pharmacy based on the Component 3 trust record", async function () {
+      const otherPrescriptionId = ethers.hexlify(ethers.randomBytes(32));
+      await issue(otherPrescriptionId, expiryTime, otherPharmacy.address);
+
+      await expect(registry.connect(otherPharmacy).dispensePrescription(
+        otherPrescriptionId
+      )).to.be.revertedWithCustomError(registry, "PharmacyNotRegistered")
+        .withArgs(otherPharmacy.address);
+      expect((await registry.getPrescription(otherPrescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks a registered but explicitly untrusted pharmacy", async function () {
+      await pharmacyTrustRegistry.setPharmacyTrust(pharmacy.address, 95, false);
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PharmacyNotTrusted");
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks dispensing when the registration response is malformed", async function () {
+      const MalformedRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+      const malformedRegistry = await MalformedRegistry.deploy(true, 95, true, 2);
+      await malformedRegistry.waitForDeployment();
+      await registry.setPharmacyTrustRegistry(await malformedRegistry.getAddress());
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId)).to.be.reverted;
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks dispensing when registration, score, or trusted-status queries fail or return malformed data", async function () {
+      const MockRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+      // Modes 1-6: registration revert/malformed, score revert/malformed, trusted-status revert/malformed.
+      for (const failureMode of [1, 2, 3, 4, 5, 6]) {
+        const failingRegistry = await MockRegistry.deploy(true, 95, true, failureMode);
+        await failingRegistry.waitForDeployment();
+        await registry.setPharmacyTrustRegistry(await failingRegistry.getAddress());
+
+        await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId)).to.be.reverted;
+        expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+      }
+    });
+
+    it("blocks a pharmacy below the configured trust-score threshold", async function () {
+      await pharmacyTrustRegistry.setPharmacyTrust(pharmacy.address, 69, true);
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "LowPharmacyTrust")
+        .withArgs(pharmacy.address, 69n, 70n);
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
+    it("blocks dispensing when the configured trust registry cannot answer the trust check", async function () {
+      await registry.setPharmacyTrustRegistry(await riskRegistry.getAddress());
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.reverted;
       expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
     });
 
@@ -181,6 +276,7 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
       await expect(registry.connect(otherPharmacy).dispensePrescription(prescriptionId))
         .to.be.revertedWithCustomError(registry, "WrongIntendedPharmacy")
         .withArgs(pharmacy.address, otherPharmacy.address);
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
     });
 
     it("does not emit a dispense event or consume the prescription", async function () {
