@@ -84,6 +84,14 @@ Start the API and submit a medicine payload plus `sender` to
 `POST /api/v1/risk/assess/transaction`. The endpoint returns an unsigned
 `setBatchRisk` transaction. The sender's wallet signs and broadcasts it.
 
+The registry accepts integer scores from 0 through 100. `isSafe` must be true
+exactly when the recorded integer score is below 70; the publisher derives this
+flag from the rounded integer score. `hasBatchRisk(batchId)` distinguishes a
+recorded score of zero from a batch with no record. Component 4 rejects missing
+records, inconsistent score/flag pairs, and every score of 70 or higher. After
+changing these interfaces, redeploy the registries and point Component 4 at the
+new risk-registry address; existing deployments do not gain the new getter.
+
 The sender must hold `ORACLE_ROLE`. The deployment administrator receives
 `DEFAULT_ADMIN_ROLE` and `ORACLE_ROLE` initially and may grant oracle access to
 the backend publisher account.
