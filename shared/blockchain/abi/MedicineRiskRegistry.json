@@ -32,6 +32,33 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "riskScore",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isSafe",
+        "type": "bool"
+      }
+    ],
+    "name": "RiskSafetyFlagMismatch",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "riskScore",
+        "type": "uint256"
+      }
+    ],
+    "name": "RiskScoreOutOfRange",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -217,6 +244,25 @@
     "name": "grantRole",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "batchId",
+        "type": "string"
+      }
+    ],
+    "name": "hasBatchRisk",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
