@@ -133,6 +133,49 @@ function getContract(readOnly = false) {
   return new ethers.Contract(contractAddress, PrescriptionRegistryABI.abi, getProvider());
 }
 
+async function getBlockchainStatus({ provider = getProvider(), contract = getContract(true) } = {}) {
+  let network;
+  try {
+    network = await provider.getNetwork();
+  } catch {
+    throw configurationError("Unable to connect to the configured local blockchain RPC.", "BLOCKCHAIN_RPC_UNAVAILABLE");
+  }
+  if (network.chainId !== 31337n) {
+    throw configurationError("Component 4 is connected to the wrong blockchain network.", "BLOCKCHAIN_CHAIN_MISMATCH");
+  }
+
+  let registryAddress;
+  let registryCode;
+  let riskRegistryAddress;
+  let riskRegistryCode;
+  try {
+    registryAddress = await contract.getAddress();
+    registryCode = await provider.getCode(registryAddress);
+    if (!registryCode || registryCode === "0x") {
+      throw configurationError("No Component 4 PrescriptionRegistry is deployed at the configured address.", "PRESCRIPTION_REGISTRY_UNAVAILABLE");
+    }
+    riskRegistryAddress = await contract.riskRegistry();
+    if (riskRegistryAddress === ethers.ZeroAddress) {
+      throw configurationError("The Component 2 risk registry is not configured on Component 4.", "RISK_REGISTRY_NOT_CONFIGURED");
+    }
+    riskRegistryCode = await provider.getCode(riskRegistryAddress);
+    if (!riskRegistryCode || riskRegistryCode === "0x") {
+      throw configurationError("No Component 2 risk registry is deployed at the linked address.", "RISK_REGISTRY_UNAVAILABLE");
+    }
+  } catch (error) {
+    if (error.statusCode) throw error;
+    throw configurationError("Unable to verify the deployed Component 4 and Component 2 registries.", "BLOCKCHAIN_REGISTRY_CHECK_FAILED");
+  }
+
+  return {
+    connected: true,
+    chainId: Number(network.chainId),
+    prescriptionRegistry: ethers.getAddress(registryAddress),
+    riskRegistry: ethers.getAddress(riskRegistryAddress),
+    component3Connected: false,
+  };
+}
+
 function rejectBackendWrite() {
   throw Object.assign(
     new Error("Component 4 write transactions must be submitted through the authenticated wallet in MetaMask."),
@@ -147,7 +190,7 @@ const PRESCRIPTION_STATUS = {
   3: "REVOKED",
 };
 
-function formatPrescription(raw) {
+function formatPrescription(raw, nowSeconds = Math.floor(Date.now() / 1000)) {
   const statusCode = Number(raw.status);
   return {
     prescriptionId: raw.prescriptionId,
@@ -156,7 +199,9 @@ function formatPrescription(raw) {
     doctorAddress: raw.doctorAddress,
     issuedAt: new Date(Number(raw.issuedAt) * 1000).toISOString(),
     expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
-    isExpired: Number(raw.expiryTime) * 1000 < Date.now(),
+    // Match PrescriptionRegistry: an active record expires only after the
+    // chain timestamp is strictly greater than expiryTime.
+    isExpired: Number(raw.expiryTime) < nowSeconds,
     status: PRESCRIPTION_STATUS[statusCode] || "UNKNOWN",
     statusCode,
   };
@@ -215,7 +260,9 @@ async function verifyPrescription({ prescriptionId, patientHash }) {
 }
 
 async function verifyPatientCredentialAgainstRecord(raw, verifyHash, nowSeconds = Math.floor(Date.now() / 1000)) {
-  if (Number(raw.expiryTime) <= nowSeconds) {
+  // Match PrescriptionRegistry._dispenseInternal, which permits use at the
+  // exact expiry second and rejects only after that timestamp has passed.
+  if (Number(raw.expiryTime) < nowSeconds) {
     throw Object.assign(new Error("This prescription has expired."), { statusCode: 410, code: "PRESCRIPTION_EXPIRED" });
   }
   if (Number(raw.status) !== 0) {
@@ -228,18 +275,22 @@ async function verifyPatientCredentialAgainstRecord(raw, verifyHash, nowSeconds 
 }
 
 async function getPrescriptionsByDoctor(doctorAddress) {
-  const contract = getContract(true);
-
   if (!ethers.isAddress(doctorAddress)) {
     throw Object.assign(new Error("Invalid Ethereum address."), { statusCode: 400 });
   }
 
-  const ids = await contract.getPrescriptionsByDoctor(doctorAddress);
+  let ids;
+  try {
+    const contract = getContract(true);
+    ids = await contract.getPrescriptionsByDoctor(ethers.getAddress(doctorAddress));
+  } catch {
+    throw configurationError("Unable to read the authenticated doctor's prescriptions from the blockchain.", "BLOCKCHAIN_READ_FAILED");
+  }
 
   return {
     success: true,
     data: {
-      doctorAddress,
+      doctorAddress: ethers.getAddress(doctorAddress),
       prescriptionIds: ids,
       count: ids.length,
     },
@@ -257,6 +308,7 @@ module.exports = {
   verifyPatientCredentialAgainstRecord,
   getPrescriptionsByDoctor,
   getContract,
+  getBlockchainStatus,
   getProvider,
   getSigner,
   createConfiguredSigner,

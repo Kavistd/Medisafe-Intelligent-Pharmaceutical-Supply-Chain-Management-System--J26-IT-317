@@ -20,6 +20,7 @@ if (fs.existsSync(envFile)) {
   }
 }
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
+const { getBlockchainHealth } = require("./controllers/prescriptionController");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5004;
@@ -47,6 +48,8 @@ app.get("/health", (req, res) => {
     port: PORT,
   });
 });
+
+app.get("/health/blockchain", getBlockchainHealth);
 
 app.use("/api/v1/prescriptions", prescriptionRoutes);
 

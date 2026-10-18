@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { verifyPatientCredentialAgainstRecord } = require("../services/prescriptionService");
+const { formatPrescription, verifyPatientCredentialAgainstRecord } = require("../services/prescriptionService");
 
 const activeRecord = (overrides = {}) => ({ status: 0, expiryTime: BigInt(Math.floor(Date.now() / 1000) + 300), ...overrides });
 
@@ -8,6 +8,19 @@ test("patient hash is accepted only for an active, unexpired scoped record", asy
   let checked = false;
   assert.equal(await verifyPatientCredentialAgainstRecord(activeRecord(), async () => { checked = true; return true; }), true);
   assert.equal(checked, true);
+});
+
+test("expiry equality matches the contract and expires only after the boundary second", async () => {
+  const expiryTime = 1_800_000_000;
+  const record = activeRecord({ expiryTime: BigInt(expiryTime) });
+  assert.equal(await verifyPatientCredentialAgainstRecord(record, async () => true, expiryTime), true);
+  assert.equal(formatPrescription({ ...record, issuedAt: 1_799_999_000n }, expiryTime).isExpired, false);
+
+  await assert.rejects(
+    verifyPatientCredentialAgainstRecord(record, async () => true, expiryTime + 1),
+    (error) => error.statusCode === 410 && error.code === "PRESCRIPTION_EXPIRED"
+  );
+  assert.equal(formatPrescription({ ...record, issuedAt: 1_799_999_000n }, expiryTime + 1).isExpired, true);
 });
 
 test("incorrect patient hash is rejected without returning the stored hash", async () => {

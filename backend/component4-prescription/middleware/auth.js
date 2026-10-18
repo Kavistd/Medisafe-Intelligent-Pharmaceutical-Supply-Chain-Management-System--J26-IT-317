@@ -69,7 +69,15 @@ async function exchangeSignature(req, res) {
       `Issued At: ${challenge.issuedAt}`,
     ].join("\n")) return unauthorized(res, "Authentication challenge is invalid.");
     issuedChallenges.delete(nonce);
-    const address = ethers.verifyMessage(message, signature);
+    let address;
+    try {
+      address = ethers.verifyMessage(message, signature);
+    } catch (error) {
+      if (error.code === "INVALID_ARGUMENT" || error.code === "BAD_DATA") {
+        return unauthorized(res, "Wallet signature is invalid or malformed.");
+      }
+      throw error;
+    }
     if (ethers.getAddress(address).toLowerCase() !== challenge.address.toLowerCase()) return unauthorized(res, "Signature does not match the challenge address.");
     let isDoctor = false;
     let isPharmacy = false;
@@ -77,6 +85,17 @@ async function exchangeSignature(req, res) {
       let contract;
       try { contract = prescriptionService.getContract(true); }
       catch (error) { return configurationError(res, safeConfigurationMessage(error)); }
+      // Detect a restarted local node (or stale address file) before ABI calls. Calling
+      // role getters against an empty address otherwise surfaces as an opaque BAD_DATA.
+      const runner = contract.runner;
+      const provider = runner?.provider || (typeof runner?.getNetwork === "function" ? runner : null);
+      if (provider && typeof contract.getAddress === "function" && typeof provider.getCode === "function") {
+        const registryAddress = await contract.getAddress();
+        const code = await provider.getCode(registryAddress);
+        if (!code || code === "0x") {
+          return configurationError(res, "No Component 4 PrescriptionRegistry is deployed at the configured address on this RPC. The local Hardhat node may have restarted; redeploy V1 and reconnect the configured address.");
+        }
+      }
       const doctorRole = await contract.DOCTOR_ROLE();
       const pharmacyRole = await contract.PHARMACY_ROLE();
       isDoctor = await contract.hasRole(doctorRole, address);
@@ -89,7 +108,6 @@ async function exchangeSignature(req, res) {
     const token = `${payload}.${signPayload(payload)}`;
     return res.json({ success: true, data: { token, tokenType: "Bearer", expiresIn: TOKEN_TTL_SECONDS } });
   } catch (error) {
-    if (error.code === "INVALID_ARGUMENT" || error.code === "BAD_DATA") return unauthorized(res, "Wallet signature is invalid or malformed.");
     if (error.code === "NETWORK_ERROR" || error.code === "SERVER_ERROR" || error.code === "TIMEOUT") return configurationError(res, "Blockchain node is unavailable. Check RPC_URL and confirm the node is running.");
     if (error.message?.includes("AUTH_TOKEN_SECRET")) return configurationError(res, "Authentication is unavailable: AUTH_TOKEN_SECRET must contain at least 32 characters.");
     if (error.message?.includes("contract address") || error.message?.includes("contract addresses")) return configurationError(res, "PrescriptionRegistry is not configured for this network.");

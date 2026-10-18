@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getAddress, isAddress } from "ethers";
 import { apiRequest, API_BASE } from "./component4/api.js";
+import { fetchDoctorPrescriptions } from "./component4/doctorPrescriptions.js";
 import { createWalletRegistry, REGISTRY_ADDRESS } from "./component4/registryClient.js";
-import { assertTokenRole, buildChallengeRequest } from "./component4/authFlow.js";
+import { assertTokenRole, buildChallengeRequest, encodePersonalSignMessage } from "./component4/authFlow.js";
 import {
   assertPatientHashMatches,
   assertPrescriptionIssuer,
@@ -11,6 +12,7 @@ import {
   submitWalletTransaction,
   transactionErrorMessage,
 } from "./component4/walletTransactions.js";
+import { getMetaMaskProvider, requestLocalHardhatNetwork } from "./component4/walletProvider.js";
 import {
   assertPresentationScope,
   decryptPatientCredential,
@@ -41,6 +43,7 @@ function Icon({ name, size = 18 }) {
   const paths = {
     shield: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></>,
     plus: <><path d="M12 5v14M5 12h14"/></>,
+    list: <><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></>,
     search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
     clock: <><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></>,
     logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></>,
@@ -64,51 +67,65 @@ function AuthScreen({ onLogin, onPrepare, message }) {
   const [challenge, setChallenge] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [walletAvailable, setWalletAvailable] = useState(Boolean(window.ethereum?.request));
-  const [walletChainId, setWalletChainId] = useState("");
+  const [walletAvailable, setWalletAvailable] = useState(false);
 
   useEffect(() => {
-    if (!window.ethereum?.on) return undefined;
+    let mounted = true;
+    let provider;
     const onAccountsChanged = (accounts) => {
       setAddress(accounts?.[0] || ""); setChallenge("");
       setError(accounts?.length ? "Wallet account changed. Request a new challenge for this account." : "Wallet disconnected.");
     };
-    const onChainChanged = (chainId) => { setWalletChainId(chainId); setChallenge(""); setError("Wallet network changed. Request a new challenge to continue."); };
-    window.ethereum.request({ method: "eth_chainId" }).then(setWalletChainId).catch(() => {});
-    window.ethereum.on("accountsChanged", onAccountsChanged);
-    window.ethereum.on("chainChanged", onChainChanged);
-    return () => { window.ethereum.removeListener?.("accountsChanged", onAccountsChanged); window.ethereum.removeListener?.("chainChanged", onChainChanged); };
+    const onChainChanged = () => { setChallenge(""); setError("Wallet network changed. Request a new challenge to continue."); };
+    getMetaMaskProvider().then((selected) => {
+      if (!mounted) return;
+      provider = selected;
+      setWalletAvailable(true);
+      selected.on?.("accountsChanged", onAccountsChanged);
+      selected.on?.("chainChanged", onChainChanged);
+    }).catch(() => { if (mounted) setWalletAvailable(false); });
+    return () => {
+      mounted = false;
+      provider?.removeListener?.("accountsChanged", onAccountsChanged);
+      provider?.removeListener?.("chainChanged", onChainChanged);
+    };
   }, []);
 
   async function signIn() {
     setBusy(true); setError(""); setChallenge("");
     try {
-      if (!window.ethereum?.request) throw new Error("MetaMask was not found. Install or enable the wallet extension and try again.");
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      // Resolve again at click time so login never uses a stale injected provider.
+      const provider = await getMetaMaskProvider();
+      const accounts = await provider.request({ method: "eth_requestAccounts" });
       const walletAddress = accounts?.[0];
       if (!walletAddress) throw new Error("MetaMask did not provide a connected account.");
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-      await assertWalletContext(window.ethereum, walletAddress);
-      if (walletChainId && chainId.toLowerCase() !== walletChainId.toLowerCase()) throw new Error("Wallet network changed. Please try signing in again.");
+      await requestLocalHardhatNetwork(provider);
+      const chainId = await provider.request({ method: "eth_chainId" });
+      await assertWalletContext(provider, walletAddress);
       setAddress(walletAddress);
       const challengeBody = buildChallengeRequest(role, walletAddress, patientPrescriptionId);
       const challengeResult = await apiRequest("/api/v1/prescriptions/auth/challenge", { method: "POST", body: challengeBody });
       const message = challengeResult.data.message;
       setChallenge(message);
       let signature;
-      try { signature = await window.ethereum.request({ method: "personal_sign", params: [message, walletAddress] }); }
+      const signableMessage = encodePersonalSignMessage(message);
+      try { signature = await provider.request({ method: "personal_sign", params: [signableMessage, walletAddress] }); }
       catch (err) {
         if (err.code === 4001) throw new Error("Signature request was rejected in MetaMask.");
         throw new Error(err.message || "MetaMask could not sign the challenge.");
       }
-      const current = await window.ethereum.request({ method: "eth_accounts" });
+      const current = await provider.request({ method: "eth_accounts" });
       if (!current?.[0] || current[0].toLowerCase() !== walletAddress.toLowerCase()) throw new Error("Wallet account changed during signing. Please try again.");
-      const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+      const currentChainId = await provider.request({ method: "eth_chainId" });
       if (currentChainId.toLowerCase() !== chainId.toLowerCase()) throw new Error("Wallet network changed during signing. Please try again.");
       const result = await apiRequest("/api/v1/prescriptions/auth/token", { method: "POST", body: { message, signature } });
+      const finalAccounts = await provider.request({ method: "eth_accounts" });
+      if (!finalAccounts?.[0] || finalAccounts[0].toLowerCase() !== walletAddress.toLowerCase()) throw new Error("Wallet account changed during sign-in. Please try again.");
+      const finalChainId = await provider.request({ method: "eth_chainId" });
+      if (finalChainId.toLowerCase() !== chainId.toLowerCase()) throw new Error("Wallet network changed during sign-in. Please try again.");
       const claims = JSON.parse(window.atob(result.data.token.split(".")[0].replace(/-/g, "+").replace(/_/g, "/")));
       assertTokenRole(claims, role, challengeBody.prescriptionId || null);
-      onLogin({ token: result.data.token, role, address: walletAddress, prescriptionId: challengeBody.prescriptionId || null });
+      onLogin({ token: result.data.token, role, address: walletAddress, prescriptionId: challengeBody.prescriptionId || null, walletProvider: provider });
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   }
@@ -145,7 +162,7 @@ function AuthScreen({ onLogin, onPrepare, message }) {
   </main>;
 }
 
-function Dashboard({ session, onLogout }) {
+function Dashboard({ session, onLogout, onSessionExpired }) {
   const [tab, setTab] = useState(session.role === "doctor" ? "issue" : "pharmacy");
   const [issueForm, setIssueForm] = useState(EMPTY_FORM);
   const [dispenseForm, setDispenseForm] = useState(EMPTY_DISPENSE_FORM);
@@ -156,18 +173,61 @@ function Dashboard({ session, onLogout }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const [lookupError, setLookupError] = useState("");
+  const [doctorPrescriptionList, setDoctorPrescriptionList] = useState(null);
+  const [doctorPrescriptionListLoading, setDoctorPrescriptionListLoading] = useState(false);
+  const [doctorPrescriptionListError, setDoctorPrescriptionListError] = useState("");
+  const [doctorPrescriptionListRetry, setDoctorPrescriptionListRetry] = useState(0);
+  const doctorPrescriptionListRequest = useRef(null);
 
   const doctorNav = [
     { id: "issue", label: "Issue prescription", icon: "plus" },
+    { id: "mine", label: "My prescriptions", icon: "list" },
     { id: "lookup", label: "Prescription lookup", icon: "search" },
   ];
+
+  useEffect(() => {
+    if (session.role !== "doctor") return undefined;
+    let active = true;
+    const token = session.token;
+    let request = doctorPrescriptionListRequest.current;
+    if (!request || request.token !== token) {
+      setDoctorPrescriptionList(null);
+      setDoctorPrescriptionListLoading(true);
+      setDoctorPrescriptionListError("");
+      request = { token, promise: fetchDoctorPrescriptions(token) };
+      doctorPrescriptionListRequest.current = request;
+    } else {
+      setDoctorPrescriptionListLoading(true);
+    }
+
+    request.promise.then((data) => {
+      if (active) setDoctorPrescriptionList(data);
+    }).catch((error) => {
+      if (!active) return;
+      if (error?.status === 401) {
+        onSessionExpired();
+        return;
+      }
+      setDoctorPrescriptionListError(error?.message || "Could not load your prescriptions.");
+    }).finally(() => {
+      if (active) setDoctorPrescriptionListLoading(false);
+    });
+
+    return () => { active = false; };
+  }, [session.role, session.token, doctorPrescriptionListRetry, onSessionExpired]);
+
+  function retryDoctorPrescriptionList() {
+    doctorPrescriptionListRequest.current = null;
+    setDoctorPrescriptionListError("");
+    setDoctorPrescriptionListRetry((retry) => retry + 1);
+  }
 
   async function submitIssue(event) {
     event.preventDefault(); setBusy(true); setNotice(null);
     try {
       const args = buildIssueArguments({ doctorAddress: session.address, patientHash: issueForm.patientHash.trim(), medicineId: issueForm.medicineId.trim(), batchId: issueForm.batchId.trim(), expiryDays: Number(issueForm.expiryDays) });
       const result = await submitWalletTransaction({
-        ethereum: window.ethereum,
+        ethereum: session.walletProvider,
         expectedAddress: session.address,
         role: "doctor",
         method: "issuePrescription",
@@ -194,7 +254,7 @@ function Dashboard({ session, onLogout }) {
     event.preventDefault(); if (!lookup) return; setBusy(true); setNotice(null);
     try {
       const result = await submitWalletTransaction({
-        ethereum: window.ethereum,
+        ethereum: session.walletProvider,
         expectedAddress: session.address,
         role: "doctor",
         method: "revokePrescription",
@@ -222,7 +282,7 @@ function Dashboard({ session, onLogout }) {
       });
       const prescriptionId = credential.prescriptionId;
       const result = await submitWalletTransaction({
-        ethereum: window.ethereum,
+        ethereum: session.walletProvider,
         expectedAddress: session.address,
         role: "pharmacy",
         method: "verifyAndDispenseWithPatientHash",
@@ -252,7 +312,7 @@ function Dashboard({ session, onLogout }) {
       <div className="profile-row"><div className="avatar">{session.role === "doctor" ? "DR" : "PH"}</div><div className="profile-info"><strong>{roleName} session</strong><span>{shortAddress}</span></div><button className="icon-button logout-button" onClick={onLogout} aria-label="Sign out" title="Sign out"><Icon name="logout"/></button></div>
     </aside>
     <main className="main-area">
-      <header className="topbar"><div className="breadcrumbs"><span>Workspace</span><span className="crumb-sep">/</span><strong>{session.role === "doctor" ? (tab === "issue" ? "Issue prescription" : "Prescription lookup") : "Pharmacy desk"}</strong></div><div className="topbar-right"><span className="secure-label"><span className="status-dot"/> Secure session</span><button className="mobile-signout" onClick={onLogout}><Icon name="logout" size={16}/> Sign out</button></div></header>
+      <header className="topbar"><div className="breadcrumbs"><span>Workspace</span><span className="crumb-sep">/</span><strong>{session.role === "doctor" ? (tab === "issue" ? "Issue prescription" : tab === "mine" ? "My prescriptions" : "Prescription lookup") : "Pharmacy desk"}</strong></div><div className="topbar-right"><span className="secure-label"><span className="status-dot"/> Secure session</span><button className="mobile-signout" onClick={onLogout}><Icon name="logout" size={16}/> Sign out</button></div></header>
       <div className="content-wrap">
         <Notice notice={notice} onClose={() => setNotice(null)}/>
         {session.role === "doctor" && tab === "issue" && <>
@@ -268,6 +328,16 @@ function Dashboard({ session, onLogout }) {
             </section>
             <aside className="side-info"><div className="info-card privacy-card"><span className="info-icon"><Icon name="shield"/></span><h3>Patient data stays off-chain</h3><p>The doctor dashboard handles only a patient hash, but the current registry makes that hash public.</p></div><div className="info-card steps-card"><h3>Before you issue</h3><ul><li><span>1</span><p>Ask the patient to prepare a hash and encrypted patient credential.</p></li><li><span>2</span><p>Confirm medicine and batch identifiers are correct.</p></li><li><span>3</span><p>Issue using only the patient's hash; never request identity data or salt.</p></li></ul></div></aside>
           </div>
+        </>}
+        {session.role === "doctor" && tab === "mine" && <>
+          <section className="page-heading"><div><span className="eyebrow">DOCTOR WORKSPACE</span><h1>My prescriptions</h1><p>Prescription IDs associated with your authenticated doctor wallet.</p></div><div className="heading-icon"><Icon name="list" size={22}/></div></section>
+          <section className="panel lookup-panel" aria-labelledby="doctor-prescriptions-heading">
+            <div className="panel-head"><div><h2 id="doctor-prescriptions-heading">Your prescription list</h2><p>{doctorPrescriptionList ? `${doctorPrescriptionList.count} prescription${doctorPrescriptionList.count === 1 ? "" : "s"}` : "Loaded for your signed-in doctor session."}</p></div><span className="panel-index">{doctorPrescriptionList ? doctorPrescriptionList.count : "—"}</span></div>
+            {doctorPrescriptionListLoading && <p role="status" aria-live="polite">Loading your prescriptions…</p>}
+            {!doctorPrescriptionListLoading && doctorPrescriptionListError && <div className="inline-error" role="alert">{doctorPrescriptionListError}<button className="text-button" type="button" onClick={retryDoctorPrescriptionList}>Try again</button></div>}
+            {!doctorPrescriptionListLoading && !doctorPrescriptionListError && doctorPrescriptionList?.prescriptionIds.length === 0 && <p className="prescription-list-empty" role="status">No prescriptions are associated with this doctor account yet.</p>}
+            {!doctorPrescriptionListLoading && !doctorPrescriptionListError && doctorPrescriptionList?.prescriptionIds.length > 0 && <ul className="prescription-list">{doctorPrescriptionList.prescriptionIds.map((prescriptionId) => <li key={prescriptionId}><code>{prescriptionId}</code><button className="text-button" type="button" onClick={() => { setLookupId(prescriptionId); setLookup(null); setLookupError(""); setTab("lookup"); }}>Open lookup</button></li>)}</ul>}
+          </section>
         </>}
         {session.role === "doctor" && tab === "lookup" && <>
           <section className="page-heading"><div><span className="eyebrow">DOCTOR WORKSPACE</span><h1>Prescription lookup</h1><p>Retrieve prescription status using its on-chain identifier.</p></div><div className="heading-icon"><Icon name="search" size={22}/></div></section>
@@ -405,25 +475,30 @@ function App() {
   const sessionView = useMemo(() => session, [session]);
 
   useEffect(() => {
-    if (!session || !window.ethereum?.on) return undefined;
+    const provider = session?.walletProvider;
+    if (!session || !provider?.on) return undefined;
     const clearSession = (message) => { setSession(null); setLogoutMessage(message || ""); };
     const onAccountsChanged = (accounts) => {
       if (!accounts?.[0] || accounts[0].toLowerCase() !== session.address.toLowerCase()) clearSession("Wallet account changed. Sign in again to continue.");
     };
     const onChainChanged = () => clearSession("Wallet network changed. Sign in again on the configured local network.");
-    window.ethereum.on("accountsChanged", onAccountsChanged);
-    window.ethereum.on("chainChanged", onChainChanged);
+    provider.on("accountsChanged", onAccountsChanged);
+    provider.on("chainChanged", onChainChanged);
     return () => {
-      window.ethereum.removeListener?.("accountsChanged", onAccountsChanged);
-      window.ethereum.removeListener?.("chainChanged", onChainChanged);
+      provider.removeListener?.("accountsChanged", onAccountsChanged);
+      provider.removeListener?.("chainChanged", onChainChanged);
     };
   }, [session]);
 
-  const signOut = () => { setSession(null); setLogoutMessage(""); };
+  const signOut = useCallback(() => { setSession(null); setLogoutMessage(""); }, []);
+  const expireSession = useCallback(() => {
+    setSession(null);
+    setLogoutMessage("Your doctor session expired. Sign in again to continue.");
+  }, []);
   return sessionView
     ? sessionView.role === "patient"
       ? <PatientDashboard session={sessionView} onLogout={signOut}/>
-      : <Dashboard session={sessionView} onLogout={signOut}/>
+      : <Dashboard session={sessionView} onLogout={signOut} onSessionExpired={expireSession}/>
     : preparingPatient
       ? <PatientPreparation onBack={() => setPreparingPatient(false)}/>
       : <AuthScreen onPrepare={() => setPreparingPatient(true)} onLogin={(nextSession) => { setSession(nextSession); setLogoutMessage(""); }} message={logoutMessage}/>;

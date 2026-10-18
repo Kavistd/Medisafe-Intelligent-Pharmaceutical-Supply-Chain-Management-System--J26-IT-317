@@ -437,7 +437,7 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
       });
     }
 
-    for (const score of [70, 71, 100]) {
+    for (const score of [70, 71, 89, 100]) {
       it(`rejects risk score ${score} and leaves the prescription active`, async function () {
         await mockRiskRegistry.setBatchRisk(BATCH_ID, score, false);
         await expectRiskFailure(

@@ -1,5 +1,10 @@
 const PRESCRIPTION_ID = /^0x[0-9a-fA-F]{64}$/;
 
+export function encodePersonalSignMessage(message) {
+  if (typeof message !== "string") throw new Error("Wallet challenge must be text.");
+  return `0x${Array.from(new TextEncoder().encode(message), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export function buildChallengeRequest(role, address, prescriptionId = "") {
   if (role === "doctor" || role === "pharmacy") return { address };
   if (role === "patient") {
