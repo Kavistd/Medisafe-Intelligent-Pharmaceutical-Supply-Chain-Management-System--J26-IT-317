@@ -63,7 +63,15 @@ def registry_client() -> RiskRegistryClient:
 
 @pytest.mark.parametrize(
     ("model_score", "registry_score", "is_safe"),
-    [(0.0, 0, True), (0.699, 70, True), (0.70, 70, False), (1.0, 100, False)],
+    [
+        (0.0, 0, True),
+        (0.69, 69, True),
+        (0.6949, 69, True),
+        (0.695, 70, False),
+        (0.699, 70, False),
+        (0.70, 70, False),
+        (1.0, 100, False),
+    ],
 )
 def test_build_record_transaction_maps_model_score_to_registry_scale(
     model_score: float, registry_score: int, is_safe: bool

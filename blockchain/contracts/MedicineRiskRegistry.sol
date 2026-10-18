@@ -15,11 +15,15 @@ contract MedicineRiskRegistry is AccessControl {
         uint256 riskScore; // 0 - 100
         bool isSafe;
         uint256 evaluatedAt;
+        bool exists;
     }
 
     mapping(string => BatchRisk) private _batchRisks;
 
     event BatchRiskUpdated(string indexed batchId, uint256 riskScore, bool isSafe, uint256 timestamp);
+
+    error RiskScoreOutOfRange(uint256 riskScore);
+    error RiskSafetyFlagMismatch(uint256 riskScore, bool isSafe);
 
     constructor(address admin) {
         address initialAdmin = admin == address(0) ? msg.sender : admin;
@@ -28,11 +32,15 @@ contract MedicineRiskRegistry is AccessControl {
     }
 
     function setBatchRisk(string calldata batchId, uint256 riskScore, bool isSafe) external onlyRole(ORACLE_ROLE) {
+        if (riskScore > 100) revert RiskScoreOutOfRange(riskScore);
+        if (isSafe != (riskScore < 70)) revert RiskSafetyFlagMismatch(riskScore, isSafe);
+
         _batchRisks[batchId] = BatchRisk({
             batchId: batchId,
             riskScore: riskScore,
             isSafe: isSafe,
-            evaluatedAt: block.timestamp
+            evaluatedAt: block.timestamp,
+            exists: true
         });
         emit BatchRiskUpdated(batchId, riskScore, isSafe, block.timestamp);
     }
@@ -41,11 +49,14 @@ contract MedicineRiskRegistry is AccessControl {
         return _batchRisks[batchId].riskScore;
     }
 
-    function hasRiskAssessment(string calldata batchId) external view returns (bool) {
-        return _batchRisks[batchId].evaluatedAt != 0;
+    function hasBatchRisk(string calldata batchId) external view returns (bool) {
+        return _batchRisks[batchId].exists;
     }
 
     function isBatchSafe(string calldata batchId) external view returns (bool) {
-        return _batchRisks[batchId].evaluatedAt != 0 && _batchRisks[batchId].isSafe;
+        if (!_batchRisks[batchId].exists) {
+            return true;
+        }
+        return _batchRisks[batchId].isSafe;
     }
 }

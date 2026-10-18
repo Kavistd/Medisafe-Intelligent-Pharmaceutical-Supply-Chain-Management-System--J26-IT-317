@@ -86,8 +86,8 @@ class RiskRegistryClient:
         """Build an unsigned ``setBatchRisk`` transaction.
 
         The model emits a score from 0 to 1, while the registry and Component 4
-        use an integer percentage from 0 to 100. High-risk batches are marked
-        unsafe using the model's 0.70 risk-band boundary.
+        use an integer percentage from 0 to 100. Safety is derived from the
+        rounded integer score to match Component 4's 70-point boundary.
         """
         normalized_score = float(risk_score)
         if not 0 <= normalized_score <= 1:
@@ -97,7 +97,7 @@ class RiskRegistryClient:
 
         checksum_sender = Web3.to_checksum_address(sender)
         score_percent = round(normalized_score * 100)
-        is_safe = normalized_score < 0.70
+        is_safe = score_percent < 70
         transaction = self.contract.functions.setBatchRisk(
             batch_id,
             score_percent,
