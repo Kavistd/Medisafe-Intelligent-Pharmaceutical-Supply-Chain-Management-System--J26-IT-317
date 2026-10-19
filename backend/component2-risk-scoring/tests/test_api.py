@@ -12,6 +12,7 @@ if str(COMPONENT_ROOT) not in sys.path:
     sys.path.insert(0, str(COMPONENT_ROOT))
 
 import api.risk_routes as risk_routes
+import main as main_module
 from main import app
 
 
@@ -38,6 +39,46 @@ def test_health_endpoint_reports_component_status() -> None:
     assert response.json() == {
         "status": "ok",
         "service": "component2-risk-scoring",
+    }
+
+
+def test_blockchain_health_reports_verified_connection(monkeypatch: Any) -> None:
+    class ConnectedRegistryClient:
+        def connection_status(self) -> dict[str, Any]:
+            return {
+                "connected": True,
+                "network": "localhost",
+                "chain_id": 31337,
+                "contract_address": "0x0000000000000000000000000000000000000001",
+            }
+
+    monkeypatch.setattr(main_module, "RiskRegistryClient", ConnectedRegistryClient)
+
+    response = client.get("/health/blockchain")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "connected": True,
+        "network": "localhost",
+        "chain_id": 31337,
+        "contract_address": "0x0000000000000000000000000000000000000001",
+    }
+
+
+def test_blockchain_health_reports_unavailable_configuration(monkeypatch: Any) -> None:
+    class UnavailableRegistryClient:
+        def __init__(self) -> None:
+            raise RuntimeError("WEB3_RPC_URL is required for blockchain access.")
+
+    monkeypatch.setattr(main_module, "RiskRegistryClient", UnavailableRegistryClient)
+
+    response = client.get("/health/blockchain")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "status": "unavailable",
+        "detail": "WEB3_RPC_URL is required for blockchain access.",
     }
 
 
@@ -70,3 +111,227 @@ def test_assess_endpoint_rejects_missing_required_input() -> None:
 
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "Manufacturer"]
+
+
+def test_assess_registered_batch_reads_component1_and_scores_it(
+    monkeypatch: Any,
+) -> None:
+    medicine = valid_payload()
+    expected = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.18,
+        "risk_level": "Low",
+        "explanation": [],
+    }
+
+    class StubTraceabilityClient:
+        def get_risk_payload(self, batch_id: str) -> dict[str, str]:
+            assert batch_id == "BATCH-001"
+            return medicine
+
+    class StubRiskService:
+        def assess(self, payload: dict[str, Any]) -> dict[str, Any]:
+            assert payload == medicine
+            return expected
+
+    monkeypatch.setattr(risk_routes, "TraceabilityClient", StubTraceabilityClient)
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-001")
+
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+def test_assess_registered_batch_returns_not_found(monkeypatch: Any) -> None:
+    class MissingBatchClient:
+        def get_risk_payload(self, batch_id: str) -> dict[str, str]:
+            raise risk_routes.BatchNotFoundError(f"Batch {batch_id} was not found")
+
+    monkeypatch.setattr(risk_routes, "TraceabilityClient", MissingBatchClient)
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-404")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Batch BATCH-404 was not found"}
+
+
+def test_assess_registered_batch_reports_traceability_unavailable(
+    monkeypatch: Any,
+) -> None:
+    class UnavailableTraceabilityClient:
+        def __init__(self) -> None:
+            raise RuntimeError("Traceability RPC unavailable")
+
+    monkeypatch.setattr(
+        risk_routes, "TraceabilityClient", UnavailableTraceabilityClient
+    )
+
+    response = client.post("/api/v1/risk/assess/batch/BATCH-001")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Traceability RPC unavailable"}
+
+
+def test_transaction_endpoint_returns_assessment_and_unsigned_transaction(
+    monkeypatch: Any,
+) -> None:
+    assessment = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.82,
+        "risk_level": "High",
+        "explanation": [],
+    }
+    transaction = {
+        "from": "0x0000000000000000000000000000000000000001",
+        "to": "0x0000000000000000000000000000000000000002",
+        "nonce": 4,
+        "data": "0x1234",
+    }
+
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            assert medicine == valid_payload()
+            return assessment
+
+    class StubRegistryClient:
+        def build_record_transaction(
+            self, batch_id: str, risk_score: float, sender: str
+        ) -> dict[str, Any]:
+            assert batch_id == "BATCH-001"
+            assert risk_score == 0.82
+            assert sender == "0x0000000000000000000000000000000000000001"
+            return transaction
+
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", StubRegistryClient)
+
+    payload = {
+        **valid_payload(),
+        "sender": "0x0000000000000000000000000000000000000001",
+    }
+    response = client.post("/api/v1/risk/assess/transaction", json=payload)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "assessment": assessment,
+        "transaction": transaction,
+    }
+
+
+def test_transaction_endpoint_reports_missing_blockchain_configuration(
+    monkeypatch: Any,
+) -> None:
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            return {"risk_score": 0.2}
+
+    class UnconfiguredRegistryClient:
+        def __init__(self) -> None:
+            raise RuntimeError("blockchain configuration is missing")
+
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", UnconfiguredRegistryClient)
+
+    payload = {
+        **valid_payload(),
+        "sender": "0x0000000000000000000000000000000000000001",
+    }
+    response = client.post("/api/v1/risk/assess/transaction", json=payload)
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "blockchain configuration is missing"}
+
+
+def test_registered_batch_transaction_builds_component4_risk_write(
+    monkeypatch: Any,
+) -> None:
+    assessment = {
+        "batch_id": "BATCH-001",
+        "risk_score": 0.22,
+        "risk_level": "Low",
+        "explanation": [],
+    }
+
+    class StubTraceabilityClient:
+        def get_risk_payload(self, batch_id: str) -> dict[str, str]:
+            return valid_payload()
+
+    class StubRiskService:
+        def assess(self, medicine: dict[str, Any]) -> dict[str, Any]:
+            return assessment
+
+    class StubRegistryClient:
+        def build_record_transaction(
+            self, batch_id: str, risk_score: float, sender: str
+        ) -> dict[str, Any]:
+            assert (batch_id, risk_score, sender) == (
+                "BATCH-001",
+                0.22,
+                "0x0000000000000000000000000000000000000001",
+            )
+            return {"to": "registry", "data": "0x1234"}
+
+    monkeypatch.setattr(risk_routes, "TraceabilityClient", StubTraceabilityClient)
+    monkeypatch.setattr(risk_routes, "RiskService", StubRiskService)
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", StubRegistryClient)
+
+    response = client.post(
+        "/api/v1/risk/assess/batch/BATCH-001/transaction",
+        json={"sender": "0x0000000000000000000000000000000000000001"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "assessment": assessment,
+        "transaction": {"to": "registry", "data": "0x1234"},
+    }
+
+
+def test_confirm_published_assessment_returns_verified_record(
+    monkeypatch: Any,
+) -> None:
+    transaction_hash = f"0x{'a' * 64}"
+    confirmed = {
+        "transaction_hash": transaction_hash,
+        "block_number": 42,
+        "batch_id": "BATCH-001",
+        "risk_score": 0.22,
+        "score_percent": 22,
+        "is_safe": True,
+        "confirmed": True,
+    }
+
+    class StubRegistryClient:
+        def confirm_record(
+            self, transaction_hash: str, batch_id: str, risk_score: float
+        ) -> dict[str, Any]:
+            assert (batch_id, risk_score) == ("BATCH-001", 0.22)
+            return confirmed
+
+    monkeypatch.setattr(risk_routes, "RiskRegistryClient", StubRegistryClient)
+
+    response = client.post(
+        "/api/v1/risk/publish/confirm",
+        json={
+            "batch_id": "BATCH-001",
+            "risk_score": 0.22,
+            "transaction_hash": transaction_hash,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == confirmed
+
+
+def test_confirm_published_assessment_rejects_invalid_hash() -> None:
+    response = client.post(
+        "/api/v1/risk/publish/confirm",
+        json={
+            "batch_id": "BATCH-001",
+            "risk_score": 0.22,
+            "transaction_hash": "invalid",
+        },
+    )
+
+    assert response.status_code == 422

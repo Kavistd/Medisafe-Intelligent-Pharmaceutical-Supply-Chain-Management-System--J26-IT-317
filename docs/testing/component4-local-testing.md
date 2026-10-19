@@ -52,7 +52,7 @@ No live blockchain test is claimed here. The last known RPC check was refused; a
 
 ## Component 2 and Component 3 links
 
-The registry has optional `riskRegistry` and `pharmacyTrustRegistry` links that are consulted during dispensing when nonzero. Address placeholders in shared configuration do not prove live integration. Verify deployed getter values read-only before claiming those integrations work. No changes to Components 1, 2, or 3 are part of this work.
+The registry's Component 2 `riskRegistry` link must be configured and operational for dispensing; every batch must have a recorded, valid risk result. The Component 3 `pharmacyTrustRegistry` link remains optional in the current legacy contract. Address placeholders in shared configuration do not prove live integration. Verify deployed getter values read-only before claiming those integrations work. No live deployment is verified by this guide.
 
 ## Test commands
 

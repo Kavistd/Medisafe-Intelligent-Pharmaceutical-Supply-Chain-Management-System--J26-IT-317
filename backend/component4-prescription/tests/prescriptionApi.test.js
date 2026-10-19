@@ -55,6 +55,11 @@ async function login(app, wallet, patient = false, prescriptionId) {
   return tokenResponse.body.data.token;
 }
 
+function assertMarkersAbsent(responseBody, markers) {
+  const serialized = JSON.stringify(responseBody);
+  for (const marker of markers) assert.equal(serialized.includes(marker), false, `response leaked marker: ${marker}`);
+}
+
 test("issue route requires doctor authorization and never submits through the backend", async () => {
   const doctor = new ethers.Wallet("0x" + "11".repeat(32));
   process.env.TEST_DOCTOR = doctor.address;
@@ -86,9 +91,10 @@ test("verify and revoke routes enforce authorization and return controlled respo
     const unauthorizedVerify = await call(app, "POST", "/api/v1/prescriptions/verify", { body: { prescriptionId, patientHash: `0x${"b".repeat(64)}` } });
     assert.equal(unauthorizedVerify.status, 401);
     const patientToken = await login(app, patient, true, prescriptionId);
-    const verified = await call(app, "POST", "/api/v1/prescriptions/verify", { token: patientToken, body: { prescriptionId, patientHash: `0x${"b".repeat(64)}` } });
+    const patientHash = `0x${"b".repeat(64)}`;
+    const verified = await call(app, "POST", "/api/v1/prescriptions/verify", { token: patientToken, body: { prescriptionId, patientHash } });
     assert.equal(verified.status, 200);
-    assert.equal(JSON.stringify(verified.body).includes(`0x${"b".repeat(64)}`), false);
+    assertMarkersAbsent(verified.body, [patientHash]);
     const outOfScope = await call(app, "POST", "/api/v1/prescriptions/verify", { token: patientToken, body: { prescriptionId: `0x${"b".repeat(64)}`, patientHash: `0x${"b".repeat(64)}` } });
     assert.equal(outOfScope.status, 403);
     const deniedRevoke = await call(app, "POST", "/api/v1/prescriptions/revoke", { token: patientToken, body: { prescriptionId, reason: "Correction" } });
@@ -118,14 +124,16 @@ test("dispense route requires pharmacy authorization and rejects backend submiss
   } finally { restore(); delete process.env.TEST_PHARMACY; }
 });
 
-test("failed patient verification is denied and sensitive fields are not echoed", async () => {
+test("failed patient verification is denied and does not echo patient hash markers", async () => {
   const patient = new ethers.Wallet("0x" + "11".repeat(32));
   const { app, restore } = loadApp({ verifyPrescription: async () => ({ success: true, data: { prescriptionId: "0xabc", identityVerified: false } }) });
   try {
     const token = await login(app, patient, true, `0x${"c".repeat(64)}`);
-    const response = await call(app, "POST", "/api/v1/prescriptions/verify", { token, body: { prescriptionId: `0x${"c".repeat(64)}`, patientHash: `0x${"d".repeat(64)}` } });
+    const patientHash = `0x${"d".repeat(64)}`;
+    const response = await call(app, "POST", "/api/v1/prescriptions/verify", { token, body: { prescriptionId: `0x${"c".repeat(64)}`, patientHash } });
     assert.equal(response.status, 403);
-    assert.equal(JSON.stringify(response.body).includes("XYZ12345"), false);
+    assert.equal(response.body.error, "PATIENT_IDENTITY_MISMATCH");
+    assertMarkersAbsent(response.body, [patientHash]);
   } finally { restore(); }
 });
 
@@ -244,21 +252,29 @@ test("patient verification rejects raw identity payloads without echoing them", 
   try {
     const prescriptionId = `0x${"a".repeat(64)}`;
     const token = await login(app, patient, true, prescriptionId);
-    const privateInput = "PATIENT-PRIVATE-DATA-MUST-NOT-ECHO";
+    const markers = [
+      `0x${"c".repeat(64)}`,
+      "SYNTHETIC-NATIONAL-ID-7F2A91",
+      "SYNTHETIC-FULL-NAME-4C8B13",
+      "SYNTHETIC-DOB-2001-02-03",
+      `0x${"b".repeat(64)}`,
+    ];
     const response = await call(app, "POST", "/api/v1/prescriptions/verify", {
       token,
-      body: { prescriptionId, patientHash: `0x${"c".repeat(64)}`, patientNationalId: privateInput, patientFullName: "Example Person", patientDateOfBirth: "1990-01-01", salt: `0x${"b".repeat(64)}` },
+      body: { prescriptionId, patientHash: markers[0], patientNationalId: markers[1], patientFullName: markers[2], patientDateOfBirth: markers[3], salt: markers[4] },
     });
     assert.equal(response.status, 400);
-    assert.equal(JSON.stringify(response.body).includes(privateInput), false);
+    assert.equal(response.body.error, "VALIDATION_ERROR");
+    assertMarkersAbsent(response.body, markers);
     assert.equal("value" in response.body.details[0], false);
 
     const missingHash = await call(app, "POST", "/api/v1/prescriptions/verify", {
       token,
-      body: { prescriptionId, patientHash: "not-a-bytes32-hash" },
+      body: { prescriptionId, patientHash: "SYNTHETIC-MALFORMED-HASH-9D3E61" },
     });
     assert.equal(missingHash.status, 400);
-    assert.equal(JSON.stringify(missingHash.body).includes(privateInput), false);
+    assert.equal(missingHash.body.error, "VALIDATION_ERROR");
+    assertMarkersAbsent(missingHash.body, ["SYNTHETIC-MALFORMED-HASH-9D3E61"]);
   } finally { restore(); delete process.env.TEST_DOCTOR; }
 });
 
@@ -273,9 +289,17 @@ test("patient verification reports an incorrect hash and expired prescription sa
     } finally { restore(); }
   };
   try {
-    const mismatch = await tokenAndCall(Object.assign(new Error("Patient credential verification failed."), { statusCode: 403, code: "PATIENT_CREDENTIAL_MISMATCH" }));
+    const markers = [
+      `0x${"f".repeat(64)}`,
+      "SYNTHETIC-CONTROLLED-ERROR-NATIONAL-ID-2A6C",
+      "SYNTHETIC-CONTROLLED-ERROR-NAME-8B1D",
+      "SYNTHETIC-CONTROLLED-ERROR-DOB-2002-04-05",
+      `0x${"9".repeat(64)}`,
+    ];
+    const mismatch = await tokenAndCall(Object.assign(new Error(`credential mismatch ${markers.join(" ")}`), { statusCode: 403, code: "PATIENT_CREDENTIAL_MISMATCH" }));
     assert.equal(mismatch.status, 403);
     assert.equal(mismatch.body.error, "PATIENT_CREDENTIAL_MISMATCH");
+    assertMarkersAbsent(mismatch.body, markers);
     const expired = await tokenAndCall(Object.assign(new Error("This prescription has expired."), { statusCode: 410, code: "PRESCRIPTION_EXPIRED" }));
     assert.equal(expired.status, 410);
     assert.equal(expired.body.error, "PRESCRIPTION_EXPIRED");
