@@ -5,7 +5,7 @@ const { TraceabilityClient, contractInterface: iface, loadSettings, publicError 
 const validate = require('../validators/requests');
 const sender = '0x1111111111111111111111111111111111111111';
 const recipient = '0x2222222222222222222222222222222222222222';
-const batch = { batchId: ' B-1 ', medicineId: 'M', name: 'Medicine', category: 'Category', dosageForm: 'Tablet', strength: '5 mg', manufacturerName: 'Maker', indication: 'Indication', classification: 'Prescription', quantity: 10, manufacturedAt: 100, expiresAt: 200, documentReference: 'ipfs://document', certificateReference: 'ipfs://certificate' };
+const batch = { batchId: ' B-1 ', medicineId: 'M', name: 'Medicine', category: 'Category', dosageForm: 'Tablet', strength: '5 mg', manufacturerName: 'Maker', indication: 'Indication', classification: 'Prescription', quantity: 10, manufacturedAt: 100, expiresAt: 200, documentReference: 'ipfs://bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', certificateReference: 'ipfs://bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' };
 function fixture() {
   const calls = [];
   const settings = { rpcUrl: 'http://localhost:8545', chainId: 31337, address: recipient };
