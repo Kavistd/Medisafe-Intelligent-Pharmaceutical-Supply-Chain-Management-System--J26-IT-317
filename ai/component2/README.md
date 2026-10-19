@@ -56,3 +56,11 @@ chain. The API loads `MedicineTraceability` from
 Call `POST /api/v1/risk/assess/batch/{batch_id}` with no request body. The API
 reads `MedicineTraceability.getBatch`, maps only the approved model fields, and
 returns the normal risk assessment response.
+
+## Publish for Component 4
+
+Call `POST /api/v1/risk/assess/batch/{batch_id}/transaction` with the oracle
+wallet `sender`. After that wallet signs and broadcasts the returned unsigned
+transaction, call `POST /api/v1/risk/publish/confirm` with the batch ID, model
+score, and transaction hash. Confirmation verifies the receipt, calldata,
+destination contract, and final on-chain state before Component 4 relies on it.

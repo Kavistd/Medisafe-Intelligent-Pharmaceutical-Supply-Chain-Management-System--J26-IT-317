@@ -525,6 +525,17 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
         .withArgs(100);
     });
 
+    it("Should reject dispensing if the batch has no Component 2 assessment", async function () {
+      const unassessedId = ethers.keccak256(ethers.toUtf8Bytes("RX-UNASSESSED"));
+      await prescriptionRegistry
+        .connect(doctor)
+        .issuePrescription(unassessedId, patientHash, MEDICINE_ID, "BATCH-UNASSESSED", validExpiryTime);
+
+      await expect(
+        prescriptionRegistry.connect(pharmacy).verifyAndDispense(unassessedId)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "RiskRecordNotFound");
+    });
+
     it("Should reject dispensing if Pharmacy Trust Score is below required threshold (Component 3)", async function () {
       // untrustedPharmacy has trust score 30 < 70
       await expect(

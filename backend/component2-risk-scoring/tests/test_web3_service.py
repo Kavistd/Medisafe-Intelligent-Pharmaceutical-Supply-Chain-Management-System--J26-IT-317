@@ -135,3 +135,98 @@ def test_client_rejects_address_without_contract_code() -> None:
 
     with pytest.raises(RuntimeError, match="No deployed contract"):
         RiskRegistryClient(settings=settings(), web3=web3)
+
+
+class ConfirmCall:
+    def __init__(self, value: Any) -> None:
+        self.value = value
+
+    def call(self) -> Any:
+        return self.value
+
+
+class ConfirmFunctions:
+    def hasBatchRisk(self, batch_id: str) -> ConfirmCall:
+        return ConfirmCall(True)
+
+    def getRiskScore(self, batch_id: str) -> ConfirmCall:
+        return ConfirmCall(82)
+
+    def isBatchSafe(self, batch_id: str) -> ConfirmCall:
+        return ConfirmCall(False)
+
+
+class ConfirmContract:
+    functions = ConfirmFunctions()
+
+    def decode_function_input(self, data: str) -> tuple[Any, dict[str, Any]]:
+        function = type("Function", (), {"fn_name": "setBatchRisk"})()
+        return function, {
+            "batchId": "BATCH-001",
+            "riskScore": 82,
+            "isSafe": False,
+        }
+
+
+class ConfirmEth:
+    def wait_for_transaction_receipt(
+        self, transaction_hash: str, timeout: int
+    ) -> dict[str, Any]:
+        return {"status": 1, "blockNumber": 42}
+
+    def get_transaction(self, transaction_hash: str) -> dict[str, Any]:
+        return {"to": SENDER, "input": "0x1234"}
+
+
+def confirmation_client() -> RiskRegistryClient:
+    client = RiskRegistryClient.__new__(RiskRegistryClient)
+    client.web3 = type("ConfirmWeb3", (), {"eth": ConfirmEth()})()
+    client.contract = ConfirmContract()
+    client.contract_address = SENDER
+    return client
+
+
+def test_confirms_wallet_transaction_and_registry_state() -> None:
+    transaction_hash = f"0x{'a' * 64}"
+
+    result = confirmation_client().confirm_record(
+        transaction_hash, "BATCH-001", 0.82
+    )
+
+    assert result == {
+        "transaction_hash": transaction_hash,
+        "block_number": 42,
+        "batch_id": "BATCH-001",
+        "risk_score": 0.82,
+        "score_percent": 82,
+        "is_safe": False,
+        "confirmed": True,
+    }
+
+
+def test_rejects_confirmation_for_wrong_contract() -> None:
+    client = confirmation_client()
+    client.web3.eth.get_transaction = lambda transaction_hash: {
+        "to": "0x0000000000000000000000000000000000000002",
+        "input": "0x1234",
+    }
+
+    with pytest.raises(ValueError, match="not sent"):
+        client.confirm_record(f"0x{'b' * 64}", "BATCH-001", 0.82)
+
+
+def test_rejects_reverted_risk_transaction() -> None:
+    client = confirmation_client()
+    client.web3.eth.wait_for_transaction_receipt = (
+        lambda transaction_hash, timeout: {"status": 0, "blockNumber": 42}
+    )
+
+    with pytest.raises(ValueError, match="reverted"):
+        client.confirm_record(f"0x{'c' * 64}", "BATCH-001", 0.82)
+
+
+def test_rejects_transaction_with_unexpected_assessment() -> None:
+    with pytest.raises(ValueError, match="does not match"):
+        confirmation_client().confirm_record(
+            f"0x{'d' * 64}", "BATCH-001", 0.21
+        )
