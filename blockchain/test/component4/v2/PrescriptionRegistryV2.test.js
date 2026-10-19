@@ -6,6 +6,7 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
   let registry;
   let riskRegistry;
   let pharmacyTrustRegistry;
+  let component3TrustRegistry;
   let admin;
   let doctor;
   let pharmacy;
@@ -36,9 +37,16 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
     await riskRegistry.setBatchRisk(BATCH_ID, 15, true);
 
     const PharmacyTrust = await ethers.getContractFactory("PharmacyTrust");
-    pharmacyTrustRegistry = await PharmacyTrust.deploy(admin.address);
+    component3TrustRegistry = await PharmacyTrust.deploy(admin.address);
+    await component3TrustRegistry.waitForDeployment();
+    await component3TrustRegistry.setPharmacyTrust(pharmacy.address, 95, true);
+
+    // The V2 integration requires an explicit registration bit. Keep policy
+    // tests against a test double that supplies that authoritative field,
+    // while separately asserting the real Component 3 incompatibility fails closed.
+    const V2TrustRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+    pharmacyTrustRegistry = await V2TrustRegistry.deploy(true, 95, true, 0);
     await pharmacyTrustRegistry.waitForDeployment();
-    await pharmacyTrustRegistry.setPharmacyTrust(pharmacy.address, 95, true);
 
     const Registry = await ethers.getContractFactory("PrescriptionRegistryV2");
     registry = await Registry.deploy(
@@ -197,6 +205,16 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
       expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
     });
 
+    it("fails closed with an actionable error for the current Component 3 registry", async function () {
+      const component3Address = await component3TrustRegistry.getAddress();
+      await registry.setPharmacyTrustRegistry(component3Address);
+
+      await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
+        .to.be.revertedWithCustomError(registry, "PharmacyRegistrationCheckUnavailable")
+        .withArgs(component3Address);
+      expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
+    });
+
     it("blocks dispensing when the pharmacy-trust registry is unconfigured", async function () {
       await registry.setPharmacyTrustRegistry(ethers.ZeroAddress);
 
@@ -213,9 +231,13 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
       expect((await registry.getPrescription(prescriptionId)).status).to.equal(0n); // remains ACTIVE
     });
 
-    it("blocks an unknown pharmacy based on the Component 3 trust record", async function () {
+    it("blocks an unregistered pharmacy when the registry explicitly reports registration", async function () {
       const otherPrescriptionId = ethers.hexlify(ethers.randomBytes(32));
       await issue(otherPrescriptionId, expiryTime, otherPharmacy.address);
+      const UnregisteredTrustRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+      const unregisteredTrustRegistry = await UnregisteredTrustRegistry.deploy(false, 100, true, 0);
+      await unregisteredTrustRegistry.waitForDeployment();
+      await registry.setPharmacyTrustRegistry(await unregisteredTrustRegistry.getAddress());
 
       await expect(registry.connect(otherPharmacy).dispensePrescription(
         otherPrescriptionId
@@ -225,7 +247,10 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
     });
 
     it("blocks a registered but explicitly untrusted pharmacy", async function () {
-      await pharmacyTrustRegistry.setPharmacyTrust(pharmacy.address, 95, false);
+      const UntrustedRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+      const untrustedRegistry = await UntrustedRegistry.deploy(true, 95, false, 0);
+      await untrustedRegistry.waitForDeployment();
+      await registry.setPharmacyTrustRegistry(await untrustedRegistry.getAddress());
 
       await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
         .to.be.revertedWithCustomError(registry, "PharmacyNotTrusted");
@@ -256,7 +281,10 @@ describe("Component 4 V2: PrescriptionRegistryV2 lifecycle foundation", function
     });
 
     it("blocks a pharmacy below the configured trust-score threshold", async function () {
-      await pharmacyTrustRegistry.setPharmacyTrust(pharmacy.address, 69, true);
+      const LowScoreRegistry = await ethers.getContractFactory("MockPharmacyTrustRegistry");
+      const lowScoreRegistry = await LowScoreRegistry.deploy(true, 69, true, 0);
+      await lowScoreRegistry.waitForDeployment();
+      await registry.setPharmacyTrustRegistry(await lowScoreRegistry.getAddress());
 
       await expect(registry.connect(pharmacy).dispensePrescription(prescriptionId))
         .to.be.revertedWithCustomError(registry, "LowPharmacyTrust")
