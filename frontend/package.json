@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/component4/walletTransactions.test.js src/component4/authFlow.test.js src/component4/patientCredential.test.js src/component4/doctorPrescriptions.test.js",
-    "test:serial": "node --test --experimental-test-isolation=none --test-concurrency=1 src/component4/walletTransactions.test.js src/component4/authFlow.test.js src/component4/patientCredential.test.js src/component4/doctorPrescriptions.test.js"
+    "test": "node --test src/component4/walletTransactions.test.js src/component4/authFlow.test.js src/component4/patientCredential.test.js src/component4/doctorPrescriptions.test.js src/component1/client.test.js src/component1/gateway.test.js",
+    "test:serial": "node --test --experimental-test-isolation=none --test-concurrency=1 src/component4/walletTransactions.test.js src/component4/authFlow.test.js src/component4/patientCredential.test.js src/component4/doctorPrescriptions.test.js src/component1/client.test.js src/component1/gateway.test.js"
   },
   "dependencies": {
     "ethers": "^6.17.0",
