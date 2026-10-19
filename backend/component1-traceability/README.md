@@ -1,6 +1,8 @@
 # Component 1 — Phase 3 backend
 
-Node.js/Express API using ethers v6 and the existing shared MedicineTraceability ABI. No keys, signers, broadcasting, deployment, IPFS uploads or frontend are provided. Use Node 22 LTS or newer.
+Node.js/Express API using ethers v6 and the existing shared MedicineTraceability ABI, with Phase 4 public-document IPFS integration. No private wallet keys, signers, broadcasting, deployment or frontend are provided. Use Node 22 LTS or newer.
+
+See [Phase 4 document integration](ipfs/README.md) for upload authorization, mandatory public-content approval, provider configuration, retrieval and CID registration.
 
 ## Run
 
@@ -55,13 +57,13 @@ Success: `{success:true,data:...}`. Contract reads preserve output positions as 
     "quantity": 100,
     "manufacturedAt": 1790000000,
     "expiresAt": 1900000000,
-    "documentReference": "ipfs://existing-document",
-    "certificateReference": "ipfs://existing-certificate"
+    "documentReference": "ipfs://bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "certificateReference": "ipfs://bafkreiaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   }
 }
 ```
 
-Choose timestamps valid at submission. Registration uses the existing shared draft-07 schema, rejects unknown properties and unsafe/coerced numbers, and checks expiry after manufacture. Simulation enforces manufacture <= chain time < expiry. References are opaque strings: this phase does not validate CID syntax, upload, pin, or establish authenticity. No custody/owner fields can be supplied during registration.
+Choose timestamps valid at submission. Registration uses the existing shared draft-07 schema, rejects unknown properties and unsafe/coerced numbers, and checks expiry after manufacture. Simulation enforces manufacture <= chain time < expiry. Phase 4 validates both references as CIDs and canonicalizes them to CIDv1 `ipfs://` references. The example uses a synthetic CID, not a retrievable document. No custody/owner fields can be supplied during registration.
 
 Transfer IDs must be positive decimal **strings** within uint256, e.g. `{"sender":"0x2222222222222222222222222222222222222222","transferId":"1"}`. Review the pending transfer and retain its ID; a stale ID is rejected. Sender cancellation and recipient rejection remain possible after expiry/recall as allowed by the contract.
 

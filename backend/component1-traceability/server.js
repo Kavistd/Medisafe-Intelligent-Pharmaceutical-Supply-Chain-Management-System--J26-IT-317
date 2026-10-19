@@ -1,13 +1,15 @@
 const express = require('express');
 const { TraceabilityClient, loadSettings, publicError } = require('./blockchain/client');
 const validate = require('./validators/requests');
+const { installDocumentRoutes, cidReference } = require('./ipfs/documents');
 
-function createApp({ client, env = process.env } = {}) {
+function createApp({ client, env = process.env, documentService } = {}) {
   const app = express();
   app.disable('x-powered-by');
   app.set('json replacer', (_key, value) => typeof value === 'bigint' ? value.toString() : value);
   app.use((_req, res, next) => { res.set('Cache-Control', 'no-store'); res.set('X-Content-Type-Options', 'nosniff'); next(); });
   app.use(express.json({ limit: '32kb' }));
+  installDocumentRoutes(app, { env, service: documentService });
   const getClient = () => client || (client = new TraceabilityClient(loadSettings(env)));
   const route = handler => async (req, res, next) => {
     try { res.json({ success: true, data: await handler(req) }); } catch (error) { next(error); }
@@ -25,9 +27,12 @@ function createApp({ client, env = process.env } = {}) {
     const expiry = await getClient().read('isBatchExpired', [id]);
     return { batchId: id, recalled: result['0'].recalled, expired: expiry['0'] };
   }));
-  app.post(`${base}/transactions/register`, route(req => {
+  app.post(`${base}/transactions/register`, route(async req => {
     const input = validate.body(req.body, ['sender', 'batch']);
-    return getClient().prepare('registerBatch', [validate.registration(input.batch)], validate.address(input.sender, 'sender'));
+    const batch = validate.registration(input.batch);
+    const certificate = await cidReference(batch.certificateReference);
+    const report = await cidReference(batch.documentReference);
+    return getClient().prepare('registerBatch', [{ ...batch, certificateReference: certificate.reference, documentReference: report.reference }], validate.address(input.sender, 'sender'));
   }));
   app.post(`${base}/:batchId/transactions/initiate-transfer`, route(req => {
     const input = validate.body(req.body, ['sender', 'recipient']);
