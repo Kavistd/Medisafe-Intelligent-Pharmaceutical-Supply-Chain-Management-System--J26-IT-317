@@ -56,6 +56,7 @@ const verifyPrescriptionSchema = Joi.object({
 });
 
 const revokePrescriptionSchema = Joi.object({
+  prescriptionId: bytes32Hex.required().label("prescriptionId"),
   reason: Joi.string().trim().min(1).max(500).required(),
 });
 
