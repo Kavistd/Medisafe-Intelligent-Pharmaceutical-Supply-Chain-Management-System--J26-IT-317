@@ -1,4 +1,5 @@
-export const API_BASE = (import.meta.env.VITE_COMPONENT4_API_URL || "").replace(/\/$/, "");
+const viteEnvironment = import.meta.env || {};
+export const API_BASE = (viteEnvironment.VITE_COMPONENT4_API_URL || "").replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(message, status, code) { super(message); this.name = "ApiError"; this.status = status; this.code = code; }

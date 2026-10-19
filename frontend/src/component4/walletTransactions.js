@@ -5,8 +5,11 @@ import {
   randomBytes,
   solidityPackedKeccak256,
 } from "ethers";
+import { describeWalletProvider, getMetaMaskProvider } from "./walletProvider.js";
 
 export const REQUIRED_CHAIN_ID = 31337n;
+
+export { getMetaMaskProvider };
 
 const ROLE_METHODS = {
   doctor: "DOCTOR_ROLE",
@@ -40,18 +43,29 @@ export function buildIssueArguments({
 }
 
 export async function assertWalletContext(ethereum, expectedAddress) {
-  if (!ethereum?.request) throw new Error("MetaMask is unavailable. Connect a wallet and try again.");
+  const wallet = ethereum || await getMetaMaskProvider();
+  if (!wallet?.request) throw new Error("MetaMask is unavailable. Connect a wallet and try again.");
   if (!isAddress(expectedAddress || "")) throw new Error("The authenticated wallet address is invalid.");
 
-  const accounts = await ethereum.request({ method: "eth_accounts" });
+  const accounts = await wallet.request({ method: "eth_accounts" });
   const connected = accounts?.[0];
   if (!connected || getAddress(connected) !== getAddress(expectedAddress)) {
     throw new Error("The connected MetaMask account changed. Sign in again with the same wallet.");
   }
 
-  const chainId = await ethereum.request({ method: "eth_chainId" });
-  if (BigInt(chainId) !== REQUIRED_CHAIN_ID) {
-    throw new Error("Switch MetaMask to the local Hardhat network (chain ID 31337) before continuing.");
+  const chainId = await wallet.request({ method: "eth_chainId" });
+  let parsedChainId;
+  try {
+    parsedChainId = BigInt(chainId);
+  } catch {
+    throw new Error(`The selected wallet returned an invalid chain ID (${String(chainId)}). Reconnect MetaMask and select Hardhat Local (31337).`);
+  }
+  if (parsedChainId !== REQUIRED_CHAIN_ID) {
+    const provider = describeWalletProvider(wallet);
+    const decimalChainId = parsedChainId.toString(10);
+    throw new Error(
+      `Network mismatch: ${provider.name} via ${provider.source} reports chain ID ${decimalChainId} (${String(chainId)}); MediSafe requires 31337 (0x7a69). Switch this wallet provider to Hardhat Local, then reconnect.`,
+    );
   }
   return getAddress(connected);
 }

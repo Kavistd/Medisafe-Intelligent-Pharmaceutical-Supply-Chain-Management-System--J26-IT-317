@@ -76,6 +76,109 @@ test("issue route requires doctor authorization and never submits through the ba
   } finally { restore(); delete process.env.TEST_DOCTOR; }
 });
 
+test("issue, dispense, and revoke routes validate authenticated payloads before wallet-only response", async () => {
+  const doctor = new ethers.Wallet("0x" + "12".repeat(32));
+  const pharmacy = new ethers.Wallet("0x" + "13".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  process.env.TEST_PHARMACY = pharmacy.address;
+  let backendWriteCalled = false;
+  const { app, restore } = loadApp({
+    issuePrescription: async () => { backendWriteCalled = true; },
+    dispensePrescription: async () => { backendWriteCalled = true; },
+    revokePrescription: async () => { backendWriteCalled = true; },
+  });
+  try {
+    const doctorToken = await login(app, doctor);
+    const pharmacyToken = await login(app, pharmacy);
+    const invalidIssue = await call(app, "POST", "/api/v1/prescriptions/issue", {
+      token: doctorToken,
+      body: { patientHash: "invalid", medicineId: "", batchId: "bad id" },
+    });
+    assert.equal(invalidIssue.status, 400);
+    assert.equal(invalidIssue.body.error, "VALIDATION_ERROR");
+
+    const validIssue = await call(app, "POST", "/api/v1/prescriptions/issue", {
+      token: doctorToken,
+      body: { patientHash: `0x${"a".repeat(64)}`, medicineId: "MED-1", batchId: "BATCH-1" },
+    });
+    assert.equal(validIssue.status, 410);
+    assert.equal(validIssue.body.error, "WALLET_TRANSACTION_REQUIRED");
+
+    const invalidDispense = await call(app, "POST", "/api/v1/prescriptions/dispense", {
+      token: pharmacyToken,
+      body: { prescriptionId: "not-bytes32", patientHash: "invalid" },
+    });
+    assert.equal(invalidDispense.status, 400);
+    assert.equal(invalidDispense.body.error, "VALIDATION_ERROR");
+
+    const invalidRevoke = await call(app, "POST", "/api/v1/prescriptions/revoke", {
+      token: doctorToken,
+      body: { prescriptionId: `0x${"b".repeat(64)}`, reason: "   " },
+    });
+    assert.equal(invalidRevoke.status, 400);
+    assert.equal(invalidRevoke.body.error, "VALIDATION_ERROR");
+
+    const validRevoke = await call(app, "POST", "/api/v1/prescriptions/revoke", {
+      token: doctorToken,
+      body: { prescriptionId: `0x${"b".repeat(64)}`, reason: "Duplicate entry" },
+    });
+    assert.equal(validRevoke.status, 410);
+    assert.equal(validRevoke.body.error, "WALLET_TRANSACTION_REQUIRED");
+    assert.equal(backendWriteCalled, false);
+  } finally {
+    restore();
+    delete process.env.TEST_DOCTOR;
+    delete process.env.TEST_PHARMACY;
+  }
+});
+
+test("challenge signed from the frontend personal_sign hex payload verifies against the exact UTF-8 message", async () => {
+  const doctor = new ethers.Wallet("0x" + "18".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  const { app, restore } = loadApp();
+  try {
+    const challenge = (await call(app, "POST", "/api/v1/prescriptions/auth/challenge", { body: { address: doctor.address } })).body.data;
+    const signableBytes = ethers.getBytes(ethers.hexlify(ethers.toUtf8Bytes(challenge.message)));
+    const signature = await doctor.signMessage(signableBytes);
+    const response = await call(app, "POST", "/api/v1/prescriptions/auth/token", { body: { message: challenge.message, signature } });
+    assert.equal(response.status, 200);
+    assert.equal(response.body.success, true);
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("role lookup BAD_DATA is reported as blockchain configuration failure, not invalid signature", async () => {
+  const doctor = new ethers.Wallet("0x" + "19".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  const badData = Object.assign(new Error("role getter returned malformed ABI data"), { code: "BAD_DATA" });
+  const { app, restore } = loadApp({ getContract: () => ({ DOCTOR_ROLE: async () => { throw badData; } }) });
+  try {
+    const challenge = (await call(app, "POST", "/api/v1/prescriptions/auth/challenge", { body: { address: doctor.address } })).body.data;
+    const signature = await doctor.signMessage(challenge.message);
+    const response = await call(app, "POST", "/api/v1/prescriptions/auth/token", { body: { message: challenge.message, signature } });
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "AUTH_CONFIGURATION_ERROR");
+    assert.doesNotMatch(response.body.message, /signature/i);
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("role login explains when the configured V1 address has no deployed bytecode", async () => {
+  const doctor = new ethers.Wallet("0x" + "1a".repeat(32));
+  const { app, restore } = loadApp({ getContract: () => ({
+    runner: { provider: { getCode: async () => "0x" } },
+    getAddress: async () => "0x0000000000000000000000000000000000000003",
+    DOCTOR_ROLE: async () => { throw new Error("must not call role getter without deployed code"); },
+    PHARMACY_ROLE: async () => "pharmacy-role",
+    hasRole: async () => false,
+  }) });
+  try {
+    const challenge = (await call(app, "POST", "/api/v1/prescriptions/auth/challenge", { body: { address: doctor.address } })).body.data;
+    const response = await call(app, "POST", "/api/v1/prescriptions/auth/token", { body: { message: challenge.message, signature: await doctor.signMessage(challenge.message) } });
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "AUTH_CONFIGURATION_ERROR");
+    assert.match(response.body.message, /No Component 4 PrescriptionRegistry is deployed.*node may have restarted/i);
+  } finally { restore(); }
+});
+
 test("verify and revoke routes enforce authorization and return controlled responses", async () => {
   const doctor = new ethers.Wallet("0x" + "22".repeat(32));
   const patient = new ethers.Wallet("0x" + "33".repeat(32));
@@ -338,6 +441,40 @@ test("health and API responses apply configured CORS and privacy headers", async
   }
 });
 
+test("blockchain readiness endpoint returns dependency status and hides provider diagnostics", async () => {
+  const { app, restore } = loadApp({
+    getBlockchainStatus: async () => ({
+      connected: true,
+      chainId: 31337,
+      prescriptionRegistry: "0x0000000000000000000000000000000000000003",
+      riskRegistry: "0x0000000000000000000000000000000000000004",
+      component3Connected: false,
+    }),
+  });
+  try {
+    const ready = await call(app, "GET", "/health/blockchain");
+    assert.equal(ready.status, 200);
+    assert.deepEqual(ready.body.data, {
+      connected: true,
+      chainId: 31337,
+      prescriptionRegistry: "0x0000000000000000000000000000000000000003",
+      riskRegistry: "0x0000000000000000000000000000000000000004",
+      component3Connected: false,
+    });
+  } finally { restore(); }
+
+  const marker = "provider credential diagnostic";
+  const unavailable = loadApp({
+    getBlockchainStatus: async () => { throw Object.assign(new Error(marker), { statusCode: 503, code: "RISK_REGISTRY_UNAVAILABLE" }); },
+  });
+  try {
+    const response = await call(unavailable.app, "GET", "/health/blockchain");
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "RISK_REGISTRY_UNAVAILABLE");
+    assert.equal(JSON.stringify(response.body).includes(marker), false);
+  } finally { unavailable.restore(); }
+});
+
 test("controller does not expose raw blockchain revert details", async () => {
   const doctor = new ethers.Wallet("0x" + "ad".repeat(32));
   process.env.TEST_DOCTOR = doctor.address;
@@ -366,6 +503,94 @@ test("doctor prescription lookup accepts the ID in the request body and enforces
     const response = await call(app, "POST", "/api/v1/prescriptions/lookup", { token, body: { prescriptionId } });
     assert.equal(response.status, 403);
     assert.equal(recordRead, false);
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("doctor prescription listing rejects unauthenticated requests", async () => {
+  const { app, restore } = loadApp();
+  try {
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine");
+    assert.equal(response.status, 401);
+    assert.equal(response.body.error, "UNAUTHORIZED");
+  } finally { restore(); }
+});
+
+test("doctor prescription listing rejects non-doctor sessions", async () => {
+  const pharmacy = new ethers.Wallet("0x" + "b1".repeat(32));
+  process.env.TEST_PHARMACY = pharmacy.address;
+  const { app, restore } = loadApp({ getPrescriptionsByDoctor: async () => { throw new Error("must not list for pharmacy"); } });
+  try {
+    const token = await login(app, pharmacy);
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine", { token });
+    assert.equal(response.status, 403);
+    assert.equal(response.body.error, "FORBIDDEN");
+  } finally { restore(); delete process.env.TEST_PHARMACY; }
+});
+
+test("doctor prescription listing uses the authenticated doctor's address", async () => {
+  const doctor = new ethers.Wallet("0x" + "b2".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  let requestedAddress;
+  const expected = { success: true, data: { doctorAddress: ethers.getAddress(doctor.address), prescriptionIds: [`0x${"1".repeat(64)}`], count: 1 } };
+  const { app, restore } = loadApp({ getPrescriptionsByDoctor: async (address) => { requestedAddress = address; return expected; } });
+  try {
+    const token = await login(app, doctor);
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine", { token });
+    assert.equal(response.status, 200);
+    assert.equal(requestedAddress, ethers.getAddress(doctor.address));
+    assert.deepEqual(response.body, expected);
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("doctor listing ignores a caller-supplied address and stays scoped to the authenticated doctor", async () => {
+  const doctor = new ethers.Wallet("0x" + "b3".repeat(32));
+  const otherDoctor = new ethers.Wallet("0x" + "b4".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  let requestedAddress;
+  const { app, restore } = loadApp({
+    getPrescriptionsByDoctor: async (address) => {
+      requestedAddress = address;
+      return { success: true, data: { doctorAddress: ethers.getAddress(address), prescriptionIds: [], count: 0 } };
+    },
+  });
+  try {
+    const token = await login(app, doctor);
+    const response = await call(app, "GET", `/api/v1/prescriptions/mine?doctorAddress=${otherDoctor.address}`, { token });
+    assert.equal(response.status, 200);
+    assert.equal(requestedAddress, ethers.getAddress(doctor.address));
+    assert.notEqual(requestedAddress.toLowerCase(), otherDoctor.address.toLowerCase());
+    assert.equal(response.body.data.doctorAddress, ethers.getAddress(doctor.address));
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("doctor prescription listing returns an empty list when the doctor has no prescriptions", async () => {
+  const doctor = new ethers.Wallet("0x" + "b5".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  const { app, restore } = loadApp({
+    getPrescriptionsByDoctor: async (address) => ({ success: true, data: { doctorAddress: ethers.getAddress(address), prescriptionIds: [], count: 0 } }),
+  });
+  try {
+    const token = await login(app, doctor);
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine", { token });
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.body.data.prescriptionIds, []);
+    assert.equal(response.body.data.count, 0);
+  } finally { restore(); delete process.env.TEST_DOCTOR; }
+});
+
+test("doctor prescription listing reports blockchain read failures safely", async () => {
+  const doctor = new ethers.Wallet("0x" + "b6".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  const diagnostic = "BLOCKCHAIN-READ-SECRET-DIAGNOSTIC";
+  const { app, restore } = loadApp({
+    getPrescriptionsByDoctor: async () => { throw Object.assign(new Error(diagnostic), { statusCode: 503, code: "BLOCKCHAIN_READ_FAILED" }); },
+  });
+  try {
+    const token = await login(app, doctor);
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine", { token });
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "BLOCKCHAIN_READ_FAILED");
+    assert.equal(JSON.stringify(response.body).includes(diagnostic), false);
   } finally { restore(); delete process.env.TEST_DOCTOR; }
 });
 

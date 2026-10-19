@@ -7,10 +7,12 @@ import {
   assertPatientHashMatches,
   assertPrescriptionIssuer,
   assertWalletContext,
+  getMetaMaskProvider,
   assertWalletRole,
   buildIssueArguments,
   submitWalletTransaction,
 } from "./walletTransactions.js";
+import { requestLocalHardhatNetwork } from "./walletProvider.js";
 
 const doctorAddress = "0x2a13ee1f4C69386864A271Bceb401fcd3d91c942";
 const pharmacyAddress = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC";
@@ -20,6 +22,82 @@ const prescriptionId = `0x${"b".repeat(64)}`;
 function wallet(address = doctorAddress, chainId = "0x7a69") {
   return { request: async ({ method }) => method === "eth_accounts" ? [address] : chainId };
 }
+
+test("MetaMask provider selection chooses the MetaMask member of injected providers", async () => {
+  const otherWallet = { isCoinbaseWallet: true, request: async () => "0x1" };
+  const metamask = { isMetaMask: true, request: async () => "0x7a69" };
+  const selected = await getMetaMaskProvider({
+    ethereum: { ...otherWallet, providers: [otherWallet, metamask] },
+    target: {},
+  });
+  assert.equal(selected, metamask);
+});
+
+test("MetaMask provider selection uses EIP-6963 identity when the global provider is ambiguous", async () => {
+  const metamask = { request: async () => "0x7a69" };
+  const otherWallet = { isMetaMask: true, request: async () => "0x1" };
+  const listeners = new Map();
+  const target = {
+    ethereum: { providers: [otherWallet, metamask] },
+    addEventListener: (name, fn) => listeners.set(name, fn),
+    removeEventListener: (name) => listeners.delete(name),
+    dispatchEvent: (event) => {
+      if (event.type === "eip6963:requestProvider") {
+        listeners.get("eip6963:announceProvider")?.({ detail: { info: { rdns: "io.metamask" }, provider: metamask } });
+      }
+      return true;
+    },
+  };
+  assert.equal(await getMetaMaskProvider({ target }), metamask);
+});
+
+test("MetaMask provider selection rejects ambiguous legacy injections", async () => {
+  const first = { isMetaMask: true, request: async () => "0x7a69" };
+  const second = { isMetaMask: true, request: async () => "0x7a69" };
+  await assert.rejects(
+    getMetaMaskProvider({ ethereum: { providers: [first, second] }, target: {} }),
+    /Multiple MetaMask providers/,
+  );
+});
+
+test("login network request switches the selected provider to chain 31337", async () => {
+  let chainId = "0x1";
+  const calls = [];
+  const provider = { request: async ({ method, params }) => {
+    calls.push([method, params]);
+    if (method === "eth_chainId") return chainId;
+    if (method === "wallet_switchEthereumChain") { chainId = params[0].chainId; return null; }
+    throw new Error(`Unexpected method ${method}`);
+  } };
+  assert.equal(await requestLocalHardhatNetwork(provider), "0x7a69");
+  assert.deepEqual(calls.map(([method]) => method), ["eth_chainId", "wallet_switchEthereumChain", "eth_chainId"]);
+  assert.equal(await assertWalletContext({ ...provider, request: async ({ method }) => method === "eth_accounts" ? [doctorAddress] : chainId }, doctorAddress), doctorAddress);
+});
+
+test("login adds the verified local Hardhat RPC only when the wallet does not know chain 31337", async () => {
+  let chainId = "0x1";
+  let addedChain;
+  const provider = { request: async ({ method, params }) => {
+    if (method === "eth_chainId") return chainId;
+    if (method === "wallet_switchEthereumChain") {
+      if (!addedChain) throw Object.assign(new Error("Unknown chain"), { code: 4902 });
+      chainId = params[0].chainId;
+      return null;
+    }
+    if (method === "wallet_addEthereumChain") { addedChain = params[0]; return null; }
+    throw new Error(`Unexpected method ${method}`);
+  } };
+  assert.equal(await requestLocalHardhatNetwork(provider), "0x7a69");
+  assert.equal(addedChain.chainId, "0x7a69");
+  assert.deepEqual(addedChain.rpcUrls, ["http://127.0.0.1:8545"]);
+  assert.equal(addedChain.chainName, "Hardhat Local");
+});
+
+test("login does not treat an unchanged wrong chain as successful after a switch request", async () => {
+  const provider = { request: async ({ method }) => method === "eth_chainId" ? "0x1" : null };
+  assert.equal(await requestLocalHardhatNetwork(provider), "0x1");
+  await assert.rejects(assertWalletContext({ ...provider, request: async ({ method }) => method === "eth_accounts" ? [doctorAddress] : "0x1" }, doctorAddress), /requires 31337/);
+});
 
 test("issue arguments match the deployed Solidity ABI order and types", () => {
   const iface = new Interface(registryAbi);
@@ -52,8 +130,32 @@ test("issue arguments match the deployed Solidity ABI order and types", () => {
 });
 
 test("wallet context rejects wrong chain and changed account", async () => {
-  await assert.rejects(assertWalletContext(wallet(doctorAddress, "0x1"), doctorAddress), /chain ID 31337/);
+  await assert.rejects(
+    assertWalletContext(wallet(doctorAddress, "0x1"), doctorAddress),
+    /reports chain ID 1 \(0x1\).*requires 31337 \(0x7a69\)/,
+  );
   await assert.rejects(assertWalletContext(wallet(pharmacyAddress), doctorAddress), /account changed/);
+  assert.equal(await assertWalletContext(wallet(doctorAddress, "0x7a69"), doctorAddress), doctorAddress);
+});
+
+test("chain mismatch diagnostic identifies the selected MetaMask provider and its actual chain", async () => {
+  const metamask = { request: async ({ method }) => method === "eth_accounts" ? [doctorAddress] : "0x1" };
+  const listeners = new Map();
+  const target = {
+    addEventListener: (name, fn) => listeners.set(name, fn),
+    removeEventListener: (name) => listeners.delete(name),
+    dispatchEvent: (event) => {
+      if (event.type === "eip6963:requestProvider") {
+        listeners.get("eip6963:announceProvider")?.({ detail: { info: { name: "MetaMask", rdns: "io.metamask" }, provider: metamask } });
+      }
+      return true;
+    },
+  };
+  const selected = await getMetaMaskProvider({ target });
+  await assert.rejects(
+    assertWalletContext(selected, doctorAddress),
+    /MetaMask via EIP-6963 reports chain ID 1 \(0x1\).*requires 31337 \(0x7a69\)/,
+  );
 });
 
 test("role check blocks the transaction call when the connected wallet lacks its role", async () => {

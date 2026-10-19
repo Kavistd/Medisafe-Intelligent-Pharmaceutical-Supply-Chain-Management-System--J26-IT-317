@@ -6,6 +6,19 @@
 
 const prescriptionService = require("../services/prescriptionService");
 
+async function getBlockchainHealth(_req, res) {
+  try {
+    const data = await prescriptionService.getBlockchainStatus();
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    return res.status(err.statusCode || 503).json({
+      success: false,
+      error: err.code || "BLOCKCHAIN_UNAVAILABLE",
+      message: "Component 4 blockchain dependencies are not ready.",
+    });
+  }
+}
+
 function walletSubmissionRequired(operation) {
   return (_req, res) => res.status(410).json({
     success: false,
@@ -75,6 +88,18 @@ async function getPrescription(req, res) {
   }
 }
 
+async function listDoctorPrescriptions(req, res) {
+  try {
+    // Bind the listing to the wallet authenticated by the signed session. The
+    // request body and query string are deliberately not used for the address.
+    const result = await prescriptionService.getPrescriptionsByDoctor(req.auth.address);
+    return res.status(200).json(result);
+  } catch (err) {
+    const mapped = mapError(err);
+    return res.status(mapped.statusCode).json(mapped.body);
+  }
+}
+
 async function verifyPrescription(req, res) {
   try {
     const result = await prescriptionService.verifyPrescription({
@@ -92,9 +117,11 @@ async function verifyPrescription(req, res) {
 }
 
 module.exports = {
+  getBlockchainHealth,
   issuePrescription,
   dispensePrescription,
   revokePrescription,
   getPrescription,
+  listDoctorPrescriptions,
   verifyPrescription,
 };
