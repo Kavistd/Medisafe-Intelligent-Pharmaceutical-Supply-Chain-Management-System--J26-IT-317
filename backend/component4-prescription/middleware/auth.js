@@ -11,6 +11,10 @@ function unauthorized(res, message = "Authentication required.") {
   return res.status(401).json({ success: false, error: "UNAUTHORIZED", message });
 }
 
+function forbidden(res, message) {
+  return res.status(403).json({ success: false, error: "FORBIDDEN", message });
+}
+
 function createChallenge(req, res) {
   if (!hasValidSecret()) return configurationError(res, "Authentication is unavailable: AUTH_TOKEN_SECRET must contain at least 32 characters.");
   const address = req.body && req.body.address;
@@ -83,19 +87,10 @@ async function exchangeSignature(req, res) {
     let isPharmacy = false;
     if (!challenge.patient) {
       let contract;
-      try { contract = prescriptionService.getContract(true); }
-      catch (error) { return configurationError(res, safeConfigurationMessage(error)); }
-      // Detect a restarted local node (or stale address file) before ABI calls. Calling
-      // role getters against an empty address otherwise surfaces as an opaque BAD_DATA.
-      const runner = contract.runner;
-      const provider = runner?.provider || (typeof runner?.getNetwork === "function" ? runner : null);
-      if (provider && typeof contract.getAddress === "function" && typeof provider.getCode === "function") {
-        const registryAddress = await contract.getAddress();
-        const code = await provider.getCode(registryAddress);
-        if (!code || code === "0x") {
-          return configurationError(res, "No Component 4 PrescriptionRegistry is deployed at the configured address on this RPC. The local Hardhat node may have restarted; redeploy V1 and reconnect the configured address.");
-        }
+      try {
+        contract = await getLocalRoleContract();
       }
+      catch (error) { return configurationError(res, safeConfigurationMessage(error)); }
       const doctorRole = await contract.DOCTOR_ROLE();
       const pharmacyRole = await contract.PHARMACY_ROLE();
       isDoctor = await contract.hasRole(doctorRole, address);
@@ -123,8 +118,31 @@ function hasValidSecret() {
 function configurationError(res, message) { return res.status(503).json({ success: false, error: "AUTH_CONFIGURATION_ERROR", message }); }
 
 function safeConfigurationMessage(error) {
+  if (error.code === "BLOCKCHAIN_CHAIN_MISMATCH") return "Component 4 is connected to the wrong blockchain network.";
+  if (error.code === "PRESCRIPTION_REGISTRY_UNAVAILABLE") return "No Component 4 PrescriptionRegistry is deployed at the configured address on this RPC. The local Hardhat node may have restarted; redeploy V1 and reconnect the configured address.";
   if (/contract address|contract addresses|not configured/i.test(error.message || "")) return "PrescriptionRegistry is not configured for this network. Check NETWORK and the Component 4 contract address.";
   return "Blockchain authentication is unavailable. Check RPC_URL and confirm the Component 4 contract is deployed.";
+}
+
+async function getLocalRoleContract() {
+  const provider = prescriptionService.getProvider();
+  let network;
+  try {
+    network = await provider.getNetwork();
+  } catch {
+    throw Object.assign(new Error("Configured blockchain RPC is unavailable."), { code: "NETWORK_ERROR" });
+  }
+  if (network.chainId !== 31337n) {
+    throw Object.assign(new Error("Component 4 is connected to the wrong blockchain network."), { code: "BLOCKCHAIN_CHAIN_MISMATCH" });
+  }
+
+  const contract = prescriptionService.getContract(true);
+  const registryAddress = await contract.getAddress();
+  const code = await provider.getCode(registryAddress);
+  if (!code || code === "0x") {
+    throw Object.assign(new Error("Configured Component 4 registry has no bytecode."), { code: "PRESCRIPTION_REGISTRY_UNAVAILABLE" });
+  }
+  return contract;
 }
 
 function signPayload(payload) {
@@ -142,9 +160,19 @@ function authenticate(req, res, next) {
     const [payload, signature, extra] = token.split(".");
     const expected = Buffer.from(signPayload(payload || ""));
     const actual = Buffer.from(signature || "");
-    if (extra || expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return unauthorized(res);
+    if (!payload || !signature || extra || expected.length !== actual.length || !crypto.timingSafeEqual(expected, actual)) return unauthorized(res);
     const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
-    if (!ethers.isAddress(session.sub) || !Array.isArray(session.roles) || session.exp <= Math.floor(Date.now() / 1000)) return unauthorized(res);
+    const now = Math.floor(Date.now() / 1000);
+    const validRoles = Array.isArray(session.roles) && session.roles.length > 0 &&
+      session.roles.every((role) => ["doctor", "pharmacy", "patient"].includes(role)) &&
+      new Set(session.roles).size === session.roles.length;
+    const patientScoped = session.roles?.includes("patient");
+    if (!ethers.isAddress(session.sub) || !validRoles ||
+      !Number.isSafeInteger(session.iat) || !Number.isSafeInteger(session.exp) ||
+      session.iat > now || session.exp <= now || session.exp <= session.iat ||
+      session.exp - session.iat > TOKEN_TTL_SECONDS ||
+      (patientScoped && (session.roles.length !== 1 || !/^0x[0-9a-fA-F]{64}$/.test(session.prescriptionId || ""))) ||
+      (!patientScoped && session.prescriptionId != null)) return unauthorized(res);
     req.auth = { address: ethers.getAddress(session.sub), roles: session.roles, prescriptionId: session.prescriptionId };
     return next();
   } catch (_error) {
@@ -153,13 +181,32 @@ function authenticate(req, res, next) {
 }
 
 function authorize(role) {
-  return (req, res, next) => {
-    const allowed = role === "patient"
-      ? req.auth?.roles.includes("patient") && typeof req.body?.prescriptionId === "string" && req.auth.prescriptionId === req.body.prescriptionId.toLowerCase()
-      : req.auth?.roles.includes(role);
-    return allowed
-      ? next()
-      : res.status(403).json({ success: false, error: "FORBIDDEN", message: `The ${role} role is required.` });
+  return async (req, res, next) => {
+    if (role === "patient") {
+      const allowed = req.auth?.roles.includes("patient") &&
+        typeof req.body?.prescriptionId === "string" &&
+        req.auth.prescriptionId === req.body.prescriptionId.toLowerCase();
+      return allowed
+        ? next()
+        : forbidden(res, "A patient-scoped session for this prescription is required. This session does not verify patient identity.");
+    }
+
+    if (!req.auth?.roles.includes(role)) {
+      return forbidden(res, `The ${role} role is required.`);
+    }
+
+    try {
+      const contract = await getLocalRoleContract();
+      const roleId = role === "doctor"
+        ? await contract.DOCTOR_ROLE()
+        : await contract.PHARMACY_ROLE();
+      const stillAuthorized = await contract.hasRole(roleId, req.auth.address);
+      return stillAuthorized
+        ? next()
+        : forbidden(res, `The wallet no longer has the required ${role} role.`);
+    } catch (error) {
+      return configurationError(res, safeConfigurationMessage(error));
+    }
   };
 }
 

@@ -176,6 +176,18 @@ async function getBlockchainStatus({ provider = getProvider(), contract = getCon
   };
 }
 
+/** Read-only local diagnostic for the exact provider and registry used by readiness. */
+async function getBlockchainDiagnostic({ provider = getProvider(), contract = getContract(true) } = {}) {
+  const network = await provider.getNetwork();
+  const registryAddress = ethers.getAddress(await contract.getAddress());
+  const registryCode = await provider.getCode(registryAddress);
+  return {
+    chainId: Number(network.chainId),
+    registryAddress,
+    registryBytecodeBytes: registryCode && registryCode !== "0x" ? (registryCode.length - 2) / 2 : 0,
+  };
+}
+
 function rejectBackendWrite() {
   throw Object.assign(
     new Error("Component 4 write transactions must be submitted through the authenticated wallet in MetaMask."),
@@ -190,7 +202,7 @@ const PRESCRIPTION_STATUS = {
   3: "REVOKED",
 };
 
-function formatPrescription(raw, nowSeconds = Math.floor(Date.now() / 1000)) {
+function formatPrescription(raw) {
   const statusCode = Number(raw.status);
   return {
     prescriptionId: raw.prescriptionId,
@@ -199,9 +211,9 @@ function formatPrescription(raw, nowSeconds = Math.floor(Date.now() / 1000)) {
     doctorAddress: raw.doctorAddress,
     issuedAt: new Date(Number(raw.issuedAt) * 1000).toISOString(),
     expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
-    // Match PrescriptionRegistry: an active record expires only after the
-    // chain timestamp is strictly greater than expiryTime.
-    isExpired: Number(raw.expiryTime) < nowSeconds,
+    // V1 getPrescription computes expiry against block.timestamp. Use the
+    // returned status so backend and contract agree even if server clocks drift.
+    isExpired: statusCode === 2,
     status: PRESCRIPTION_STATUS[statusCode] || "UNKNOWN",
     statusCode,
   };
@@ -246,7 +258,7 @@ async function getPrescription(prescriptionId) {
 async function verifyPrescription({ prescriptionId, patientHash }) {
   const contract = getContract(true);
   const raw = await contract.getPrescription(prescriptionId);
-  await verifyPatientCredentialAgainstRecord(raw, () => contract.verifyPatientHash(prescriptionId, patientHash));
+  await verifyPatientHashAgainstRecord(raw, () => contract.verifyPatientHash(prescriptionId, patientHash));
 
   return {
     success: true,
@@ -254,22 +266,22 @@ async function verifyPrescription({ prescriptionId, patientHash }) {
       prescriptionId: raw.prescriptionId,
       status: PRESCRIPTION_STATUS[Number(raw.status)] || "UNKNOWN",
       expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
-      identityVerified: true,
+      patientHashVerified: true,
+      identityVerification: "not-performed",
     },
   };
 }
 
-async function verifyPatientCredentialAgainstRecord(raw, verifyHash, nowSeconds = Math.floor(Date.now() / 1000)) {
-  // Match PrescriptionRegistry._dispenseInternal, which permits use at the
-  // exact expiry second and rejects only after that timestamp has passed.
-  if (Number(raw.expiryTime) < nowSeconds) {
+async function verifyPatientHashAgainstRecord(raw, verifyHash) {
+  // V1 getPrescription derives EXPIRED from the chain timestamp.
+  if (Number(raw.status) === 2) {
     throw Object.assign(new Error("This prescription has expired."), { statusCode: 410, code: "PRESCRIPTION_EXPIRED" });
   }
   if (Number(raw.status) !== 0) {
     throw Object.assign(new Error("This prescription is not active."), { statusCode: 409, code: "PRESCRIPTION_NOT_ACTIVE" });
   }
   if (!(await verifyHash())) {
-    throw Object.assign(new Error("Patient credential verification failed."), { statusCode: 403, code: "PATIENT_CREDENTIAL_MISMATCH" });
+    throw Object.assign(new Error("Patient hash verification failed."), { statusCode: 403, code: "PATIENT_HASH_MISMATCH" });
   }
   return true;
 }
@@ -305,10 +317,11 @@ module.exports = {
   getPrescriptionIssuer,
   getPrescription,
   verifyPrescription,
-  verifyPatientCredentialAgainstRecord,
+  verifyPatientHashAgainstRecord,
   getPrescriptionsByDoctor,
   getContract,
   getBlockchainStatus,
+  getBlockchainDiagnostic,
   getProvider,
   getSigner,
   createConfiguredSigner,
