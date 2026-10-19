@@ -1,14 +1,12 @@
 /**
  * @file prescriptionService.js
- * @description Web3 service layer for Component 4 — interacts with PrescriptionRegistry.sol
- *              via ethers.js and delegates off-chain identity hashing to src/utils/privacy.js.
+ * @description Web3 read service for Component 4 PrescriptionRegistry.sol via ethers.js.
  * @author R.A.M.A. Ranasinghe (IT23142978) - Component 4
  *
  * Design decisions:
- * - All sensitive patient PII is hashed here (never passed to the smart contract raw).
+ * - Patient identity hashing and encrypted credential handling occur in the browser.
  * - The service reads ABI and contract addresses from the shared/ directory.
- * - Signer is loaded from environment variable PRIVATE_KEY.
- * - Both "simple dispense" and "patient-hash-verified dispense" are supported.
+ * - Contract reads use the JSON-RPC provider; writes must be submitted by MetaMask.
  */
 
 const { ethers } = require("ethers");
@@ -23,13 +21,6 @@ const contractAddresses = require(path.resolve(
   "../../../shared/blockchain/contract-addresses.json"
 ));
 
-const {
-  generatePatientHash,
-  generatePrescriptionId,
-  generateSalt,
-  verifyPatientIdentity,
-} = require(path.resolve(__dirname, "../../../src/utils/privacy"));
-
 let _provider = null;
 let _signer = null;
 
@@ -41,17 +32,76 @@ function getProvider() {
   return _provider;
 }
 
-function getSigner() {
-  if (!_signer) {
-    const privateKey = process.env.PRIVATE_KEY;
-    if (!privateKey) {
-      throw new Error(
-        "PRIVATE_KEY environment variable is not set. Cannot sign transactions."
+function configurationError(message, code) {
+  return Object.assign(new Error(message), { statusCode: 503, code });
+}
+
+async function createConfiguredSigner(provider = getProvider(), env = process.env) {
+  if (env.LOCAL_RPC_SIGNER != null && !["true", "false"].includes(env.LOCAL_RPC_SIGNER)) {
+    throw configurationError(
+      "LOCAL_RPC_SIGNER must be explicitly set to true or false.",
+      "LOCAL_SIGNER_CONFIGURATION_INVALID"
+    );
+  }
+  if (env.LOCAL_RPC_SIGNER === "true") {
+    if (!["localhost", "local"].includes(env.NETWORK)) {
+      throw configurationError(
+        "Local RPC signing requires NETWORK=localhost or NETWORK=local.",
+        "LOCAL_SIGNER_NETWORK_MISMATCH"
       );
     }
-    _signer = new ethers.Wallet(privateKey, getProvider());
+    if (!env.BACKEND_SIGNER_ADDRESS || !ethers.isAddress(env.BACKEND_SIGNER_ADDRESS)) {
+      throw configurationError(
+        "BACKEND_SIGNER_ADDRESS must be a valid configured local account address.",
+        "LOCAL_SIGNER_ADDRESS_REQUIRED"
+      );
+    }
+
+    let network;
+    try {
+      network = await provider.getNetwork();
+    } catch {
+      throw configurationError("Unable to connect to the configured local blockchain RPC.", "LOCAL_SIGNER_RPC_UNAVAILABLE");
+    }
+    if (network.chainId !== 31337n) {
+      throw configurationError("Local RPC signing is allowed only on chain ID 31337.", "LOCAL_SIGNER_CHAIN_MISMATCH");
+    }
+
+    let accounts;
+    try {
+      accounts = await provider.listAccounts();
+    } catch {
+      throw configurationError("Unable to read unlocked accounts from the local blockchain RPC.", "LOCAL_SIGNER_ACCOUNTS_UNAVAILABLE");
+    }
+    const address = ethers.getAddress(env.BACKEND_SIGNER_ADDRESS);
+    const isUnlocked = accounts.some((account) => {
+      const accountAddress = typeof account === "string" ? account : account.address;
+      return typeof accountAddress === "string" && accountAddress.toLowerCase() === address.toLowerCase();
+    });
+    if (!isUnlocked) {
+      throw configurationError("BACKEND_SIGNER_ADDRESS is not an unlocked account on the local RPC.", "LOCAL_SIGNER_NOT_UNLOCKED");
+    }
+    return new ethers.JsonRpcSigner(provider, address);
   }
+
+  const privateKey = env.PRIVATE_KEY;
+  if (!privateKey) {
+    throw configurationError(
+      "PRIVATE_KEY is required unless LOCAL_RPC_SIGNER=true is explicitly enabled.",
+      "SIGNER_CONFIGURATION_MISSING"
+    );
+  }
+  return new ethers.Wallet(privateKey, provider);
+}
+
+async function getSigner() {
+  if (!_signer) _signer = await createConfiguredSigner();
   return _signer;
+}
+
+async function getConfiguredSignerAddress() {
+  const signer = await getSigner();
+  return signer.getAddress();
 }
 
 /**
@@ -59,6 +109,13 @@ function getSigner() {
  * @param {boolean} [readOnly=false] - If true, uses provider (no signing needed).
  */
 function getContract(readOnly = false) {
+  if (!readOnly) {
+    throw Object.assign(
+      new Error("Component 4 write transactions must be submitted through the authenticated wallet in MetaMask."),
+      { statusCode: 410, code: "WALLET_TRANSACTION_REQUIRED" }
+    );
+  }
+
   const network = process.env.NETWORK || "localhost";
   const addresses = contractAddresses[network];
   if (!addresses) {
@@ -73,8 +130,57 @@ function getContract(readOnly = false) {
     );
   }
 
-  const runnerOrSigner = readOnly ? getProvider() : getSigner();
-  return new ethers.Contract(contractAddress, PrescriptionRegistryABI.abi, runnerOrSigner);
+  return new ethers.Contract(contractAddress, PrescriptionRegistryABI.abi, getProvider());
+}
+
+async function getBlockchainStatus({ provider = getProvider(), contract = getContract(true) } = {}) {
+  let network;
+  try {
+    network = await provider.getNetwork();
+  } catch {
+    throw configurationError("Unable to connect to the configured local blockchain RPC.", "BLOCKCHAIN_RPC_UNAVAILABLE");
+  }
+  if (network.chainId !== 31337n) {
+    throw configurationError("Component 4 is connected to the wrong blockchain network.", "BLOCKCHAIN_CHAIN_MISMATCH");
+  }
+
+  let registryAddress;
+  let registryCode;
+  let riskRegistryAddress;
+  let riskRegistryCode;
+  try {
+    registryAddress = await contract.getAddress();
+    registryCode = await provider.getCode(registryAddress);
+    if (!registryCode || registryCode === "0x") {
+      throw configurationError("No Component 4 PrescriptionRegistry is deployed at the configured address.", "PRESCRIPTION_REGISTRY_UNAVAILABLE");
+    }
+    riskRegistryAddress = await contract.riskRegistry();
+    if (riskRegistryAddress === ethers.ZeroAddress) {
+      throw configurationError("The Component 2 risk registry is not configured on Component 4.", "RISK_REGISTRY_NOT_CONFIGURED");
+    }
+    riskRegistryCode = await provider.getCode(riskRegistryAddress);
+    if (!riskRegistryCode || riskRegistryCode === "0x") {
+      throw configurationError("No Component 2 risk registry is deployed at the linked address.", "RISK_REGISTRY_UNAVAILABLE");
+    }
+  } catch (error) {
+    if (error.statusCode) throw error;
+    throw configurationError("Unable to verify the deployed Component 4 and Component 2 registries.", "BLOCKCHAIN_REGISTRY_CHECK_FAILED");
+  }
+
+  return {
+    connected: true,
+    chainId: Number(network.chainId),
+    prescriptionRegistry: ethers.getAddress(registryAddress),
+    riskRegistry: ethers.getAddress(riskRegistryAddress),
+    component3Connected: false,
+  };
+}
+
+function rejectBackendWrite() {
+  throw Object.assign(
+    new Error("Component 4 write transactions must be submitted through the authenticated wallet in MetaMask."),
+    { statusCode: 410, code: "WALLET_TRANSACTION_REQUIRED" }
+  );
 }
 
 const PRESCRIPTION_STATUS = {
@@ -84,17 +190,18 @@ const PRESCRIPTION_STATUS = {
   3: "REVOKED",
 };
 
-function formatPrescription(raw) {
+function formatPrescription(raw, nowSeconds = Math.floor(Date.now() / 1000)) {
   const statusCode = Number(raw.status);
   return {
     prescriptionId: raw.prescriptionId,
-    patientHash: raw.patientHash,
     medicineId: raw.medicineId,
     batchId: raw.batchId,
     doctorAddress: raw.doctorAddress,
     issuedAt: new Date(Number(raw.issuedAt) * 1000).toISOString(),
     expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
-    isExpired: Number(raw.expiryTime) * 1000 < Date.now(),
+    // Match PrescriptionRegistry: an active record expires only after the
+    // chain timestamp is strictly greater than expiryTime.
+    isExpired: Number(raw.expiryTime) < nowSeconds,
     status: PRESCRIPTION_STATUS[statusCode] || "UNKNOWN",
     statusCode,
   };
@@ -102,114 +209,29 @@ function formatPrescription(raw) {
 
 /**
  * Issues a new prescription on-chain.
- * Patient identity is hashed off-chain with generatePatientHash; IDs come from generatePrescriptionId.
+ * Patient hash is prepared in the patient browser; the doctor wallet submits this transaction.
  */
-async function issuePrescription({
-  patientNationalId,
-  patientFullName,
-  patientDateOfBirth,
-  medicineId,
-  batchId,
-  expiryDays = 30,
-}) {
-  const signer = getSigner();
-  const contract = getContract(false);
-  const doctorAddress = await signer.getAddress();
-
-  const identityData = {
-    nationalId: patientNationalId,
-    fullName: patientFullName,
-    dateOfBirth: patientDateOfBirth,
-  };
-
-  const salt = generateSalt();
-  const patientHash = generatePatientHash(identityData, salt);
-  const prescriptionId = generatePrescriptionId(doctorAddress, patientHash);
-  const expiryTime = Math.floor(Date.now() / 1000) + expiryDays * 24 * 60 * 60;
-
-  const tx = await contract.issuePrescription(
-    prescriptionId,
-    patientHash,
-    medicineId,
-    batchId,
-    expiryTime
-  );
-
-  const receipt = await tx.wait();
-
-  return {
-    success: true,
-    message: "Prescription issued successfully on-chain.",
-    data: {
-      prescriptionId,
-      patientHash,
-      medicineId,
-      batchId,
-      expiryTime: new Date(expiryTime * 1000).toISOString(),
-      doctorAddress,
-      transactionHash: receipt.hash,
-      blockNumber: receipt.blockNumber,
-      gasUsed: receipt.gasUsed.toString(),
-      salt,
-      privacyNote:
-        "The salt must be stored securely by the patient. It is required to re-verify identity at dispensing time.",
-    },
-  };
+async function issuePrescription() {
+  rejectBackendWrite();
 }
 
 /**
  * Verifies a prescription on-chain and dispenses it (marks USED).
  */
-async function dispensePrescription({ prescriptionId, presentedPatientHash }) {
-  const signer = getSigner();
-  const contract = getContract(false);
-
-  let tx;
-  if (presentedPatientHash) {
-    tx = await contract.verifyAndDispenseWithPatientHash(prescriptionId, presentedPatientHash);
-  } else {
-    tx = await contract.verifyAndDispense(prescriptionId);
-  }
-
-  const receipt = await tx.wait();
-
-  return {
-    success: true,
-    message: "Prescription successfully verified and dispensed.",
-    data: {
-      prescriptionId,
-      pharmacyAddress: await signer.getAddress(),
-      patientVerified: !!presentedPatientHash,
-      transactionHash: receipt.hash,
-      blockNumber: receipt.blockNumber,
-      gasUsed: receipt.gasUsed.toString(),
-      dispensedAt: new Date().toISOString(),
-    },
-  };
+async function dispensePrescription() {
+  rejectBackendWrite();
 }
 
 const verifyAndDispense = dispensePrescription;
 
-async function revokePrescription({ prescriptionId, reason }) {
-  const signer = getSigner();
-  const contract = getContract(false);
+async function revokePrescription() {
+  rejectBackendWrite();
+}
 
-  const tx = await contract.revokePrescription(prescriptionId, reason);
-  const receipt = await tx.wait();
-
-  return {
-    success: true,
-    message: "Prescription revoked successfully.",
-    data: {
-      prescriptionId,
-      reason,
-      revokedBy: await signer.getAddress(),
-      transactionHash: receipt.hash,
-      blockNumber: receipt.blockNumber,
-      gasUsed: receipt.gasUsed.toString(),
-      revokedAt: new Date().toISOString(),
-    },
-  };
+async function getPrescriptionIssuer(prescriptionId) {
+  const contract = getContract(true);
+  const raw = await contract.getPrescription(prescriptionId);
+  return raw.doctorAddress;
 }
 
 async function getPrescription(prescriptionId) {
@@ -217,62 +239,58 @@ async function getPrescription(prescriptionId) {
   const raw = await contract.getPrescription(prescriptionId);
   const formatted = formatPrescription(raw);
 
-  return {
-    success: true,
-    data: formatted,
-  };
+  const { issuedAt, expiryTime, isExpired, status, statusCode } = formatted;
+  return { success: true, data: { prescriptionId, issuedAt, expiryTime, isExpired, status, statusCode } };
 }
 
-async function verifyPrescription({
-  prescriptionId,
-  patientNationalId,
-  patientFullName,
-  patientDateOfBirth,
-  salt,
-}) {
+async function verifyPrescription({ prescriptionId, patientHash }) {
   const contract = getContract(true);
   const raw = await contract.getPrescription(prescriptionId);
-  const formatted = formatPrescription(raw);
-
-  let identityVerified = null;
-
-  if (patientNationalId && patientFullName && patientDateOfBirth && salt) {
-    const identityData = {
-      nationalId: patientNationalId,
-      fullName: patientFullName,
-      dateOfBirth: patientDateOfBirth,
-    };
-    identityVerified = verifyPatientIdentity(identityData, salt, formatted.patientHash);
-  }
+  await verifyPatientCredentialAgainstRecord(raw, () => contract.verifyPatientHash(prescriptionId, patientHash));
 
   return {
     success: true,
     data: {
-      ...formatted,
-      identityVerified,
-      verificationNote:
-        identityVerified === null
-          ? "Patient identity fields and salt not provided — identity not verified."
-          : identityVerified
-            ? "Patient identity verified successfully off-chain."
-            : "Patient identity verification FAILED — hash mismatch.",
+      prescriptionId: raw.prescriptionId,
+      status: PRESCRIPTION_STATUS[Number(raw.status)] || "UNKNOWN",
+      expiryTime: new Date(Number(raw.expiryTime) * 1000).toISOString(),
+      identityVerified: true,
     },
   };
 }
 
-async function getPrescriptionsByDoctor(doctorAddress) {
-  const contract = getContract(true);
+async function verifyPatientCredentialAgainstRecord(raw, verifyHash, nowSeconds = Math.floor(Date.now() / 1000)) {
+  // Match PrescriptionRegistry._dispenseInternal, which permits use at the
+  // exact expiry second and rejects only after that timestamp has passed.
+  if (Number(raw.expiryTime) < nowSeconds) {
+    throw Object.assign(new Error("This prescription has expired."), { statusCode: 410, code: "PRESCRIPTION_EXPIRED" });
+  }
+  if (Number(raw.status) !== 0) {
+    throw Object.assign(new Error("This prescription is not active."), { statusCode: 409, code: "PRESCRIPTION_NOT_ACTIVE" });
+  }
+  if (!(await verifyHash())) {
+    throw Object.assign(new Error("Patient credential verification failed."), { statusCode: 403, code: "PATIENT_CREDENTIAL_MISMATCH" });
+  }
+  return true;
+}
 
+async function getPrescriptionsByDoctor(doctorAddress) {
   if (!ethers.isAddress(doctorAddress)) {
     throw Object.assign(new Error("Invalid Ethereum address."), { statusCode: 400 });
   }
 
-  const ids = await contract.getPrescriptionsByDoctor(doctorAddress);
+  let ids;
+  try {
+    const contract = getContract(true);
+    ids = await contract.getPrescriptionsByDoctor(ethers.getAddress(doctorAddress));
+  } catch {
+    throw configurationError("Unable to read the authenticated doctor's prescriptions from the blockchain.", "BLOCKCHAIN_READ_FAILED");
+  }
 
   return {
     success: true,
     data: {
-      doctorAddress,
+      doctorAddress: ethers.getAddress(doctorAddress),
       prescriptionIds: ids,
       count: ids.length,
     },
@@ -284,8 +302,16 @@ module.exports = {
   dispensePrescription,
   verifyAndDispense,
   revokePrescription,
+  getPrescriptionIssuer,
   getPrescription,
   verifyPrescription,
+  verifyPatientCredentialAgainstRecord,
   getPrescriptionsByDoctor,
   getContract,
+  getBlockchainStatus,
+  getProvider,
+  getSigner,
+  createConfiguredSigner,
+  formatPrescription,
+  getConfiguredSignerAddress,
 };

@@ -257,6 +257,19 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
           .verifyAndDispenseWithPatientHash(prescriptionId, patientHash)
       ).to.emit(prescriptionRegistry, "PrescriptionDispensed");
     });
+
+    it("Should reject dispensing without the patient's matching hash", async function () {
+      await expect(
+        prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, ethers.ZeroHash)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "PatientHashMismatch");
+    });
+
+    it("Should not allow repeated dispensing after a successful verified dispense", async function () {
+      await prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, patientHash);
+      await expect(
+        prescriptionRegistry.connect(pharmacy).verifyAndDispenseWithPatientHash(prescriptionId, patientHash)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "PrescriptionNotActive");
+    });
   });
 
   describe("5. Unauthorized Access Rejections", function () {
@@ -381,13 +394,146 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
         .issuePrescription(prescriptionId, patientHash, MEDICINE_ID, BATCH_ID, validExpiryTime);
     });
 
-    it("Should reject dispensing if Medicine Risk Score exceeds threshold (Component 2)", async function () {
-      // Mark batch with high risk score (85 > 50) and unsafe
-      await mockRiskRegistry.setBatchRisk(BATCH_ID, HIGH_RISK_SCORE, false);
+    async function useRiskMock({
+      exists = true,
+      score = 15,
+      isSafe = true,
+      revertHasBatchRisk = false,
+      revertGetRiskScore = false,
+      revertIsBatchSafe = false,
+    }) {
+      const factory = await ethers.getContractFactory("MockMedicineRiskRegistry");
+      const riskMock = await factory.deploy(
+        exists,
+        score,
+        isSafe,
+        revertHasBatchRisk,
+        revertGetRiskScore,
+        revertIsBatchSafe
+      );
+      await riskMock.waitForDeployment();
+      await prescriptionRegistry.setRiskRegistry(await riskMock.getAddress());
+      return riskMock;
+    }
+
+    async function expectRiskFailure(errorPromise) {
+      await errorPromise;
+      const record = await prescriptionRegistry.getPrescription(prescriptionId);
+      expect(record.status).to.equal(0); // ACTIVE: failed checks must not consume it
+      const dispensed = await prescriptionRegistry.queryFilter(
+        prescriptionRegistry.filters.PrescriptionDispensed(prescriptionId),
+        0,
+        "latest"
+      );
+      expect(dispensed).to.have.length(0);
+    }
+
+    for (const [score, isSafe] of [[0, true], [69, true]]) {
+      it(`allows a recorded safe risk score of ${score}`, async function () {
+        await mockRiskRegistry.setBatchRisk(BATCH_ID, score, isSafe);
+        await expect(
+          prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId)
+        ).to.emit(prescriptionRegistry, "PrescriptionDispensed");
+      });
+    }
+
+    for (const score of [70, 71, 89, 100]) {
+      it(`rejects risk score ${score} and leaves the prescription active`, async function () {
+        await mockRiskRegistry.setBatchRisk(BATCH_ID, score, false);
+        await expectRiskFailure(
+          expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+            .to.be.revertedWithCustomError(prescriptionRegistry, "HighMedicineRisk")
+        );
+      });
+    }
+
+    it("rejects a missing batch risk record", async function () {
+      const riskMock = await useRiskMock({ exists: false });
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(prescriptionRegistry, "RiskRecordNotFound")
+          .withArgs(BATCH_ID)
+      );
+      expect(await riskMock.hasBatchRisk(BATCH_ID)).to.equal(false);
+    });
+
+    it("rejects an out-of-range score returned by a registry", async function () {
+      await useRiskMock({ score: 101, isSafe: false });
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(prescriptionRegistry, "RiskScoreOutOfRange")
+          .withArgs(BATCH_ID, 101)
+      );
+    });
+
+    it("rejects contradictory score and safety flag data returned by a registry", async function () {
+      await useRiskMock({ score: 69, isSafe: false });
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(prescriptionRegistry, "RiskSafetyFlagMismatch")
+          .withArgs(BATCH_ID, 69, false)
+      );
+    });
+
+    it("fails closed when the configured registry call reverts", async function () {
+      const riskMock = await useRiskMock({ revertHasBatchRisk: true });
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(riskMock, "MockHasBatchRiskFailed")
+      );
+    });
+
+    it("fails closed when getRiskScore reverts after hasBatchRisk succeeds", async function () {
+      const riskMock = await useRiskMock({ revertGetRiskScore: true });
+      expect(await riskMock.hasBatchRisk(BATCH_ID)).to.equal(true);
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(riskMock, "MockRiskScoreReadFailed")
+      );
+    });
+
+    it("fails closed when isBatchSafe reverts after record and score reads succeed", async function () {
+      const riskMock = await useRiskMock({ revertIsBatchSafe: true });
+      expect(await riskMock.hasBatchRisk(BATCH_ID)).to.equal(true);
+      expect(await riskMock.getRiskScore(BATCH_ID)).to.equal(15);
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(riskMock, "MockRiskSafetyReadFailed")
+      );
+    });
+
+    it("fails closed when the risk registry is unset or has no contract code", async function () {
+      await prescriptionRegistry.setRiskRegistry(ethers.ZeroAddress);
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(prescriptionRegistry, "RiskRegistryNotConfigured")
+      );
+
+      await prescriptionRegistry.setRiskRegistry("0x000000000000000000000000000000000000dEaD");
+      await expectRiskFailure(
+        expect(prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId))
+          .to.be.revertedWithCustomError(prescriptionRegistry, "RiskRegistryUnavailable")
+      );
+    });
+
+    it("does not allow the admin to raise the risk cutoff to 70 or above", async function () {
+      await expect(prescriptionRegistry.setRiskThreshold(70))
+        .to.be.revertedWithCustomError(prescriptionRegistry, "InvalidRiskThreshold")
+        .withArgs(70);
+      await expect(prescriptionRegistry.setRiskThreshold(100))
+        .to.be.revertedWithCustomError(prescriptionRegistry, "InvalidRiskThreshold")
+        .withArgs(100);
+    });
+
+    it("Should reject dispensing if the batch has no Component 2 assessment", async function () {
+      const unassessedId = ethers.keccak256(ethers.toUtf8Bytes("RX-UNASSESSED"));
+      await prescriptionRegistry
+        .connect(doctor)
+        .issuePrescription(unassessedId, patientHash, MEDICINE_ID, "BATCH-UNASSESSED", validExpiryTime);
 
       await expect(
-        prescriptionRegistry.connect(pharmacy).verifyAndDispense(prescriptionId)
-      ).to.be.revertedWithCustomError(prescriptionRegistry, "HighMedicineRisk");
+        prescriptionRegistry.connect(pharmacy).verifyAndDispense(unassessedId)
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "RiskRecordNotFound");
     });
 
     it("Should reject dispensing if Pharmacy Trust Score is below required threshold (Component 3)", async function () {

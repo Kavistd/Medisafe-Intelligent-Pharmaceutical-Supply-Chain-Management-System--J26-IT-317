@@ -15,28 +15,10 @@ const bytes32Hex = Joi.string()
 
 /**
  * Validates POST /api/v1/prescriptions/issue
- * Raw patient identity is accepted here and hashed off-chain by the service layer.
+ * The patient supplies only the already-computed bytes32 hash; raw identity is not accepted.
  */
 const issuePrescriptionSchema = Joi.object({
-  patientNationalId: Joi.string().trim().min(5).max(30).required(),
-  patientFullName: Joi.string().trim().min(2).max(100).required(),
-  patientDateOfBirth: Joi.string()
-    .trim()
-    .pattern(/^\d{4}-\d{2}-\d{2}$/)
-    .required()
-    .custom((value, helpers) => {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return helpers.error("any.invalid");
-      }
-      if (date > new Date()) {
-        return helpers.message("patientDateOfBirth cannot be in the future.");
-      }
-      return value;
-    })
-    .messages({
-      "string.pattern.base": "patientDateOfBirth must be in YYYY-MM-DD format.",
-    }),
+  patientHash: bytes32Hex.required().label("patientHash"),
   medicineId: Joi.string()
     .trim()
     .min(2)
@@ -65,32 +47,38 @@ const issuePrescriptionSchema = Joi.object({
  */
 const dispensePrescriptionSchema = Joi.object({
   prescriptionId: bytes32Hex.required().label("prescriptionId"),
-  presentedPatientHash: bytes32Hex.optional().label("presentedPatientHash"),
+  patientHash: bytes32Hex.required().label("patientHash"),
 });
 
-/**
- * Validates GET /api/v1/prescriptions/:id
- */
-const prescriptionIdParamSchema = Joi.object({
-  id: bytes32Hex.required().label("id"),
+const verifyPrescriptionSchema = Joi.object({
+  prescriptionId: bytes32Hex.required().label("prescriptionId"),
+  patientHash: bytes32Hex.required().label("patientHash"),
+});
+
+const revokePrescriptionSchema = Joi.object({
+  prescriptionId: bytes32Hex.required().label("prescriptionId"),
+  reason: Joi.string().trim().min(1).max(500).required(),
+});
+
+const prescriptionIdBodySchema = Joi.object({
+  prescriptionId: bytes32Hex.required().label("prescriptionId"),
 });
 
 function formatJoiError(error) {
   return error.details.map((detail) => ({
     field: detail.path.join("."),
     message: detail.message,
-    value: detail.context && detail.context.value,
   }));
 }
 
 /**
  * Express middleware factory that validates req[property] against a Joi schema.
  */
-function validate(schema, property = "body") {
+function validate(schema, property = "body", { stripUnknown = true } = {}) {
   return (req, res, next) => {
     const { error, value } = schema.validate(req[property], {
       abortEarly: false,
-      stripUnknown: true,
+      stripUnknown,
       convert: true,
     });
 
@@ -110,14 +98,20 @@ function validate(schema, property = "body") {
 
 const validateIssuePrescription = validate(issuePrescriptionSchema, "body");
 const validateDispensePrescription = validate(dispensePrescriptionSchema, "body");
-const validatePrescriptionIdParam = validate(prescriptionIdParamSchema, "params");
+const validatePrescriptionLookup = validate(prescriptionIdBodySchema, "body");
+const validateVerifyPrescription = validate(verifyPrescriptionSchema, "body", { stripUnknown: false });
+const validateRevokePrescription = validate(revokePrescriptionSchema, "body");
 
 module.exports = {
   issuePrescriptionSchema,
   dispensePrescriptionSchema,
-  prescriptionIdParamSchema,
+  prescriptionIdBodySchema,
+  verifyPrescriptionSchema,
+  revokePrescriptionSchema,
   validate,
   validateIssuePrescription,
   validateDispensePrescription,
-  validatePrescriptionIdParam,
+  validatePrescriptionLookup,
+  validateVerifyPrescription,
+  validateRevokePrescription,
 };

@@ -6,7 +6,9 @@
   "main": "routes/prescriptionRoutes.js",
   "author": "R.A.M.A. Ranasinghe (IT23142978)",
   "scripts": {
-    "verify": "node -e \"require('./routes/prescriptionRoutes'); require('./services/prescriptionService'); require('./validators/prescriptionValidator'); console.log('Component 4 backend modules loaded successfully.');\""
+    "verify": "node -e \"require('./routes/prescriptionRoutes'); require('./services/prescriptionService'); require('./validators/prescriptionValidator'); console.log('Component 4 backend modules loaded successfully.');\"",
+    "test": "node --test --test-concurrency=1",
+    "test:serial": "node --test --experimental-test-isolation=none --test-concurrency=1"
   },
   "dependencies": {
     "ethers": "^6.13.4",

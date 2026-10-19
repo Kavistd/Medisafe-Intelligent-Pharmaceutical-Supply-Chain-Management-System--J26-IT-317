@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * @notice Interface for Component 2 (AI-based Risk Scoring)
  */
 interface IMedicineRiskRegistry {
+    function hasBatchRisk(string calldata batchId) external view returns (bool);
     function getRiskScore(string calldata batchId) external view returns (uint256);
     function isBatchSafe(string calldata batchId) external view returns (bool);
 }
@@ -58,7 +59,7 @@ contract PrescriptionRegistry is AccessControl {
     IPharmacyTrust public pharmacyTrustRegistry;
 
     // Thresholds
-    uint256 public maxAllowedRiskScore = 50;  // Batch risk score must be <= this value (0-100 scale)
+    uint256 public maxAllowedRiskScore = 69;  // Must remain below the unsafe boundary of 70
     uint256 public minRequiredTrustScore = 70; // Pharmacy trust score must be >= this value (0-100 scale)
 
     // Storage
@@ -112,6 +113,12 @@ contract PrescriptionRegistry is AccessControl {
     error PrescriptionExpired(bytes32 prescriptionId, uint256 expiryTime, uint256 currentTimestamp);
     error PatientHashMismatch(bytes32 expected, bytes32 provided);
     error HighMedicineRisk(string batchId, uint256 riskScore, uint256 maxAllowed);
+    error RiskRegistryNotConfigured();
+    error RiskRegistryUnavailable();
+    error RiskRecordNotFound(string batchId);
+    error RiskScoreOutOfRange(string batchId, uint256 riskScore);
+    error RiskSafetyFlagMismatch(string batchId, uint256 riskScore, bool isSafe);
+    error InvalidRiskThreshold(uint256 maxAllowed);
     error MedicineBatchUnsafe(string batchId);
     error LowPharmacyTrust(address pharmacy, uint256 trustScore, uint256 minRequired);
     error PharmacyNotTrusted(address pharmacy);
@@ -243,15 +250,21 @@ contract PrescriptionRegistry is AccessControl {
             }
         }
 
-        // Component 2 (AI Risk Scoring) Oracle Check
-        if (address(riskRegistry) != address(0)) {
-            uint256 riskScore = riskRegistry.getRiskScore(p.batchId);
-            if (riskScore > maxAllowedRiskScore) {
-                revert HighMedicineRisk(p.batchId, riskScore, maxAllowedRiskScore);
-            }
-            if (!riskRegistry.isBatchSafe(p.batchId)) {
-                revert MedicineBatchUnsafe(p.batchId);
-            }
+        // Component 2 risk records are required and must agree with the 70-point boundary.
+        address configuredRiskRegistry = address(riskRegistry);
+        if (configuredRiskRegistry == address(0)) revert RiskRegistryNotConfigured();
+        if (configuredRiskRegistry.code.length == 0) revert RiskRegistryUnavailable();
+        if (!riskRegistry.hasBatchRisk(p.batchId)) revert RiskRecordNotFound(p.batchId);
+
+        uint256 riskScore = riskRegistry.getRiskScore(p.batchId);
+        if (riskScore > 100) revert RiskScoreOutOfRange(p.batchId, riskScore);
+
+        bool isSafe = riskRegistry.isBatchSafe(p.batchId);
+        if (isSafe != (riskScore < 70)) {
+            revert RiskSafetyFlagMismatch(p.batchId, riskScore, isSafe);
+        }
+        if (riskScore > maxAllowedRiskScore) {
+            revert HighMedicineRisk(p.batchId, riskScore, maxAllowedRiskScore);
         }
 
         // Component 3 (Pharmacy Trust Score) Oracle Check
@@ -369,6 +382,7 @@ contract PrescriptionRegistry is AccessControl {
     }
 
     function setRiskThreshold(uint256 _maxRiskScore) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_maxRiskScore >= 70) revert InvalidRiskThreshold(_maxRiskScore);
         uint256 old = maxAllowedRiskScore;
         maxAllowedRiskScore = _maxRiskScore;
         emit RiskThresholdUpdated(old, _maxRiskScore);
