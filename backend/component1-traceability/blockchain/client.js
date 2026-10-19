@@ -1,0 +1,82 @@
+const { Contract, Interface, JsonRpcProvider, FetchRequest, getAddress, ZeroAddress } = require('ethers');
+const artifact = require('../../../shared/abis/MedicineTraceability.json');
+const addresses = require('../../../shared/blockchain/contract-addresses.json');
+const abi = artifact.abi || artifact;
+const contractInterface = new Interface(abi);
+const networks = { localhost: 31337, hardhat: 31337, sepolia: 11155111 };
+
+class ApiError extends Error {
+  constructor(status, code, message) { super(message); this.status = status; this.code = code; }
+}
+
+function loadSettings(env = process.env) {
+  const network = (env.TRACEABILITY_NETWORK || 'localhost').trim().toLowerCase();
+  const chainId = networks[network];
+  if (!chainId) throw new ApiError(503, 'CONFIGURATION_ERROR', 'Unsupported TRACEABILITY_NETWORK.');
+  let address;
+  try {
+    const url = new URL(env.WEB3_RPC_URL);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
+    address = getAddress((env.MEDICINE_TRACEABILITY_ADDRESS || addresses[network]?.MedicineTraceability || '').trim());
+    if (address === ZeroAddress) throw new Error();
+  } catch { throw new ApiError(503, 'CONFIGURATION_ERROR', 'Configure a valid RPC URL and MedicineTraceability address.'); }
+  return { rpcUrl: env.WEB3_RPC_URL, address, chainId };
+}
+
+class TraceabilityClient {
+  constructor(settings, provider) {
+    this.settings = settings;
+    const request = new FetchRequest(settings.rpcUrl);
+    request.timeout = 10000;
+    this.provider = provider || new JsonRpcProvider(request);
+    this.contract = new Contract(settings.address, abi, this.provider);
+  }
+  async ready() {
+    // Query chain ID each time, rather than trusting a cached provider network.
+    const chainId = BigInt(await this.provider.send('eth_chainId', []));
+    if (chainId !== BigInt(this.settings.chainId)) throw new ApiError(503, 'CHAIN_MISMATCH', 'RPC chain does not match TRACEABILITY_NETWORK.');
+    const code = await this.provider.getCode(this.settings.address);
+    if (!code || code === '0x') throw new ApiError(503, 'CONTRACT_UNAVAILABLE', 'No deployed contract at the configured address.');
+  }
+  async read(method, args) {
+    await this.ready();
+    // ABI encoding/decoding preserves tuple field names and arbitrary uint256 values.
+    const data = this.contract.interface.encodeFunctionData(method, args);
+    const result = await this.provider.call({ to: this.settings.address, data });
+    const decoded = this.contract.interface.decodeFunctionResult(method, result);
+    const convert = (value, type) => {
+      if (type.baseType === 'array') return Array.from(value, item => convert(item, type.arrayChildren));
+      if (type.baseType === 'tuple') return Object.fromEntries(type.components.map((field, i) => [field.name, convert(value[i], field)]));
+      return value;
+    };
+    return Object.fromEntries(this.contract.interface.getFunction(method).outputs.map((type, i) => [String(i), convert(decoded[i], type)]));
+  }
+  async prepare(method, args, sender) {
+    await this.ready();
+    const transaction = { from: sender, to: this.settings.address,
+      data: contractInterface.encodeFunctionData(method, args), value: '0x0' };
+    // Simulate as the supplied sender: actual contract permissions and lifecycle
+    // rules remain authoritative. This never proves the caller owns that wallet.
+    await this.provider.call(transaction);
+    const gasLimit = await this.provider.estimateGas(transaction);
+    return { ...transaction, chainId: this.settings.chainId, gasLimit: gasLimit.toString() };
+  }
+}
+
+function publicError(error) {
+  if (error instanceof ApiError) return error;
+  // Only decode known revert data. Never return raw provider errors or URLs.
+  const data = error?.data || error?.info?.error?.data?.data || error?.info?.error?.data;
+  let parsed;
+  try { if (typeof data === 'string') parsed = contractInterface.parseError(data); } catch {}
+  try { if (!parsed && error?.revert?.name && contractInterface.getError(error.revert.name)) parsed = error.revert; } catch {}
+  if (parsed) {
+    const name = parsed.name;
+    const forbidden = ['AccessControlUnauthorizedAccount', 'NotCurrentOwner', 'NotRecipient', 'NotTransferParticipant', 'InvalidParticipantRole'];
+    const status = name === 'BatchNotFound' ? 404 : forbidden.includes(name) ? 403 : ['InvalidField', 'InvalidRecipient'].includes(name) ? 400 : 409;
+    return new ApiError(status, name, `Contract rejected the request: ${name}.`);
+  }
+  return new ApiError(503, 'BLOCKCHAIN_UNAVAILABLE', 'Blockchain request failed. Check RPC configuration and availability.');
+}
+
+module.exports = { ApiError, TraceabilityClient, loadSettings, publicError, contractInterface };
