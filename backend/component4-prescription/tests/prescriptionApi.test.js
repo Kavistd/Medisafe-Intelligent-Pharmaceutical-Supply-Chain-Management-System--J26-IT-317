@@ -20,14 +20,20 @@ async function call(app, method, route, { token, body, rawBody } = {}) {
 
 function loadApp(serviceOverrides = {}) {
   const original = require.cache[servicePath];
+  const roleProvider = {
+    getNetwork: async () => ({ chainId: 31337n }),
+    getCode: async () => "0x6001",
+  };
   require.cache[servicePath] = {
     id: servicePath,
     filename: servicePath,
     loaded: true,
     exports: {
+      getProvider: () => roleProvider,
       getConfiguredSignerAddress: () => process.env.TEST_DOCTOR || "0x0000000000000000000000000000000000000001",
       getPrescriptionIssuer: async () => process.env.TEST_DOCTOR || "0x0000000000000000000000000000000000000001",
       getContract: () => ({
+        getAddress: async () => "0x0000000000000000000000000000000000000003",
         DOCTOR_ROLE: async () => "doctor-role",
         PHARMACY_ROLE: async () => "pharmacy-role",
       hasRole: async (role, address) => (role === "doctor-role" && address.toLowerCase() ===
@@ -163,8 +169,10 @@ test("role lookup BAD_DATA is reported as blockchain configuration failure, not 
 
 test("role login explains when the configured V1 address has no deployed bytecode", async () => {
   const doctor = new ethers.Wallet("0x" + "1a".repeat(32));
-  const { app, restore } = loadApp({ getContract: () => ({
-    runner: { provider: { getCode: async () => "0x" } },
+  const { app, restore } = loadApp({ getProvider: () => ({
+    getNetwork: async () => ({ chainId: 31337n }),
+    getCode: async () => "0x",
+  }), getContract: () => ({
     getAddress: async () => "0x0000000000000000000000000000000000000003",
     DOCTOR_ROLE: async () => { throw new Error("must not call role getter without deployed code"); },
     PHARMACY_ROLE: async () => "pharmacy-role",
@@ -179,13 +187,50 @@ test("role login explains when the configured V1 address has no deployed bytecod
   } finally { restore(); }
 });
 
-test("verify and revoke routes enforce authorization and return controlled responses", async () => {
+test("professional role login rejects an RPC on a non-local chain before reading roles", async () => {
+  const doctor = new ethers.Wallet("0x" + "1b".repeat(32));
+  let roleRead = false;
+  const { app, restore } = loadApp({
+    getProvider: () => ({ getNetwork: async () => ({ chainId: 1n }), getCode: async () => { throw new Error("must not read code"); } }),
+    getContract: () => ({
+      getAddress: async () => "0x0000000000000000000000000000000000000003",
+      DOCTOR_ROLE: async () => { roleRead = true; return "doctor-role"; },
+    }),
+  });
+  try {
+    const challenge = (await call(app, "POST", "/api/v1/prescriptions/auth/challenge", { body: { address: doctor.address } })).body.data;
+    const response = await call(app, "POST", "/api/v1/prescriptions/auth/token", { body: { message: challenge.message, signature: await doctor.signMessage(challenge.message) } });
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "AUTH_CONFIGURATION_ERROR");
+    assert.match(response.body.message, /wrong blockchain network/i);
+    assert.equal(roleRead, false);
+  } finally { restore(); }
+});
+
+test("professional role authorization rechecks that the RPC remains on chain 31337", async () => {
+  const doctor = new ethers.Wallet("0x" + "1c".repeat(32));
+  process.env.TEST_DOCTOR = doctor.address;
+  let chainId = 31337n;
+  const { app, restore } = loadApp({
+    getProvider: () => ({ getNetwork: async () => ({ chainId }), getCode: async () => "0x6001" }),
+  });
+  try {
+    const token = await login(app, doctor);
+    chainId = 1n;
+    const response = await call(app, "GET", "/api/v1/prescriptions/mine", { token });
+    assert.equal(response.status, 503);
+    assert.equal(response.body.error, "AUTH_CONFIGURATION_ERROR");
+    assert.match(response.body.message, /wrong blockchain network/i);
+  } finally { restore(); }
+});
+
+test("patient hash verification and revoke routes enforce authorization and return controlled responses", async () => {
   const doctor = new ethers.Wallet("0x" + "22".repeat(32));
   const patient = new ethers.Wallet("0x" + "33".repeat(32));
   process.env.TEST_DOCTOR = doctor.address;
   let backendRevokeCalled = false;
   const { app, restore } = loadApp({
-    verifyPrescription: async () => ({ success: true, data: { prescriptionId: "0xabc", identityVerified: true, status: "ACTIVE" } }),
+    verifyPrescription: async () => ({ success: true, data: { prescriptionId: "0xabc", patientHashVerified: true, identityVerification: "not-performed", status: "ACTIVE" } }),
     revokePrescription: async () => { backendRevokeCalled = true; },
     getPrescriptionIssuer: async () => doctor.address,
   });
@@ -227,15 +272,15 @@ test("dispense route requires pharmacy authorization and rejects backend submiss
   } finally { restore(); delete process.env.TEST_PHARMACY; }
 });
 
-test("failed patient verification is denied and does not echo patient hash markers", async () => {
+test("failed patient hash verification is denied and does not echo patient hash markers", async () => {
   const patient = new ethers.Wallet("0x" + "11".repeat(32));
-  const { app, restore } = loadApp({ verifyPrescription: async () => ({ success: true, data: { prescriptionId: "0xabc", identityVerified: false } }) });
+  const { app, restore } = loadApp({ verifyPrescription: async () => ({ success: true, data: { prescriptionId: "0xabc", patientHashVerified: false } }) });
   try {
     const token = await login(app, patient, true, `0x${"c".repeat(64)}`);
     const patientHash = `0x${"d".repeat(64)}`;
     const response = await call(app, "POST", "/api/v1/prescriptions/verify", { token, body: { prescriptionId: `0x${"c".repeat(64)}`, patientHash } });
     assert.equal(response.status, 403);
-    assert.equal(response.body.error, "PATIENT_IDENTITY_MISMATCH");
+    assert.equal(response.body.error, "PATIENT_HASH_MISMATCH");
     assertMarkersAbsent(response.body, [patientHash]);
   } finally { restore(); }
 });
@@ -267,8 +312,9 @@ test("wallet role grants a session role without matching the service transaction
   const pharmacy = new ethers.Wallet("0x" + "55".repeat(32));
   const original = require.cache[servicePath];
   require.cache[servicePath] = { id: servicePath, filename: servicePath, loaded: true, exports: {
+    getProvider: () => ({ getNetwork: async () => ({ chainId: 31337n }), getCode: async () => "0x6001" }),
     getConfiguredSignerAddress: () => "0x0000000000000000000000000000000000000001",
-    getContract: () => ({ DOCTOR_ROLE: async () => "doctor-role", PHARMACY_ROLE: async () => "pharmacy-role", hasRole: async (role, address) => role === "pharmacy-role" && address.toLowerCase() === pharmacy.address.toLowerCase() }),
+    getContract: () => ({ getAddress: async () => "0x0000000000000000000000000000000000000003", DOCTOR_ROLE: async () => "doctor-role", PHARMACY_ROLE: async () => "pharmacy-role", hasRole: async (role, address) => role === "pharmacy-role" && address.toLowerCase() === pharmacy.address.toLowerCase() }),
   } };
   delete require.cache[require.resolve("../middleware/auth")];
   delete require.cache[require.resolve("../routes/prescriptionRoutes")];
@@ -279,7 +325,7 @@ test("wallet role grants a session role without matching the service transaction
     const token = await login(app, pharmacy);
     const claims = JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString());
     assert.deepEqual(claims.roles, ["pharmacy"]);
-  } finally { if (original) require.cache[servicePath] = original; else delete require.cache[servicePath]; }
+  } finally { if (original) require.cache[servicePath] = original; else delete require.cache[servicePath]; delete process.env.TEST_DOCTOR; }
 });
 
 test("invalid signatures, missing secret, and expired tokens are rejected safely", async () => {
@@ -310,6 +356,35 @@ test("invalid signatures, missing secret, and expired tokens are rejected safely
   } finally { restore(); delete process.env.TEST_DOCTOR; }
 });
 
+test("signed sessions with missing, malformed, or future-dated expiry claims fail closed", async () => {
+  const doctor = new ethers.Wallet("0x" + "67".repeat(32));
+  const { app, restore } = loadApp();
+  const { createHmac } = require("node:crypto");
+  const now = Math.floor(Date.now() / 1000);
+  const signedToken = (claims) => {
+    const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
+    const signature = createHmac("sha256", process.env.AUTH_TOKEN_SECRET).update(payload).digest("base64url");
+    return `${payload}.${signature}`;
+  };
+  try {
+    const claims = { sub: doctor.address, roles: ["doctor"], iat: now, exp: now + 60 };
+    for (const altered of [
+      { ...claims, exp: undefined },
+      { ...claims, exp: "not-a-timestamp" },
+      { ...claims, iat: now + 60, exp: now + 120 },
+      { ...claims, exp: now + 600 },
+      { ...claims, roles: ["patient"], prescriptionId: "not-bytes32" },
+    ]) {
+      const response = await call(app, "POST", "/api/v1/prescriptions/lookup", {
+        token: signedToken(altered),
+        body: { prescriptionId: `0x${"a".repeat(64)}` },
+      });
+      assert.equal(response.status, 401);
+      assert.equal(response.body.error, "UNAUTHORIZED");
+    }
+  } finally { restore(); }
+});
+
 test("patient challenge requires prescription scope and cannot grant professional roles", async () => {
   const patient = new ethers.Wallet("0x" + "77".repeat(32));
   const { app, restore } = loadApp();
@@ -319,12 +394,14 @@ test("patient challenge requires prescription scope and cannot grant professiona
     const token = await login(app, patient, true, `0x${"c".repeat(64)}`);
     const claims = JSON.parse(Buffer.from(token.split(".")[0], "base64url").toString());
     assert.deepEqual(claims.roles, ["patient"]);
+    assert.equal("identityVerified" in claims, false);
   } finally { restore(); }
 });
 
 test("wallets without an on-chain professional role are denied a session", async () => {
   const wallet = new ethers.Wallet("0x" + "88".repeat(32));
   const { app, restore } = loadApp({ getContract: () => ({
+    getAddress: async () => "0x0000000000000000000000000000000000000003",
     DOCTOR_ROLE: async () => "doctor-role",
     PHARMACY_ROLE: async () => "pharmacy-role",
     hasRole: async () => false,
@@ -334,6 +411,33 @@ test("wallets without an on-chain professional role are denied a session", async
     const response = await call(app, "POST", "/api/v1/prescriptions/auth/token", { body: { message: challenge.message, signature: await wallet.signMessage(challenge.message) } });
     assert.equal(response.status, 403);
     assert.equal(response.body.error, "FORBIDDEN");
+  } finally { restore(); }
+});
+
+test("professional routes recheck the wallet role after a session is issued", async () => {
+  const doctor = new ethers.Wallet("0x" + "8a".repeat(32));
+  let roleIsActive = true;
+  let backendWriteCalled = false;
+  const { app, restore } = loadApp({
+    getContract: () => ({
+      getAddress: async () => "0x0000000000000000000000000000000000000003",
+      DOCTOR_ROLE: async () => "doctor-role",
+      PHARMACY_ROLE: async () => "pharmacy-role",
+      hasRole: async (role, address) => roleIsActive && role === "doctor-role" && address.toLowerCase() === doctor.address.toLowerCase(),
+    }),
+    issuePrescription: async () => { backendWriteCalled = true; },
+  });
+  try {
+    const token = await login(app, doctor);
+    roleIsActive = false;
+    const response = await call(app, "POST", "/api/v1/prescriptions/issue", {
+      token,
+      body: { patientHash: `0x${"a".repeat(64)}`, medicineId: "MED-1", batchId: "BATCH-1" },
+    });
+    assert.equal(response.status, 403);
+    assert.equal(response.body.error, "FORBIDDEN");
+    assert.match(response.body.message, /no longer has/i);
+    assert.equal(backendWriteCalled, false);
   } finally { restore(); }
 });
 
@@ -381,7 +485,7 @@ test("patient verification rejects raw identity payloads without echoing them", 
   } finally { restore(); delete process.env.TEST_DOCTOR; }
 });
 
-test("patient verification reports an incorrect hash and expired prescription safely", async () => {
+test("patient hash verification reports an incorrect hash and expired prescription safely", async () => {
   const patient = new ethers.Wallet("0x" + "ac".repeat(32));
   const prescriptionId = `0x${"e".repeat(64)}`;
   const tokenAndCall = async (serviceError) => {
@@ -399,9 +503,9 @@ test("patient verification reports an incorrect hash and expired prescription sa
       "SYNTHETIC-CONTROLLED-ERROR-DOB-2002-04-05",
       `0x${"9".repeat(64)}`,
     ];
-    const mismatch = await tokenAndCall(Object.assign(new Error(`credential mismatch ${markers.join(" ")}`), { statusCode: 403, code: "PATIENT_CREDENTIAL_MISMATCH" }));
+    const mismatch = await tokenAndCall(Object.assign(new Error(`hash mismatch ${markers.join(" ")}`), { statusCode: 403, code: "PATIENT_HASH_MISMATCH" }));
     assert.equal(mismatch.status, 403);
-    assert.equal(mismatch.body.error, "PATIENT_CREDENTIAL_MISMATCH");
+    assert.equal(mismatch.body.error, "PATIENT_HASH_MISMATCH");
     assertMarkersAbsent(mismatch.body, markers);
     const expired = await tokenAndCall(Object.assign(new Error("This prescription has expired."), { statusCode: 410, code: "PRESCRIPTION_EXPIRED" }));
     assert.equal(expired.status, 410);
