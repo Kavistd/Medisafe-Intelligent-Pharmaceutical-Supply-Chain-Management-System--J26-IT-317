@@ -116,3 +116,24 @@ The host must inject both `authenticate(request)` and `authorizePharmacy({ princ
 No persistence or production Component 3 assessment provider is included. An unknown pharmacy returns `404`; a known pharmacy whose indicators lack approved policy or sufficient evidence returns `200` with `status: "NOT_ASSESSABLE"` and `score: null`. Test fixtures are synthetic. A `REAL` indicator source remains a declared label, not proof of authenticity. Component 1 facts do not establish delivery deadlines or pharmacy recall responses. The API is off-chain and does not synchronize with Component 4's legacy V1 `getTrustScore(address)` or `isPharmacyTrusted(address)` interface.
 
 The repository has no Component 3 package manifest or central backend host. The prototype uses Node's built-in HTTP module and adds no dependency. Hosting, identity authorization, a trusted assessment provider, and any synchronization policy require separate integration decisions.
+
+## Local synthetic demonstration
+
+From `backend/component3-pharmacy-trust`, start the loopback-only demo with Node.js:
+
+```powershell
+node run-local.js
+```
+
+It binds to `127.0.0.1:5003`. To select another local port, set `COMPONENT3_PORT` to a decimal value from 1 through 65535 before starting. The host remains fixed at loopback. The demo uses a fixed bearer token, `component3-local-demo`, solely to exercise the API authentication boundary; it is public demo code and is not production authentication. The demo authorization accepts only IDs in its `C3-DEMO-` namespace, and its provider contains two in-memory synthetic fixtures. Neither the token nor an environment variable can approve real-data assessment.
+
+Use these local requests while the demo is running:
+
+```powershell
+curl.exe -H "Authorization: Bearer component3-local-demo" http://127.0.0.1:5003/api/v1/pharmacies/C3-DEMO-PHARMACY-001/trust-assessment
+curl.exe -H "Authorization: Bearer component3-local-demo" http://127.0.0.1:5003/api/v1/pharmacies/C3-DEMO-PHARMACY-001/trust-assessment/evidence
+curl.exe -H "Authorization: Bearer component3-local-demo" http://127.0.0.1:5003/api/v1/pharmacies/C3-DEMO-PHARMACY-001/trust-assessment/critical-findings
+curl.exe -H "Authorization: Bearer component3-local-demo" http://127.0.0.1:5003/api/v1/pharmacies/C3-DEMO-PHARMACY-INSUFFICIENT/trust-assessment
+```
+
+Every local demo response includes `demoLabel: "LOCAL_SYNTHETIC_DEMO"` and `blockchainVerification: "NOT_PERFORMED"`. The example score and critical finding are synthetic test data, not pharmacy performance or regulatory findings. The insufficient example returns `NOT_ASSESSABLE` and `score: null`. Do not expose this demo outside the local machine or use its fixed token for a hosted service.

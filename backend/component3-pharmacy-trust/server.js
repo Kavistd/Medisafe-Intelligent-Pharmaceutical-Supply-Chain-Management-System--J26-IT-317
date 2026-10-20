@@ -90,6 +90,8 @@ function createComponent3Server({ assessmentService, authenticate, authorizePhar
         success: true,
         data: {
           pharmacyId: assessment.pharmacyId,
+          demoLabel: assessment.demoLabel,
+          blockchainVerification: 'NOT_PERFORMED',
           required: assessment.criticalEscalation.required,
           findings: assessment.criticalEscalation.findings,
         },
@@ -100,6 +102,8 @@ function createComponent3Server({ assessmentService, authenticate, authorizePhar
         success: true,
         data: {
           pharmacyId: assessment.pharmacyId,
+          demoLabel: assessment.demoLabel,
+          blockchainVerification: 'NOT_PERFORMED',
           status: assessment.status,
           evidenceSource: assessment.evidenceSource,
           indicatorEvidence: assessment.indicatorEvidence,
@@ -113,6 +117,8 @@ function createComponent3Server({ assessmentService, authenticate, authorizePhar
       success: true,
       data: {
         pharmacyId: assessment.pharmacyId,
+        demoLabel: assessment.demoLabel,
+        blockchainVerification: 'NOT_PERFORMED',
         status: assessment.status,
         score: assessment.score,
         tier: assessment.tier,

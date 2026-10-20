@@ -6,7 +6,7 @@ const { CLASSIFICATION, validateEvidenceSet } = require('./evidenceValidation');
 const { adaptComponent1Evidence } = require('./component1EvidenceAdapter');
 
 const INDICATORS = ['delivery', 'recall', 'complaint', 'inspection'];
-const RECORD_FIELDS = new Set(['pharmacyId', 'assessments', 'criticalFindings', 'evidence', 'component1Snapshot']);
+const RECORD_FIELDS = new Set(['pharmacyId', 'assessments', 'criticalFindings', 'evidence', 'component1Snapshot', 'demoLabel']);
 
 function isPlainObject(value) {
   if (value === null || typeof value !== 'object') return false;
@@ -81,6 +81,9 @@ function createAssessmentService({ readPharmacyAssessment } = {}) {
       if (!RECORD_FIELDS.has(key)) throw new Error(`Assessment provider returned unsupported field "${key}".`);
     }
     if (record.pharmacyId !== pharmacyId) throw new Error('Assessment provider pharmacy ID did not match the requested ID.');
+    if (record.demoLabel !== undefined && record.demoLabel !== 'LOCAL_SYNTHETIC_DEMO') {
+      throw new Error('Assessment provider demoLabel is unsupported.');
+    }
     if (!isPlainObject(record.assessments)) throw new Error('Assessment provider must return indicator assessments.');
 
     const evidence = validateEvidenceSet(record.evidence === undefined ? [] : record.evidence);
@@ -92,6 +95,7 @@ function createAssessmentService({ readPharmacyAssessment } = {}) {
 
     return {
       pharmacyId,
+      demoLabel: record.demoLabel || null,
       status: trustScore.status,
       score: trustScore.score,
       tier: classifyTier(trustScore.score),
