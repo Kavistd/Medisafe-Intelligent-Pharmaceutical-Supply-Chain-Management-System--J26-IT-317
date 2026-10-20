@@ -1,8 +1,47 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
 const { loadFixture, time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("Component 1: MedicineTraceability", function () {
+  before(function () {
+    expect(network.name, "Use the isolated --network hardhat network").to.equal("hardhat");
+  });
+
+  async function custodySnapshot(contract, batchId) {
+    try {
+      return {
+        batch: (await contract.getBatch(batchId)).toArray(true),
+        pending: (await contract.getPendingTransfer(batchId)).toArray(true),
+        history: (await contract.getTransferHistory(batchId)).toArray(true),
+      };
+    } catch (error) {
+      expect(contract.interface.parseError(error.data).name).to.equal("BatchNotFound");
+      for (const method of ["getBatch", "getPendingTransfer", "getTransferHistory"])
+        await expect(contract[method](batchId)).to.be.revertedWithCustomError(contract, "BatchNotFound").withArgs(batchId);
+      return { absent: true };
+    }
+  }
+
+  // Check both preflight rejection and a mined failed transaction, not estimation alone.
+  async function rejectsWithoutStateChange(contract, batchId, signer, method, args, errorName, errorArgs = []) {
+    const before = await custodySnapshot(contract, batchId);
+    const check = promise => {
+      const assertion = expect(promise).to.be.revertedWithCustomError(contract, errorName);
+      return errorArgs.length ? assertion.withArgs(...errorArgs) : assertion;
+    };
+    await check(contract.connect(signer)[method].staticCall(...args));
+    expect(await custodySnapshot(contract, batchId)).to.deep.equal(before);
+    const submission = contract.connect(signer)[method](...args, { gasLimit: 1500000 });
+    await check(submission);
+    const failure = await submission.catch(error => error);
+    const hash = failure.transactionHash || failure.data?.transactionHash;
+    expect(hash, "Rejection must have a mined transaction receipt").to.be.a("string");
+    const receipt = await ethers.provider.getTransactionReceipt(hash);
+    expect(receipt.status).to.equal(0);
+    expect(receipt.logs).to.have.length(0);
+    expect(await custodySnapshot(contract, batchId)).to.deep.equal(before);
+  }
+
   async function fixture() {
     const [admin, manufacturer, distributor, pharmacy, stranger, recall, otherManufacturer, otherDistributor] = await ethers.getSigners();
     const contract = await ethers.deployContract("MedicineTraceability", [admin.address]);
@@ -74,7 +113,8 @@ describe("Component 1: MedicineTraceability", function () {
     it("rejects registration by every non-manufacturer including admin", async function () {
       const { contract, admin, distributor, pharmacy, stranger, recall, data } = await loadFixture(fixture);
       for (const account of [admin, distributor, pharmacy, stranger, recall])
-        await expect(contract.connect(account).registerBatch(data)).to.be.revertedWithCustomError(contract, "AccessControlUnauthorizedAccount");
+        await rejectsWithoutStateChange(contract, data.batchId, account, "registerBatch", [data],
+          "AccessControlUnauthorizedAccount", [account.address, await contract.MANUFACTURER_ROLE()]);
     });
   });
 
@@ -97,7 +137,7 @@ describe("Component 1: MedicineTraceability", function () {
     it("rejects duplicate IDs even from another authorized manufacturer", async function () {
       const { contract, manufacturer, otherManufacturer, data } = await loadFixture(registeredFixture);
       for (const account of [manufacturer, otherManufacturer])
-        await expect(contract.connect(account).registerBatch(data)).to.be.revertedWithCustomError(contract, "BatchAlreadyExists").withArgs(data.batchId);
+        await rejectsWithoutStateChange(contract, data.batchId, account, "registerBatch", [data], "BatchAlreadyExists", [data.batchId]);
     });
 
     for (const field of ["batchId", "medicineId", "name", "category", "dosageForm", "strength", "manufacturerName", "indication", "classification", "documentReference", "certificateReference"]) {
@@ -174,9 +214,10 @@ describe("Component 1: MedicineTraceability", function () {
     });
 
     it("rejects non-owners, including admin and another manufacturer", async function () {
-      const { contract, admin, stranger, otherManufacturer, distributor, data } = await loadFixture(registeredFixture);
-      for (const account of [admin, stranger, otherManufacturer])
-        await expect(contract.connect(account).initiateTransfer(data.batchId, distributor.address)).to.be.revertedWithCustomError(contract, "NotCurrentOwner");
+      const { contract, admin, stranger, otherManufacturer, distributor, pharmacy, data } = await loadFixture(registeredFixture);
+      for (const account of [admin, stranger, otherManufacturer, distributor])
+        await rejectsWithoutStateChange(contract, data.batchId, account, "initiateTransfer",
+          [data.batchId, account === distributor ? pharmacy.address : distributor.address], "NotCurrentOwner");
     });
 
     it("rejects zero/self recipients, unassigned recipients and skipped stages", async function () {
@@ -184,14 +225,14 @@ describe("Component 1: MedicineTraceability", function () {
       for (const address of [ethers.ZeroAddress, manufacturer.address])
         await expect(contract.connect(manufacturer).initiateTransfer(data.batchId, address)).to.be.revertedWithCustomError(contract, "InvalidRecipient");
       for (const account of [pharmacy, stranger])
-        await expect(contract.connect(manufacturer).initiateTransfer(data.batchId, account.address)).to.be.revertedWithCustomError(contract, "InvalidParticipantRole");
+        await rejectsWithoutStateChange(contract, data.batchId, manufacturer, "initiateTransfer", [data.batchId, account.address], "InvalidParticipantRole");
     });
 
     it("rejects duplicate pending transfers and confirmations by sender/admin/another distributor", async function () {
       const { contract, manufacturer, distributor, otherDistributor, admin, data } = await loadFixture(pendingFixture);
       await expect(contract.connect(manufacturer).initiateTransfer(data.batchId, distributor.address)).to.be.revertedWithCustomError(contract, "TransferAlreadyPending");
       for (const account of [manufacturer, admin, otherDistributor])
-        await expect(contract.connect(account).confirmTransfer(data.batchId, 1)).to.be.revertedWithCustomError(contract, "NotRecipient");
+        await rejectsWithoutStateChange(contract, data.batchId, account, "confirmTransfer", [data.batchId, 1], "NotRecipient");
       expect((await contract.getBatch(data.batchId)).owner).to.equal(manufacturer.address);
       expect(await contract.getTransferHistoryCount(data.batchId)).to.equal(0);
     });
@@ -278,9 +319,10 @@ describe("Component 1: MedicineTraceability", function () {
         it(`blocks ${stage} initiation after ${invalidity}`, async function () {
           const ctx = await loadFixture(stage === "manufacturer" ? registeredFixture : atDistributorFixture);
           if (invalidity === "recall") await ctx.contract.connect(ctx.recall).recallBatch(ctx.data.batchId, "Recall");
-          else await time.setNextBlockTimestamp(ctx.data.expiresAt);
-          await expect(ctx.contract.connect(ctx[stage]).initiateTransfer(ctx.data.batchId, ctx[stage === "manufacturer" ? "distributor" : "pharmacy"].address))
-            .to.be.revertedWithCustomError(ctx.contract, invalidity === "recall" ? "BatchRecalled" : "BatchExpired");
+          else await time.increaseTo(ctx.data.expiresAt);
+          await rejectsWithoutStateChange(ctx.contract, ctx.data.batchId, ctx[stage], "initiateTransfer",
+            [ctx.data.batchId, ctx[stage === "manufacturer" ? "distributor" : "pharmacy"].address],
+            invalidity === "recall" ? "BatchRecalled" : "BatchExpired");
         });
 
         it(`blocks ${stage} pending confirmation after ${invalidity} without changing history`, async function () {
