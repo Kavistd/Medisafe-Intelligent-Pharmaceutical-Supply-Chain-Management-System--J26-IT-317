@@ -1,0 +1,100 @@
+# Component 3 Pharmacy Trust Scoring Core
+
+## Purpose and scope
+
+This isolated CommonJS module validates four caller-supplied indicator assessments, calculates a weighted research score only when every indicator is assessable, and preserves critical findings as a separate escalation signal. It is a pure domain module: it reads no pharmacy records or external data sources, makes no API calls, performs no blockchain operations, and does not persist data.
+
+The module does not calculate or verify delivery, recall, complaint, or inspection evidence. Integrations and approved indicator rules are not present here.
+
+## Proposed research weights and formula
+
+These weights are proposed research-design parameters, not official NMRA-prescribed values:
+
+| Indicator key | Meaning | Weight |
+|---|---|---:|
+| `delivery` | Delivery Reliability | 0.35 |
+| `recall` | Recall Response | 0.30 |
+| `complaint` | Complaint-Handling Performance | 0.20 |
+| `inspection` | Inspection Performance | 0.15 |
+
+For assessable values on a 0 to 100 scale:
+
+`TS = (0.35 * D) + (0.30 * R) + (0.20 * C) + (0.15 * I)`
+
+The implementation does not round the score or weighted contributions. It does not renormalize weights when an indicator is unavailable.
+
+## Exports
+
+The module exports:
+
+- `WEIGHTS`: a frozen object containing the four proposed weights.
+- `calculateTrustScore(input)`: validates indicator assessments, produces a breakdown and either a numeric aggregate or a `NOT_ASSESSABLE` result.
+- `classifyTier(score)`: classifies a numeric score using the prototype thresholds below; `null` returns `NOT_ASSESSABLE`.
+
+Each required indicator has shape `{ status, value?, evidenceCount, source }`:
+
+- `status` is `ASSESSABLE` or `NOT_ASSESSABLE`.
+- An assessable indicator requires a finite numeric `value` from 0 through 100 inclusive.
+- A not-assessable indicator must omit `value` entirely.
+- `evidenceCount` is a non-negative integer. `source` is `SYNTHETIC` or `REAL`.
+- All four indicator objects are required. Invalid values are rejected rather than coerced.
+
+Example input shape (illustrative structure only; not pharmacy data):
+
+```js
+{
+  delivery: { status: 'ASSESSABLE', value: 80, evidenceCount: 3, source: 'SYNTHETIC' },
+  recall: { status: 'NOT_ASSESSABLE', evidenceCount: 0, source: 'SYNTHETIC' },
+  complaint: { status: 'ASSESSABLE', value: 75, evidenceCount: 2, source: 'REAL' },
+  inspection: { status: 'ASSESSABLE', value: 90, evidenceCount: 1, source: 'REAL' },
+  criticalFindings: [],
+}
+```
+
+`calculateTrustScore` returns `status`, `score`, per-indicator `breakdown`, `missingIndicators`, `criticalEscalation`, and `evidenceSource`. When any indicator is `NOT_ASSESSABLE`, the overall status is `NOT_ASSESSABLE`, score is `null`, and unavailable indicators include a reason. No partial weighted sum is exposed as the final score.
+
+The result shape is:
+
+```ts
+{
+  status: 'ASSESSABLE' | 'NOT_ASSESSABLE',
+  score: number | null, // numeric only when assessable; null otherwise
+  breakdown: {
+    delivery: { status, value, weight, weightedContribution, evidenceCount, source },
+    recall: { status, value, weight, weightedContribution, evidenceCount, source },
+    complaint: { status, value, weight, weightedContribution, evidenceCount, source },
+    inspection: { status, value, weight, weightedContribution, evidenceCount, source },
+  },
+  missingIndicators: [{ name, reason }],
+  criticalEscalation: { required: false, findings: [] },
+  evidenceSource: 'SYNTHETIC' | 'REAL' | 'MIXED',
+}
+```
+
+The example result values above describe field types and shape, not a specific calculation result.
+
+A legitimate assessable score of `0` remains a numeric value and contributes zero. It is distinct from `NOT_ASSESSABLE`, which has no `value` and contributes no aggregate because the overall score is unavailable.
+
+`evidenceSource` is derived only from the four source labels: all synthetic yields `SYNTHETIC`, all real yields `REAL`, and a combination yields `MIXED`. This label does not verify evidence authenticity.
+
+## Critical findings
+
+`criticalFindings` may be omitted (or set to `undefined`) to represent an empty list. Otherwise it must be an array of plain objects containing non-empty `id` and `description` strings. Additional JSON-compatible finding details are preserved in defensive copies.
+
+Any non-empty findings array sets `criticalEscalation.required` to `true`, whether the score is high, low, or not assessable. Escalation is separate from the aggregate. This module does not define regulatory severity, threshold, or official outcome rules.
+
+## Prototype tier thresholds
+
+`classifyTier` uses the following proposed prototype categories. They are not official NMRA classifications or decisions:
+
+- 80 through 100: `HIGHLY_TRUSTED`
+- 60 to less than 80: `TRUSTED`
+- 40 to less than 60: `UNDER_REVIEW`
+- 0 to less than 40: `ESCALATION_ALERT`
+- `null`: `NOT_ASSESSABLE`
+
+## Evidence limitations
+
+No approved expected-delivery deadline source has been confirmed. Component 1 transfer timestamps alone cannot establish whether a delivery was on time. Complaint and inspection source integrations are absent. Recall records do not by themselves establish pharmacy response. Until approved sources and scoring rules are supplied, affected indicators should be represented as `NOT_ASSESSABLE`.
+
+Synthetic fixtures in the unit tests are explicitly labeled as synthetic test fixtures and are not real pharmacy data. The module makes no claim of real-world accuracy. Real-world use requires approved evidence sources, validated scoring rules, and appropriate domain-expert and supervisor review. The score is research decision support and does not replace official regulatory decisions.
