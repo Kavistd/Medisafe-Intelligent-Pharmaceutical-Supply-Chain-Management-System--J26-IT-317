@@ -78,6 +78,33 @@ npm test
 
 From `frontend/`: `npm run test:serial` and `npm run build`. From `backend/component1-traceability/`: `npm test`. Use `node --test --experimental-test-isolation=none --test-concurrency=1 tests/*.test.js` if the local sandbox blocks test subprocess creation. Do not change package files to work around a sandbox. Read the Phase 6 verification record in `docs/testing/component1-phase6-evaluation.md` for actual outcomes and unrelated failures.
 
+## Permanent negative business-rule regression tests
+
+The existing cases in `blockchain/test/component1/MedicineTraceability.test.js` are strengthened rather than duplicated. They reuse `loadFixture` and the existing registration/pending/distributor fixtures. The suite refuses any network other than the in-process `hardhat` network; it does not contact or reset the running application node. Only unlocked disposable accounts and synthetic batch metadata are used. Fixture document strings are contract-level placeholders, not IPFS uploads or a document-provider integration test.
+
+| Invalid operation | Expected custom error |
+| --- | --- |
+| Registration without manufacturer role | `AccessControlUnauthorizedAccount(account, MANUFACTURER_ROLE)` |
+| Manufacturer skips distributor and targets a pharmacy | `InvalidParticipantRole` |
+| Distributor initiates without custody | `NotCurrentOwner` |
+| Confirmation by someone other than the pending recipient | `NotRecipient` |
+| Initiation after authorized recall | `BatchRecalled` |
+| Initiation at/after expiry | `BatchExpired` |
+| Registration of an existing batch ID | `BatchAlreadyExists(batchId)` |
+
+For each strengthened rejection, a shared assertion checks the exact error using `staticCall`, then submits with an explicit gas limit to bypass estimation. Hardhat's submission-time revert includes the transaction hash; the test requires its mined receipt to have status `0` and no logs. Complete batch data (including owner, stage and recall flag), pending transfer and completed history must equal their pre-operation snapshots after both attempts. Unauthorized first registration must leave the batch absent from all three getters. Sender nonces, gas balances, block numbers and clock advancement are intentionally excluded from contract-state equality: mined reverts still consume gas/nonces. Expiry uses the isolated fixture clock, with simulation performed exactly at expiry and the failed submitted transaction mined afterward. Recall/expiry initiation is covered at both manufacturer and distributor stages.
+
+From the repository root, using installed dependencies and current compiled artifacts:
+
+```powershell
+Set-Location blockchain
+npx hardhat test --no-compile --network hardhat test/component1/MedicineTraceability.test.js test/component1/MedicineBatchSchema.test.js test/component1/TraceabilityDeployment.test.js
+```
+
+If artifacts are absent or source has changed, first run `npm run compile` from `blockchain/`. Do not substitute `--network localhost`. No application services, public RPC, wallet keys or IPFS credentials are needed. These regression checks are separate from the saved Phase 6 performance dataset: they do not regenerate it, add rejected operations to its successful transaction count, or change its reported gas/latency samples. Passing demonstrates finite-fixture business-rule conformance, not counterfeit detection accuracy or a security proof.
+
+Verification on 20 October 2026: **98 passing, 0 failing** (62 medicine-traceability tests, 20 shared-schema tests and 16 deployment/configuration tests). Existing test cases were extended, so the test count did not increase. All seven negative categories passed the simulation/error, mined-failure receipt and state-preservation assertions. JavaScript syntax and Git whitespace checks passed. The workstation uses Node 23.10.0; Hardhat reports that runtime as unsupported despite the passing result. Use the supported Node 22 LTS setup above for subsequent reproducible runs. These are local EVM regression results, not additional browser/MetaMask verification or public-chain performance measurements.
+
 ## Integration limitations and observed safety gap
 
 Component 1 recall/expiry checks protect custody actions. Component 4's legacy contract has no traceability link and does not automatically invalidate a prescription or risk record when a batch is recalled or expires. The runner demonstrates both gaps using safe recorded risk, trusted pharmacy, an otherwise-valid prescription and an invalid Component 1 batch. Dispensing currently succeeds; this is recorded as a **gap**, not safe end-to-end behavior. Control checks confirm unsafe/missing risk and low pharmacy trust still block dispensing. No other component is changed to fix this issue in Phase 6.
