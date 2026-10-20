@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, batchPath, connectWallet, discover, documentRequest, loadBatch, registration, sendPrepared, settings, STAGES } from './client.js';
+import { api, batchPath, connectWallet, selectWalletProvider, watchWallet, discover, documentRequest, loadBatch, registration, sendPrepared, settings, networkName, STAGES } from './client.js';
 import './traceability.css';
 
 const config = settings();
@@ -16,11 +16,11 @@ export default function TraceabilityApp() {
   const [form, setForm] = useState(emptyForm), [recipient, setRecipient] = useState('');
   const [rows, setRows] = useState([]), [nextBlock, setNextBlock] = useState(config.startBlock), [scanned, setScanned] = useState(null);
   const [approved, setApproved] = useState(false), [files, setFiles] = useState({});
-  const generation = useRef(0), ethereum = typeof window !== 'undefined' ? window.ethereum : null;
+  const generation = useRef(0);
+  const [ethereum, setEthereum] = useState(null);
   useEffect(() => {
     const clear = () => { generation.current++; setSession(null); setRows([]); setNextBlock(config.startBlock); setScanned(null); setNotice({ kind: 'info', text: 'Wallet account or network changed. Reconnect to continue.' }); };
-    ethereum?.on?.('accountsChanged', clear); ethereum?.on?.('chainChanged', clear);
-    return () => { ethereum?.removeListener?.('accountsChanged', clear); ethereum?.removeListener?.('chainChanged', clear); };
+    return watchWallet(ethereum, clear);
   }, [ethereum]);
   async function run(action) {
     setBusy(true); setNotice(null);
@@ -28,8 +28,11 @@ export default function TraceabilityApp() {
     finally { setBusy(false); }
   }
   async function connect() {
+    setSession(null);
     const version = ++generation.current;
-    const connected = await connectWallet(ethereum, config);
+    const selected = await selectWalletProvider({ target: window });
+    setEthereum(selected);
+    const connected = await connectWallet(selected, config);
     if (version !== generation.current) throw new Error('Wallet changed while connecting. Retry.');
     setSession(connected); setRows([]); setNextBlock(config.startBlock); setScanned(null);
     setNotice({ kind: 'success', text: 'Wallet connected. On-chain permissions verified.' });
@@ -55,7 +58,7 @@ export default function TraceabilityApp() {
     const tx = await api(path, { sender: wallet.account, ...body });
     // CID normalization is the backend's only permitted transformation.
     const expectedArgs = method === 'registerBatch' ? [{ ...args[0], certificateReference: canonicalReference(args[0].certificateReference), documentReference: canonicalReference(args[0].documentReference) }] : args;
-    await sendPrepared({ ethereum, account: wallet.account, config, tx, expected: { method, args: expectedArgs }, onPending: hash => setNotice({ kind: 'info', text: `Submitted ${hash}. Waiting for confirmation…` }) });
+    await sendPrepared({ ethereum: wallet.ethereum, account: wallet.account, config, tx, expected: { method, args: expectedArgs }, onPending: hash => setNotice({ kind: 'info', text: `Submitted ${hash}. Waiting for confirmation…` }) });
     setRows([]); setNextBlock(config.startBlock); setScanned(null);
     await track(id); setNotice({ kind: 'success', text: `${method} confirmed. Current batch state refreshed.` });
   }
@@ -70,13 +73,13 @@ export default function TraceabilityApp() {
     if (!session?.roles.MANUFACTURER) throw new Error('A manufacturer-role wallet is required to upload.');
     if (!approved) throw new Error('Confirm that an operator reviewed these documents for public publication.');
     const file = files[type]; if (!file) throw new Error('Choose a document first.');
-    const result = await documentRequest({ ethereum, session, config, file, documentType: type, batchId: form.batchId });
+    const result = await documentRequest({ ethereum: session.ethereum, session, config, file, documentType: type, batchId: form.batchId });
     setForm(previous => ({ ...previous, [type === 'medicine-certificate' ? 'certificateReference' : 'documentReference']: result.reference }));
     setNotice({ kind: 'success', text: `${type === 'medicine-certificate' ? 'Certificate' : 'Report'} pinned. Reference added to registration.` });
   }
   async function download(reference) {
     if (!session) throw new Error('Connect an authorized wallet to download documents.');
-    const blob = await documentRequest({ ethereum, session, config, reference });
+    const blob = await documentRequest({ ethereum: session.ethereum, session, config, reference });
     const url = URL.createObjectURL(blob), link = document.createElement('a');
     link.href = url; link.download = 'medisafe-document'; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     setNotice({ kind: 'success', text: 'Document downloaded. Verify its issuer independently.' });
@@ -91,7 +94,7 @@ export default function TraceabilityApp() {
       <nav aria-label="Traceability workspace">{[['tracking', '◎', 'Medicine tracking'], ['manufacturer', '▦', 'Manufacturer'], ['distributor', '⇄', 'Distributor'], ['pharmacy', '✚', 'Pharmacy']].map(([key, symbol, label]) => <button key={key} className={tab === key ? 'selected' : ''} onClick={() => setTab(key)}><span aria-hidden="true">{symbol}</span>{label}</button>)}</nav>
       <div className="trace-sidebar-bottom"><p>Every handoff.<br/><strong>A verifiable record.</strong></p><a href="/">Open prescription management ↗</a><small>Component 01 · Local research environment</small></div></aside>
     <main className="trace-main"><header className="trace-topbar"><span>MediSafe Chain <span aria-hidden="true">/</span> Traceability</span><button disabled={busy} onClick={() => run(connect)}>{session ? short(session.account) : 'Connect wallet'} <span aria-hidden="true">↗</span></button></header>
-      <div className="trace-content"><div className="trace-heading"><div><div className="trace-eyebrow">MEDICINE TRACEABILITY</div><h1>{tab === 'tracking' ? 'Follow every batch.' : `${tab[0].toUpperCase() + tab.slice(1)} dashboard`}</h1><p>{tab === 'tracking' ? 'A clear view of medicine provenance, custody and safety status.' : 'Manage your part of the medicine journey with wallet-authorized actions.'}</p></div><span className="trace-network">● Hardhat Local · 31337</span></div>
+      <div className="trace-content"><div className="trace-heading"><div><div className="trace-eyebrow">MEDICINE TRACEABILITY</div><h1>{tab === 'tracking' ? 'Follow every batch.' : `${tab[0].toUpperCase() + tab.slice(1)} dashboard`}</h1><p>{tab === 'tracking' ? 'A clear view of medicine provenance, custody and safety status.' : 'Manage your part of the medicine journey with wallet-authorized actions.'}</p></div><span className="trace-network">● {networkName(config.chainId)} / {config.chainId.toString()}</span></div>
       {!config.address && <div className="trace-notice error">Set VITE_TRACEABILITY_ADDRESS to your deployed local contract before connecting a wallet. Batch search is available when the backend is configured.</div>}
       {notice && <div className={`trace-notice ${notice.kind}`} role={notice.kind === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
       {busy && <div className="trace-progress" role="status">Processing request… Please keep this page open.</div>}

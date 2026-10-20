@@ -1,6 +1,7 @@
 const hre = require("hardhat");
 const { address, checkNetwork, readAddresses, writeAddress, paths } = require("../lib/traceability");
 const exportAbi = require("./export_traceability_abi");
+const { deploymentPreflight } = require('../lib/traceability-preflight');
 
 /** Deploy only Component 1; never publish ephemeral Hardhat addresses. */
 async function main(options = {}) {
@@ -14,7 +15,16 @@ async function main(options = {}) {
   // Validate the existing configuration before spending gas.
   if (network !== "hardhat") readAddresses(addressesPath, network);
   const factory = await runtime.ethers.getContractFactory("MedicineTraceability", deployer);
-  const traceability = await factory.deploy(admin);
+  let overrides;
+  if (network === 'sepolia') {
+    const result = await deploymentPreflight({ network, provider: runtime.ethers.provider,
+      artifact: await runtime.artifacts.readArtifact('MedicineTraceability'),
+      signerAddress: await deployer.getAddress(), admin });
+    overrides = result.overrides;
+    // Repeat approval immediately before the only broadcasting action.
+    await checkNetwork(runtime, env);
+  }
+  const traceability = overrides ? await factory.deploy(admin, overrides) : await factory.deploy(admin);
   await traceability.waitForDeployment();
   const receipt = await traceability.deploymentTransaction().wait();
   const contractAddress = await traceability.getAddress();

@@ -1,12 +1,96 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Wallet, getBytes, verifyMessage, sha256 } from 'ethers';
-import { iface, verifyPrepared, walletContext, sendPrepared, loadBatch, api, batchPath, registration, discover, documentMessage, documentRequest } from './client.js';
+import { settings, selectWalletProvider, watchWallet, connectWallet, iface, verifyPrepared, walletContext, sendPrepared, loadBatch, api, batchPath, registration, discover, documentMessage, documentRequest } from './client.js';
+import { EventEmitter } from 'node:events';
 const account = '0x1111111111111111111111111111111111111111', address = '0x2222222222222222222222222222222222222222';
 const config = { address, chainId: 31337n };
 const expected = { method: 'confirmTransfer', args: ['B/ 1', '7'] };
 const transaction = { from: account, to: address, chainId: 31337, value: '0x0', data: iface.encodeFunctionData(expected.method, expected.args) };
 const ethereum = { request: async ({ method }) => method === 'eth_accounts' ? [account] : '0x7a69' };
+
+test('Component 1 selects MetaMask instead of the global competing wallet and reads its live Sepolia chain', async () => {
+  const metamask = { isMetaMask: true, request: async ({ method }) => method === 'eth_accounts' ? [account] : '0xaa36a7' };
+  const competing = { request: async () => '0x7a69', providers: [{ request() {} }, metamask] };
+  const selected = await selectWalletProvider({ target: { ethereum: competing } });
+  assert.equal(selected, metamask);
+  await walletContext(selected, account, { ...config, chainId: 11155111n });
+});
+
+test('Component 1 prefers EIP-6963 MetaMask identity and rejects ambiguous legacy providers', async () => {
+  const metamask = { request() {} }, target = new EventTarget();
+  target.addEventListener('eip6963:requestProvider', () => {
+    const event = new Event('eip6963:announceProvider');
+    event.detail = { info: { rdns: 'io.metamask', name: 'MetaMask' }, provider: metamask }; target.dispatchEvent(event);
+  });
+  target.ethereum = { request() {}, isMetaMask: true };
+  assert.equal(await selectWalletProvider({ target }), metamask);
+  await assert.rejects(selectWalletProvider({ target: { ethereum: { providers: [
+    { request() {}, isMetaMask: true }, { request() {}, isMetaMask: true },
+  ] } } }), /Multiple MetaMask/);
+});
+
+test('wallet changes are checked live and diagnostics include actual and expected chain IDs', async () => {
+  let chain = '0x7a69';
+  const selected = { request: async ({ method }) => method === 'eth_accounts' ? [account] : chain };
+  const cfg = { ...config, chainId: 11155111n };
+  await assert.rejects(walletContext(selected, account, cfg), /31337.*0x7a69.*11155111/);
+  chain = '0xaa36a7'; await walletContext(selected, account, cfg);
+  chain = '0x1'; await assert.rejects(walletContext(selected, account, cfg), /chain 1 .*11155111/);
+});
+
+test('account, chain and disconnect events are bound to selected provider and cleaned up', () => {
+  const selected = new EventEmitter(), competing = new EventEmitter(); let invalidations = 0;
+  const unsubscribe = watchWallet(selected, () => invalidations++);
+  competing.emit('chainChanged', '0x1'); assert.equal(invalidations, 0);
+  selected.emit('accountsChanged', []); selected.emit('chainChanged', '0xaa36a7'); selected.emit('disconnect');
+  assert.equal(invalidations, 3); unsubscribe();
+  for (const event of ['accountsChanged', 'chainChanged', 'disconnect']) assert.equal(selected.listenerCount(event), 0);
+});
+
+test('empty connection and wrong chain are rejected before contract/provider reads', async () => {
+  await assert.rejects(connectWallet({ request: async () => [] }, config), /No wallet account connected/);
+  await assert.rejects(connectWallet({ request: async ({ method }) => ['eth_requestAccounts', 'eth_accounts'].includes(method) ? [account] : '0x7a69' },
+    { ...config, chainId: 11155111n }), /11155111/);
+});
+
+test('connection rejects account or chain changes during role loading and retains selected provider on success', async () => {
+  for (const change of ['none', 'account', 'chain']) {
+    let reads = 0;
+    const injected = { request: async ({ method }) => {
+      if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [reads === 4 && change === 'account' ? address : account];
+      if (method === 'eth_chainId') return reads === 4 && change === 'chain' ? '0x7a69' : '0xaa36a7';
+      if (method === 'eth_getCode') return '0x6000';
+      if (method === 'eth_call') { reads++; return iface.encodeFunctionResult('hasRole', [false]); }
+      throw new Error('Unexpected read-only method');
+    } };
+    const promise = connectWallet(injected, { ...config, chainId: 11155111n });
+    if (change === 'none') {
+      const session = await promise; assert.equal(session.ethereum, injected); assert.equal(session.account, account);
+    } else await assert.rejects(promise, change === 'account' ? /account changed/ : /11155111/);
+  }
+});
+
+test('network configuration defaults to Hardhat and rejects unsupported networks', () => {
+  assert.equal(settings({}).chainId, 31337n);
+  assert.equal(settings({ VITE_TRACEABILITY_CHAIN_ID: '11155111' }).chainId, 11155111n);
+  for (const value of ['1', '0', 'invalid']) assert.throws(() => settings({ VITE_TRACEABILITY_CHAIN_ID: value }));
+});
+
+for (const chainId of [31337n, 11155111n]) test(`wallet and prepared transaction enforce configured chain ${chainId}`, async () => {
+  const cfg = { ...config, chainId };
+  const other = chainId === 31337n ? 11155111n : 31337n;
+  const wallet = chain => ({ request: async ({ method }) => method === 'eth_accounts' ? [account] : '0x' + chain.toString(16) });
+  await walletContext(wallet(chainId), account, cfg);
+  await assert.rejects(walletContext(wallet(other), account, cfg), new RegExp(String(chainId)));
+  verifyPrepared({ ...transaction, chainId }, expected, account, cfg);
+  assert.throws(() => verifyPrepared({ ...transaction, chainId: other }, expected, account, cfg));
+  const receipt = await sendPrepared({ ethereum: wallet(chainId), account, config: cfg, tx: { ...transaction, chainId }, expected,
+    makeProvider: () => ({ getSigner: async () => ({ sendTransaction: async tx => {
+      assert.equal(tx.chainId, chainId); return { hash: '0xtest', wait: async () => ({ status: 1 }) };
+    } }) }) });
+  assert.equal(receipt.status, 1);
+});
 
 test('ABI calldata verification rejects wrong destination, sender, network, value and intent', () => {
   verifyPrepared(transaction, expected, account, config);
