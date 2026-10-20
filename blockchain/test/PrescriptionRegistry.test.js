@@ -398,7 +398,8 @@ describe("Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Presc
 
       await expect(
         prescriptionRegistry.connect(pharmacy).verifyAndDispense(unassessedId)
-      ).to.be.revertedWithCustomError(prescriptionRegistry, "MedicineRiskNotAssessed");
+      ).to.be.revertedWithCustomError(prescriptionRegistry, "RiskRecordNotFound")
+        .withArgs("BATCH-UNASSESSED");
     });
 
     it("Should reject dispensing if Pharmacy Trust Score is below required threshold (Component 3)", async function () {
