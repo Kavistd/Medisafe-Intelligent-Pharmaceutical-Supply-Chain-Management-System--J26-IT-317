@@ -1,16 +1,16 @@
 {
   "_comment": "Deployed contract addresses per network. Update after each deployment.",
   "hardhat": {
-    "PrescriptionRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    "MedicineRiskRegistry": "",
-    "PharmacyTrust": "",
+    "PrescriptionRegistry": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+    "MedicineRiskRegistry": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "PharmacyTrust": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
     "MedicineTraceability": ""
   },
   "localhost": {
-    "PrescriptionRegistry": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "MedicineRiskRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    "PharmacyTrust": "",
-    "MedicineTraceability": ""
+    "PrescriptionRegistry": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+    "MedicineRiskRegistry": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+    "PharmacyTrust": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "MedicineTraceability": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
   },
   "sepolia": {
     "PrescriptionRegistry": "",
