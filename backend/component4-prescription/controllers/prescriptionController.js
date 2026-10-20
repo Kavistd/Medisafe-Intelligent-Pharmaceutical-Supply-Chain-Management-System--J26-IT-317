@@ -19,6 +19,34 @@ async function getBlockchainHealth(_req, res) {
   }
 }
 
+function isLoopbackAddress(address) {
+  return address === "127.0.0.1" || address === "::1" || address === "::ffff:127.0.0.1";
+}
+
+async function getBlockchainDiagnostic(req, res) {
+  const network = process.env.NETWORK || "localhost";
+  let rpcHost = "127.0.0.1";
+  try {
+    rpcHost = new URL(process.env.RPC_URL || "http://127.0.0.1:8545").hostname;
+  } catch {
+    return res.sendStatus(404);
+  }
+  const localRpcHosts = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
+  if (
+    process.env.NODE_ENV === "production" ||
+    !["localhost", "local"].includes(network) ||
+    !localRpcHosts.has(rpcHost) ||
+    !isLoopbackAddress(req.socket.remoteAddress)
+  ) return res.sendStatus(404);
+
+  try {
+    const data = await prescriptionService.getBlockchainDiagnostic();
+    return res.status(200).json({ success: true, data });
+  } catch {
+    return res.status(503).json({ success: false, error: "BLOCKCHAIN_DIAGNOSTIC_UNAVAILABLE" });
+  }
+}
+
 function walletSubmissionRequired(operation) {
   return (_req, res) => res.status(410).json({
     success: false,
@@ -49,7 +77,7 @@ function mapError(err) {
   }
 
   const safeMessages = {
-    PATIENT_CREDENTIAL_MISMATCH: "Patient credential verification failed.",
+    PATIENT_HASH_MISMATCH: "Patient hash verification failed.",
     PRESCRIPTION_EXPIRED: "This prescription has expired.",
     PRESCRIPTION_NOT_ACTIVE: "This prescription is not active.",
   };
@@ -106,8 +134,8 @@ async function verifyPrescription(req, res) {
       prescriptionId: req.body.prescriptionId,
       ...req.body,
     });
-    if (!result.data.identityVerified) {
-      return res.status(403).json({ success: false, error: "PATIENT_IDENTITY_MISMATCH", message: "Patient identity verification failed." });
+    if (!result.data.patientHashVerified) {
+      return res.status(403).json({ success: false, error: "PATIENT_HASH_MISMATCH", message: "Patient hash verification failed." });
     }
     return res.status(200).json(result);
   } catch (err) {
@@ -118,6 +146,7 @@ async function verifyPrescription(req, res) {
 
 module.exports = {
   getBlockchainHealth,
+  getBlockchainDiagnostic,
   issuePrescription,
   dispensePrescription,
   revokePrescription,

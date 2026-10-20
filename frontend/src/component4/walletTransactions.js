@@ -113,8 +113,10 @@ export function assertPrescriptionIssuer(record, address) {
 export async function assertPatientHashMatches(contract, prescriptionId, patientHash) {
   if (!/^0x[0-9a-fA-F]{64}$/.test(patientHash || "")) throw new Error("Patient hash must be a 32-byte hexadecimal value.");
   const prescription = await contract.getPrescription(prescriptionId);
+  // V1 getPrescription computes EXPIRED from block.timestamp. Use that result
+  // instead of the workstation clock, which can drift from the local chain.
+  if (Number(prescription.status) === 2) throw new Error("This prescription has expired and cannot be dispensed.");
   if (Number(prescription.status) !== 0) throw new Error("This prescription is not active and cannot be dispensed.");
-  if (BigInt(prescription.expiryTime) <= BigInt(Math.floor(Date.now() / 1000))) throw new Error("This prescription has expired and cannot be dispensed.");
   if (!(await contract.verifyPatientHash(prescriptionId, patientHash))) {
     throw new Error("Patient hash does not match this prescription. No transaction was sent.");
   }

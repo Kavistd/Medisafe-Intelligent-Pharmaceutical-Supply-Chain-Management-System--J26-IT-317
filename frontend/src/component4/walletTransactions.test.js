@@ -235,7 +235,22 @@ test("dispense preflight rejects replayed/used and expired prescriptions before 
     verifyPatientHash: hashMatches,
   }, prescriptionId, patientHash), /not active/);
   await assert.rejects(assertPatientHashMatches({
-    getPrescription: async () => ({ status: 0, expiryTime: BigInt(Math.floor(Date.now() / 1000) - 1) }),
+    getPrescription: async () => ({ status: 2, expiryTime: BigInt(Math.floor(Date.now() / 1000) - 1) }),
     verifyPatientHash: hashMatches,
+  }, prescriptionId, patientHash), /expired/);
+});
+
+test("dispense expiry follows the contract's effective chain status, not workstation time", async () => {
+  let hashChecked = false;
+  const contract = {
+    getPrescription: async () => ({ status: 0, expiryTime: 1n }),
+    verifyPatientHash: async () => { hashChecked = true; return true; },
+  };
+  await assertPatientHashMatches(contract, prescriptionId, patientHash);
+  assert.equal(hashChecked, true);
+
+  await assert.rejects(assertPatientHashMatches({
+    getPrescription: async () => ({ status: 2, expiryTime: BigInt(Math.floor(Date.now() / 1000) + 3600) }),
+    verifyPatientHash: async () => { throw new Error("hash check must not run"); },
   }, prescriptionId, patientHash), /expired/);
 });

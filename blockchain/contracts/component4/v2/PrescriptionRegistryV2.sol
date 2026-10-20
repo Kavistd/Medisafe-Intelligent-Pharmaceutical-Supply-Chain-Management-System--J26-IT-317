@@ -101,6 +101,7 @@ contract PrescriptionRegistryV2 is AccessControl {
     error HighMedicineRisk(string batchId, uint256 riskScore, uint256 maxAllowed);
     error InvalidRiskThreshold(uint256 maxAllowed);
     error PharmacyTrustRegistryUnavailable();
+    error PharmacyRegistrationCheckUnavailable(address registry);
     error PharmacyNotRegistered(address pharmacy);
     error LowPharmacyTrust(address pharmacy, uint256 trustScore, uint256 minRequired);
     error PharmacyNotTrusted(address pharmacy);
@@ -294,7 +295,19 @@ contract PrescriptionRegistryV2 is AccessControl {
         address registryAddress = address(pharmacyTrustRegistry);
         if (registryAddress == address(0)) revert PharmacyTrustRegistryUnavailable();
         if (registryAddress.code.length == 0) revert PharmacyTrustRegistryUnavailable();
-        if (!pharmacyTrustRegistry.isPharmacyRegistered(pharmacy)) {
+
+        // Component 3's current PharmacyTrust contract does not expose an
+        // explicit registration getter. Its score/trusted getters default to
+        // 100/true for unknown addresses, so they cannot safely substitute.
+        (bool registrationCallSucceeded, bytes memory registrationResult) = registryAddress.staticcall(
+            abi.encodeWithSelector(IPharmacyTrustV2.isPharmacyRegistered.selector, pharmacy)
+        );
+        if (!registrationCallSucceeded || registrationResult.length != 32) {
+            revert PharmacyRegistrationCheckUnavailable(registryAddress);
+        }
+        uint256 registrationWord = abi.decode(registrationResult, (uint256));
+        if (registrationWord > 1) revert PharmacyRegistrationCheckUnavailable(registryAddress);
+        if (registrationWord == 0) {
             revert PharmacyNotRegistered(pharmacy);
         }
 
