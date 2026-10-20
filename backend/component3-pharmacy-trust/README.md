@@ -115,7 +115,13 @@ The host must inject both `authenticate(request)` and `authorizePharmacy({ princ
 
 No persistence or production Component 3 assessment provider is included. An unknown pharmacy returns `404`; a known pharmacy whose indicators lack approved policy or sufficient evidence returns `200` with `status: "NOT_ASSESSABLE"` and `score: null`. Test fixtures are synthetic. A `REAL` indicator source remains a declared label, not proof of authenticity. Component 1 facts do not establish delivery deadlines or pharmacy recall responses. The API is off-chain and does not synchronize with Component 4's legacy V1 `getTrustScore(address)` or `isPharmacyTrusted(address)` interface.
 
-The repository has no Component 3 package manifest or central backend host. The prototype uses Node's built-in HTTP module and adds no dependency. Hosting, identity authorization, a trusted assessment provider, and any synchronization policy require separate integration decisions.
+The repository has no central backend host. The API prototype uses Node's built-in HTTP module and adds no dependency. Hosting, identity authorization, a trusted assessment provider, and any synchronization policy require separate integration decisions.
+
+## PostgreSQL read-only runtime
+
+`services/postgresAssessmentRepository.js` is a separate database-backed provider. Importing it does not load `pg`, read environment files, or open a connection. Start the separate runtime with `node run-postgres.js`; it loads this folder's `.env` at startup and requires `DATABASE_URL` plus `COMPONENT3_AUTH_MODULE`. The configured trusted server-side module must export `authenticate(request)` and `authorizePharmacy({ principal, pharmacyId, request })`. Startup fails before creating the pool or listening if required configuration is missing, the authentication module is invalid, or the port is invalid. The runtime binds to `127.0.0.1:5004` by default; `COMPONENT3_PORT` may select another validated port. The synthetic `node run-local.js` demo is unchanged.
+
+The repository issues parameterized `SELECT` statements in a repeatable-read, read-only transaction. It ignores persisted overall and indicator scores, tiers, weights, and favorable verification labels. The current schema has no documented approval source or raw transaction-level numerator/denominator inputs, and the sample assessments have no evidence links; therefore the database-backed provider returns `NOT_ASSESSABLE` with `score: null`. It maps linked evidence metadata without reading undocumented payload JSON. Critical escalation is carried from the stored boolean, while findings remain empty because the schema stores no finding details. Configure the database account with read-only privileges as an additional control.
 
 ## Local synthetic demonstration
 
