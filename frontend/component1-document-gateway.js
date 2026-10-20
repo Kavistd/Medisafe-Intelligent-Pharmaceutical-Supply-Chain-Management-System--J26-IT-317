@@ -1,18 +1,19 @@
 import { Contract, JsonRpcProvider, FetchRequest, id, verifyMessage, sha256 } from 'ethers';
 import artifact from '../shared/abis/MedicineTraceability.json' with { type: 'json' };
-import { documentMessage } from './src/component1/client.js';
+import { documentMessage, settings } from './src/component1/client.js';
 
 // Local research adapter. The operator token is never bundled or sent to the browser.
-export function documentGateway(env, { fetcher = fetch, roleCheck } = {}) {
+export function documentGateway(env, { fetcher = fetch, roleCheck, makeProvider = request => new JsonRpcProvider(request) } = {}) {
+  const config = settings(env);
   const used = new Map(); let active = 0;
   let provider;
   const check = roleCheck || (async (account, upload) => {
     if (!provider) {
       const request = new FetchRequest(env.TRACEABILITY_RPC_URL || 'http://127.0.0.1:8545');
       request.timeout = 10000;
-      provider = new JsonRpcProvider(request);
+      provider = makeProvider(request);
     }
-    if ((await provider.getNetwork()).chainId !== 31337n) throw new Error();
+    if (BigInt(await provider.send('eth_chainId', [])) !== config.chainId) throw new Error();
     const contract = new Contract(env.VITE_TRACEABILITY_ADDRESS, artifact.abi, provider);
     const roles = upload ? ['MANUFACTURER'] : ['MANUFACTURER', 'DISTRIBUTOR', 'PHARMACY', 'RECALL'];
     for (const role of roles) if (await contract.hasRole(id(role + '_ROLE'), account)) return true;
@@ -33,7 +34,7 @@ export function documentGateway(env, { fetcher = fetch, roleCheck } = {}) {
       for await (const chunk of req) { size += chunk.length; if (size > 5 * 1024 * 1024 + 8192) return deny(413, 'Document upload is too large.'); chunks.push(chunk); }
       const body = Buffer.concat(chunks);
       if (req.method === 'GET' && size) return deny(400, 'Unexpected download body.');
-      const message = documentMessage({ host: req.headers.host, method: req.method, path, digest: sha256(body), timestamp, nonce, address: env.VITE_TRACEABILITY_ADDRESS });
+      const message = documentMessage({ host: req.headers.host, method: req.method, path, digest: sha256(body), timestamp, nonce, address: config.address, chainId: config.chainId });
       let account;
       try { account = verifyMessage(message, signature); } catch { return deny(401, 'Invalid document signature.'); }
       if (!(await check(account, req.method === 'POST'))) return deny(403, 'This wallet lacks the required document role.');

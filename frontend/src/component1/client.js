@@ -1,11 +1,27 @@
 import { BrowserProvider, Contract, Interface, getAddress, id, sha256, randomBytes, hexlify } from 'ethers';
 import artifact from '../../../shared/abis/MedicineTraceability.json' with { type: 'json' };
+import { getMetaMaskProvider, describeWalletProvider } from '../component4/walletProvider.js';
+// Reuse provider discovery only; Component 4's network switching is not invoked.
+export const selectWalletProvider = options => getMetaMaskProvider(options);
+export function watchWallet(ethereum, changed) {
+  const events = ['accountsChanged', 'chainChanged', 'disconnect'];
+  for (const event of events) ethereum?.on?.(event, changed);
+  return () => { for (const event of events) ethereum?.removeListener?.(event, changed); };
+}
 export const abi = artifact.abi;
 export const iface = new Interface(abi);
 export const BASE = '/api/v1/traceability';
 export const STAGES = ['Manufacturer', 'Distributor', 'Pharmacy'];
+export function networkName(chainId) {
+  const value = BigInt(chainId);
+  if (value === 31337n) return 'Hardhat Local';
+  if (value === 11155111n) return 'Ethereum Sepolia';
+  throw new Error('Unsupported Component 1 network.');
+}
 export function settings(env = import.meta.env || {}) {
-  return { address: env.VITE_TRACEABILITY_ADDRESS || '', chainId: 31337n, startBlock: Number(env.VITE_TRACEABILITY_START_BLOCK || 0) };
+  const chainId = BigInt(env.VITE_TRACEABILITY_CHAIN_ID || '31337');
+  networkName(chainId);
+  return { address: env.VITE_TRACEABILITY_ADDRESS || '', chainId, startBlock: Number(env.VITE_TRACEABILITY_START_BLOCK || 0) };
 }
 export async function api(path, body, fetcher = fetch) {
   const response = await fetcher(BASE + path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -20,24 +36,29 @@ export async function loadBatch(batchId, request = api) {
   return { ...batch['0'], pending: pending['0'], history: history['0'], expired: status.expired };
 }
 export async function walletContext(ethereum, account, config) {
+  const name = networkName(config.chainId);
   if (!ethereum?.request) throw new Error('Enable an Ethereum wallet to continue.');
   const accounts = await ethereum.request({ method: 'eth_accounts' });
   if (!accounts[0] || getAddress(accounts[0]) !== getAddress(account)) throw new Error('Wallet account changed. Reconnect before continuing.');
-  if (BigInt(await ethereum.request({ method: 'eth_chainId' })) !== config.chainId) throw new Error('Select Hardhat Local (chain 31337) in your wallet.');
+  const actualChain = BigInt(await ethereum.request({ method: 'eth_chainId' }));
+  if (actualChain !== config.chainId) throw new Error(`${describeWalletProvider(ethereum).name} reports chain ${actualChain} (0x${actualChain.toString(16)}). Select ${name} (chain ${config.chainId}) in that wallet, then reconnect.`);
   getAddress(config.address);
 }
 export async function connectWallet(ethereum, config) {
   if (!ethereum?.request) throw new Error('No injected wallet found. Install or enable your Ethereum wallet.');
   const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+  if (!accounts?.[0]) throw new Error('No wallet account connected. Unlock MetaMask and connect an account.');
   const account = getAddress(accounts[0]); await walletContext(ethereum, account, config);
   const provider = new BrowserProvider(ethereum);
   if (await provider.getCode(config.address) === '0x') throw new Error('No traceability contract at the configured address.');
   const contract = new Contract(config.address, abi, provider);
   const roles = {};
   for (const role of ['MANUFACTURER', 'DISTRIBUTOR', 'PHARMACY', 'RECALL']) roles[role] = await contract.hasRole(id(role + '_ROLE'), account);
-  return { account, roles, provider, contract };
+  await walletContext(ethereum, account, config);
+  return { account, roles, provider, contract, ethereum };
 }
 export function verifyPrepared(tx, expected, account, config) {
+  networkName(config.chainId);
   if (getAddress(tx.from) !== getAddress(account) || getAddress(tx.to) !== getAddress(config.address) || BigInt(tx.chainId) !== config.chainId || BigInt(tx.value) !== 0n) throw new Error('Prepared transaction has an unexpected wallet, network, destination or value.');
   if (tx.data.toLowerCase() !== iface.encodeFunctionData(expected.method, expected.args).toLowerCase()) throw new Error('Prepared transaction does not match the reviewed action.');
 }
@@ -65,8 +86,9 @@ export async function discover(session, fromBlock, toBlock) {
   }
   return { ids: [...ids], nextBlock: end + 1 };
 }
-export function documentMessage({ host, method, path, digest, timestamp, nonce, address }) {
-  return `MediSafe Component 1 document request\nHost: ${host}\nChain: 31337\nRegistry: ${getAddress(address)}\nMethod: ${method}\nPath: ${path}\nSHA256: ${digest}\nTime: ${timestamp}\nNonce: ${nonce}`;
+export function documentMessage({ host, method, path, digest, timestamp, nonce, address, chainId = 31337n }) {
+  networkName(chainId);
+  return `MediSafe Component 1 document request\nHost: ${host}\nChain: ${BigInt(chainId)}\nRegistry: ${getAddress(address)}\nMethod: ${method}\nPath: ${path}\nSHA256: ${digest}\nTime: ${timestamp}\nNonce: ${nonce}`;
 }
 export async function documentRequest({ ethereum, session, config, file, documentType, batchId, reference, fetcher = fetch, host = location.host }) {
   await walletContext(ethereum, session.account, config);
@@ -83,7 +105,7 @@ export async function documentRequest({ ethereum, session, config, file, documen
     path = BASE + '/documents/' + cid;
   }
   const digest = sha256(body || new Uint8Array()), timestamp = String(Date.now()), nonce = hexlify(randomBytes(16));
-  const message = documentMessage({ host, method, path, digest, timestamp, nonce, address: config.address });
+  const message = documentMessage({ host, method, path, digest, timestamp, nonce, address: config.address, chainId: config.chainId });
   const signer = await new BrowserProvider(ethereum).getSigner(session.account);
   const signature = await signer.signMessage(message);
   await walletContext(ethereum, session.account, config);
