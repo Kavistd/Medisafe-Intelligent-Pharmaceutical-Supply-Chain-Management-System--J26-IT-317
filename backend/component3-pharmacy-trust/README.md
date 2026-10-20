@@ -98,3 +98,21 @@ Any non-empty findings array sets `criticalEscalation.required` to `true`, wheth
 No approved expected-delivery deadline source has been confirmed. Component 1 transfer timestamps alone cannot establish whether a delivery was on time. Complaint and inspection source integrations are absent. Recall records do not by themselves establish pharmacy response. Until approved sources and scoring rules are supplied, affected indicators should be represented as `NOT_ASSESSABLE`.
 
 Synthetic fixtures in the unit tests are explicitly labeled as synthetic test fixtures and are not real pharmacy data. The module makes no claim of real-world accuracy. Real-world use requires approved evidence sources, validated scoring rules, and appropriate domain-expert and supervisor review. The score is research decision support and does not replace official regulatory decisions.
+
+## Read-only API prototype
+
+`server.js` exports `createComponent3Server`, a dependency-free Node.js HTTP server factory. `services/assessmentService.js` accepts a trusted server-side `readPharmacyAssessment(pharmacyId)` function, validates its indicator outputs through the existing scoring interfaces, and returns assessment and evidence summaries. The API accepts no assessment, evidence, or policy data from request bodies.
+
+The read routes are:
+
+| Method | Route | Response |
+| --- | --- | --- |
+| GET | `/api/v1/pharmacies/:pharmacyId/trust-assessment` | Status, score or `null`, tier, weighted breakdown, missing indicators, and whether critical escalation is required. |
+| GET | `/api/v1/pharmacies/:pharmacyId/trust-assessment/evidence` | Per-indicator evidence status and provenance labels, validation summary, and optional Component 1 adapter facts. |
+| GET | `/api/v1/pharmacies/:pharmacyId/trust-assessment/critical-findings` | Critical findings separately from the aggregate score. |
+
+The host must inject both `authenticate(request)` and `authorizePharmacy({ principal, pharmacyId, request })`. The server fails closed when either function or an assessment source is absent. Authorization must bind the authenticated principal to the requested explicit pharmacy ID through an approved identity process. Component 4's wallet role alone is not such a mapping. No public write route exists.
+
+No persistence or production Component 3 assessment provider is included. An unknown pharmacy returns `404`; a known pharmacy whose indicators lack approved policy or sufficient evidence returns `200` with `status: "NOT_ASSESSABLE"` and `score: null`. Test fixtures are synthetic. A `REAL` indicator source remains a declared label, not proof of authenticity. Component 1 facts do not establish delivery deadlines or pharmacy recall responses. The API is off-chain and does not synchronize with Component 4's legacy V1 `getTrustScore(address)` or `isPharmacyTrusted(address)` interface.
+
+The repository has no Component 3 package manifest or central backend host. The prototype uses Node's built-in HTTP module and adds no dependency. Hosting, identity authorization, a trusted assessment provider, and any synchronization policy require separate integration decisions.
