@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchAuthorizedPharmacies, fetchComponent3Dashboard } from './api.js';
 import { getSupabasePublicConfig, refreshSupabaseSession, revokeSupabaseSession, signInWithSupabase } from './supabaseAuth.js';
 import { createPharmacyWalletSession } from './walletSession.js';
+import { ProvenanceChip, displayLabel, resolveProvenance } from './provenance.js';
 import './dashboard.css';
 
 const INDICATORS = [
@@ -196,7 +197,7 @@ export default function Dashboard() {
   const summaryRows = evidence?.indicatorEvidence || {};
   const assessmentLimitations = assessment?.limitations || [];
   const evidenceLimitations = evidence?.limitations || [];
-  const demo = assessment?.demoLabel === 'LOCAL_SYNTHETIC_DEMO';
+  const provenance = resolveProvenance({ mode, bundle });
   const assessable = assessment?.status === 'ASSESSABLE' && Number.isFinite(assessment.score);
   const permissions = bundle?.permissions || [];
   const canReadEvidence = permissions.includes('EVIDENCE_READ');
@@ -206,7 +207,7 @@ export default function Dashboard() {
     <header className="c3-header">
       <a className="c3-brand" href="/" aria-label="MediSafe Chain home"><span className="c3-mark">M</span>
         <span>MediSafe Chain<small>PHARMACY TRUST</small></span></a>
-      <div className="c3-header-right"><span className="c3-network-dot"/> Component 3 | Research prototype</div>
+      <div className="c3-header-right"><ProvenanceChip provenance={provenance}/><span className="c3-network-dot"/> Component 3</div>
     </header>
 
     <div className="c3-content">
@@ -215,12 +216,7 @@ export default function Dashboard() {
           <h1>{mode === 'login' ? 'Sign in to Component 3' : 'Trust assessment'}</h1>
           <p className="c3-lede">A transparent view of available indicators, supporting evidence, and separate escalation signals.</p>
         </div>
-        {mode !== 'login' && <div className="c3-prototype-tag">Research prototype</div>}
       </section>
-
-      <div className="c3-disclaimer" role="note">
-        <strong>Decision support only.</strong> Scores and tier thresholds are research-prototype values, not official NMRA ratings or regulatory determinations.
-      </div>
 
       {mode === 'login' && <section className="c3-card c3-auth-card">
         <p className="c3-eyebrow">SECURE ACCESS</p><h2>Sign in with your account</h2>
@@ -231,7 +227,7 @@ export default function Dashboard() {
           <button className="c3-primary" type="submit" disabled={loading}>{loading ? 'Signing in…' : 'Sign in'}</button>
         </form>
         <div className="c3-divider"><span>or</span></div>
-        <button type="button" className="c3-secondary" onClick={enterDemo} disabled={loading}>Open local synthetic demo</button>
+        <button type="button" className="c3-secondary" onClick={enterDemo} disabled={loading}>Explore with sample data</button>
         <p className="c3-helper">Live sign-in requires the public Supabase project URL and anon key in the Vite environment. No privileged key is used in the browser.</p>
       </section>}
 
@@ -260,30 +256,30 @@ export default function Dashboard() {
       </section>}
 
       {mode === 'demo' && <section className="c3-card c3-search-card">
-        <div className="c3-access-heading"><div><p className="c3-eyebrow">LOCAL SYNTHETIC SOURCE</p><h2>Choose a demo pharmacy</h2></div>
+        <div className="c3-access-heading"><div><p className="c3-eyebrow">SAMPLE DATA</p><h2>Choose a sample pharmacy</h2></div>
           <button type="button" className="c3-secondary c3-logout" onClick={() => { clearWorkspace(); setMode('login'); setBundle(null); setError(''); }}>Return to sign in</button></div>
         <form className="c3-directory-form" onSubmit={loadDashboard}>
-          <div className="c3-field"><label htmlFor="c3-demo-code">Synthetic pharmacy fixture</label>
+          <div className="c3-field"><label htmlFor="c3-demo-code">Sample pharmacy</label>
             <select id="c3-demo-code" value={pharmacyCode} onChange={event => { setPharmacyCode(event.target.value); setBundle(null); setError(''); }}>
-              <option value="C3-DEMO-PHARMACY-001">C3-DEMO-PHARMACY-001 — synthetic example</option>
+              <option value="C3-DEMO-PHARMACY-001">C3-DEMO-PHARMACY-001 — complete record set</option>
               <option value="C3-DEMO-PHARMACY-INSUFFICIENT">C3-DEMO-PHARMACY-INSUFFICIENT — not assessable</option>
             </select>
           </div>
-          <button className="c3-primary" type="submit" disabled={loading}>{loading ? 'Loading assessment…' : 'Load demo assessment'}</button>
-          <p className="c3-helper">Synthetic prototype fixture only. This mode does not sign in a real user or access database records.</p>
+          <button className="c3-primary" type="submit" disabled={loading}>{loading ? 'Loading assessment…' : 'Load assessment'}</button>
+          <p className="c3-helper">No sign-in or database access is used in this mode.</p>
         </form>
       </section>}
 
       {error && <div className={`c3-state ${errorKind === 'empty' ? 'c3-empty' : 'c3-error'}`} role={errorKind === 'empty' ? 'status' : 'alert'}>
         <strong>{errorKind === 'empty' ? 'No assessment found' : errorKind === 'authorization' ? 'Access denied' : errorKind === 'session' ? 'Session expired' : errorKind === 'server' ? 'Component 3 service error' : 'Request unavailable'}</strong>
         <p>{error}</p>
-        {errorKind === 'server' && <span>Check the Component 3 runtime, database configuration, and unapplied authorization migration. No demo data was substituted.</span>}
+        {errorKind === 'server' && <span>Check the Component 3 runtime, database configuration, and unapplied authorization migration. No sample data was substituted.</span>}
         {errorKind === 'session' && <span>Sign in again to continue.</span>}
         {errorKind === 'authorization' && mode === 'live' && pharmacies.find(item => item.pharmacyCode === pharmacyCode)?.accessTypes.includes('PHARMACY') &&
           <button type="button" className="c3-secondary c3-retry-access" onClick={handleWalletVerification} disabled={walletLoading || loading}>Renew pharmacy wallet session</button>}
       </div>}
       {loading && mode !== 'login' && <div className="c3-state c3-loading" role="status"><span className="c3-spinner"/> Loading assessment, evidence, and critical findings…</div>}
-      {!bundle && !loading && !error && mode !== 'login' && mode === 'demo' && <div className="c3-state c3-empty"><strong>Ready to review</strong><p>Choose a synthetic fixture. No result is assumed or generated by this dashboard.</p></div>}
+      {!bundle && !loading && !error && mode !== 'login' && mode === 'demo' && <div className="c3-state c3-empty"><strong>Ready to review</strong><p>Choose a sample pharmacy to load its assessment.</p></div>}
 
       {bundle && <>
         <section className="c3-summary-grid" aria-label="Assessment summary">
@@ -293,9 +289,7 @@ export default function Dashboard() {
               : <><div className="c3-score-na">NOT ASSESSABLE</div><p className="c3-not-assessable-explanation">There is insufficient verified evidence to calculate this assessment.</p></>}
             <div className="c3-score-meta"><span className={`c3-status ${assessable ? 'good' : 'muted'}`}>{assessment.status || 'Unknown status'}</span>
               {assessable && <span>Tier: <strong>{assessment.tier}</strong></span>}</div>
-            <div className="c3-source-line"><span>Evidence provenance</span><strong>{assessment.evidenceSource || 'UNKNOWN'}</strong></div>
-            {demo && <p className="c3-chain-note">Local synthetic demonstration data; not verified pharmacy records.</p>}
-            {assessment.blockchainVerification && <p className="c3-chain-note">Blockchain verification: {assessment.blockchainVerification}</p>}
+            <p className="c3-chain-note">Blockchain verification: {displayLabel(assessment.blockchainVerification || 'NOT_PERFORMED')}</p>
           </article>
           <article className={`c3-escalation-card ${findings?.required ? 'alert' : ''}`}>
             <p className="c3-eyebrow">SEPARATE REGULATORY SIGNAL</p><h2>Critical findings</h2>
@@ -304,7 +298,7 @@ export default function Dashboard() {
                 <p className="c3-escalation-state">{findings?.required ? 'Escalation required' : 'No critical escalation recorded'}</p>
                 {findings?.required && (!Array.isArray(findings.findings) || findings.findings.length === 0) && <p className="c3-muted">The source records an escalation flag but provides no finding details.</p>}
                 {Array.isArray(findings?.findings) && findings.findings.length > 0 && <ul className="c3-finding-list">{findings.findings.map((finding, index) => <li key={finding.id || index}>
-                  <strong>{finding.description || 'Finding details unavailable'}</strong>{finding.id && <small>Reference: {finding.id}</small>}{finding.source && <small>Source: {finding.source}</small>}
+                  <strong>{finding.description || 'Finding details unavailable'}</strong>{finding.id && <small>Reference: {finding.id}</small>}{finding.source && <small>Source: {displayLabel(finding.source)}</small>}
                 </li>)}</ul>}
               </>}
             </>}
@@ -321,7 +315,6 @@ export default function Dashboard() {
               <div className="c3-indicator-heading"><span className="c3-indicator-icon">{key.slice(0, 1).toUpperCase()}</span><span className="c3-weight">{weight}</span></div>
               <h3>{label}</h3><div className="c3-indicator-score">{rowAssessable ? `${Number(row.value).toFixed(1)}%` : 'Not assessable'}</div>
               <div className="c3-indicator-footer"><span>{row.status || 'NOT_ASSESSABLE'}</span><span>{evidenceCountLabel(evidenceRow.evidenceCount ?? row.evidenceCount ?? 0)}</span></div>
-              <div className="c3-provenance">{evidenceRow.provenance || row.source || 'Evidence unavailable'}</div>
               {evidenceRow.reason && <p className="c3-indicator-reason">{evidenceRow.reason}</p>}
             </article>;
           })}</div>
@@ -334,7 +327,7 @@ export default function Dashboard() {
             const item = summaryRows[key] || {};
             const ids = Array.isArray(item.evidenceIds) ? item.evidenceIds : [];
             return <div className="c3-evidence-row" key={key}>
-              <div><strong>{label}</strong><small>{item.provenance || 'No provenance available'}</small></div>
+              <div><strong>{label}</strong></div>
               <div className="c3-evidence-detail"><span>{evidenceCountLabel(item.evidenceCount ?? 0)}</span>{ids.length > 0 ? <span className="c3-evidence-ids">{ids.join(', ')}</span> : <span className="c3-muted">No linked evidence IDs</span>}</div>
               <p>{item.reason || 'Evidence summary returned by Component 3.'}</p>
             </div>;
@@ -342,9 +335,9 @@ export default function Dashboard() {
           {canReadEvidence && evidence?.evidenceValidation?.limitations?.length > 0 && <div className="c3-limitations"><strong>Evidence validation notes</strong><TextList items={evidence.evidenceValidation.limitations}/></div>}
         </section>
 
-        {(assessmentLimitations.length > 0 || evidenceLimitations.length > 0) && <section className="c3-card c3-limitations"><p className="c3-eyebrow">INTERPRETATION NOTES</p><h2>Limitations</h2><TextList items={[...assessmentLimitations, ...evidenceLimitations]}/></section>}
-        <footer className="c3-footer">Component 3 research prototype | Scores and thresholds are not official NMRA ratings | Blockchain verification is reported only where the API confirms it was performed.</footer>
+        {(assessmentLimitations.length > 0 || evidenceLimitations.length > 0) && <details className="c3-card c3-limitations"><summary>Interpretation notes</summary><TextList items={[...assessmentLimitations, ...evidenceLimitations]}/></details>}
       </>}
+      <footer className="c3-footer">Research prototype · Decision support only · Scores and tier thresholds are not official NMRA ratings or regulatory determinations · Blockchain verification is shown only where the API confirms it.</footer>
     </div>
   </main>;
 }
