@@ -2,6 +2,10 @@
 
 ## Scope and conventions
 
+The Sepolia deployment path now performs read-only chain, bytecode, padded gas/fee-budget, balance and creation-simulation checks before broadcasting. Its explicit gas override accommodates Glamsterdam's combined execution/state gas estimates without assuming a 2^24 total-gas cap. The new preflight command is safe with deployment disabled; see the [Sepolia gas and preflight guide](../../integration/component1-sepolia/README.md). Local deployment and contract/ABI/business rules are unchanged. Deployment still requires separate approval and the explicit opt-in flag.
+
+For the completed Sepolia deployment and participant grants, separate ignored profiles, dual-network frontend/gateway configuration and verification results, see [Component 1 Sepolia deployment and setup](../../integration/component1-sepolia/README.md). The confirmed contract is `0xe3095b57F50421452f5795A39888258E9Fce764e`, deployed in block `11956334`; the signing-key prefix issue was resolved before deployment. No further public deployment or role grant is authorized by these instructions. Local chain data and mock IPFS remain unchanged; real IPFS testing is postponed. Historical Phase 2 results below remain historical and do not describe the current deployment status.
+
 Phase 2 adds deployment, participant role assignment, an exported ABI and a
 registration schema. It does not modify any Solidity contracts or Components
 2–4. Run commands from `blockchain/` on the feature branch.

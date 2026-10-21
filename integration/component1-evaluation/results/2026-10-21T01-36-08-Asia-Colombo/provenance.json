@@ -1,0 +1,90 @@
+{
+  "collectedAtUTC": "2026-10-20T20:06:48.848Z",
+  "displayTimezone": "Asia/Colombo",
+  "gitBaseCommit": "6bd743d672a64b140bc384296e34bb53203e1b84",
+  "branch": "feature/medicine-traceability",
+  "workingTreeDirty": true,
+  "sourceIdentity": "Base commit plus exact uncommitted snapshots and recorded checkout representations; not the base commit alone",
+  "uncommittedSourceFiles": [
+    "blockchain/test/component1/MedicineTraceability.test.js",
+    "frontend/src/component1/TraceabilityApp.jsx",
+    "frontend/src/component1/client.js",
+    "frontend/src/component1/client.test.js"
+  ],
+  "sourceSnapshots": {
+    "blockchain/test/component1/MedicineTraceability.test.js": {
+      "path": "source-snapshot/blockchain/test/component1/MedicineTraceability.test.js",
+      "sha256": "dc7d7c4b7daa3ad5b3d4b909d326c4adee2ddae08f1ab811fdaa9b599d9961fa"
+    },
+    "frontend/src/component1/TraceabilityApp.jsx": {
+      "path": "source-snapshot/frontend/src/component1/TraceabilityApp.jsx",
+      "sha256": "47f085e2c54c23bbd047a4604e54f82516a4dc714c15d1ebb48cb29e79edc717"
+    },
+    "frontend/src/component1/client.js": {
+      "path": "source-snapshot/frontend/src/component1/client.js",
+      "sha256": "d1b86f73c918798bf70a81729a056d83f1275f8d5e492765f5888117d0d4d538"
+    },
+    "frontend/src/component1/client.test.js": {
+      "path": "source-snapshot/frontend/src/component1/client.test.js",
+      "sha256": "175f36037c6304e4a7c9a4758bfca2a42f042e8618214c41228f332edce800de"
+    }
+  },
+  "sourceSha256": {
+    "blockchain/contracts/MedicineTraceability.sol": "98c74382c3fa75ead878c55e7b5c2b2ac056500ebeb7d001308378eec1db51c7",
+    "blockchain/contracts/MedicineRiskRegistry.sol": "235236bd70af22ed79a578e7a009b7430f27ac18fcc901de967723eeab66f034",
+    "blockchain/contracts/PharmacyTrust.sol": "a9c3677c1a2e3438a6c063dfb3255559e8906ea72e4b7c5b77130f5f0e8f01fb",
+    "blockchain/contracts/PrescriptionRegistry.sol": "de482037bc7f83e5b2dda484c28defb1542adcf4c04d25240529c71d46f1ae2c",
+    "blockchain/package-lock.json": "2cb511f994181ca1bd8f41d2806bce04014f131261b26ad836e5bd5c3ac9a9f1",
+    "backend/component1-traceability/package-lock.json": "af6237af94d4c39233fe34f17ab59e76115903e1e4e9c2f88555a8e43db95c1c",
+    "frontend/package-lock.json": "a834d6d45f44edca4ad63942595f677768ee6fa96c004047bf63de4f0465a8a8",
+    "shared/abis/MedicineTraceability.json": "eba86abd126255798222460af9a1021948ce77396ae722213a46f90082c87e1a",
+    "backend/component1-traceability/server.js": "8ca4d28c446d7799f734b29ea449b10c0cb58146f2fbe5e51166cfdb151979db",
+    "backend/component1-traceability/blockchain/client.js": "c8d06148d30c81101fd03a2311f35dcceb4c50da6cd2f2b84a49164f89b46e2f",
+    "backend/component1-traceability/ipfs/documents.js": "ec768b24867c7a0081675ada988624fd0a4c45f4dfd089d74d6dfdb24f4ebb58",
+    "frontend/src/component1/client.js": "d1b86f73c918798bf70a81729a056d83f1275f8d5e492765f5888117d0d4d538",
+    "frontend/component1-document-gateway.js": "9e6e3d82863c46787938c8f0460e67f7ab98500e0b14f432c090748b555c4c03",
+    "integration/component1-evaluation/run.js": "fd545d94281058a00ffd14b2776081cc4d2da03c44c348f8005620054033ccd8",
+    "integration/component1-evaluation/statistics.js": "9b304c58b958a9f129556dde4cefc7dd5db8c093c25d6ec7ac55718b5c38431c",
+    "integration/component1-evaluation/cross-component.js": "5016f6e09abb8e9e7395545720a4b919551c6f1dcff1d047fa96760e96bea9c9",
+    "blockchain/test/component1/MedicineTraceability.test.js": "dc7d7c4b7daa3ad5b3d4b909d326c4adee2ddae08f1ab811fdaa9b599d9961fa",
+    "blockchain/test/component1/MedicineBatchSchema.test.js": "2209e29bb0628893ae284afe5d09c059590964b58b88ee3e270203e08bf98d25",
+    "blockchain/test/component1/TraceabilityDeployment.test.js": "4c7714e9befde03e4801dadaab477a2b453009318f8ddda3bf2d6e1eedf1b825",
+    "blockchain/test/component1/TraceabilityPreflight.test.js": "9ba7b84f2ee8ed74a19b8cded8c3623d0509759f16cc7af307f25d3e62d8a2d0",
+    "frontend/src/component1/TraceabilityApp.jsx": "47f085e2c54c23bbd047a4604e54f82516a4dc714c15d1ebb48cb29e79edc717",
+    "frontend/src/component1/client.test.js": "175f36037c6304e4a7c9a4758bfca2a42f042e8618214c41228f332edce800de"
+  },
+  "sourceRepresentations": {
+    "blockchain/contracts/MedicineTraceability.sol": "Base commit text checked out with CRLF",
+    "blockchain/contracts/MedicineRiskRegistry.sol": "Base commit text checked out with CRLF",
+    "blockchain/contracts/PharmacyTrust.sol": "Base commit text checked out with CRLF",
+    "blockchain/contracts/PrescriptionRegistry.sol": "Base commit text checked out with CRLF",
+    "blockchain/package-lock.json": "Base commit text checked out with CRLF",
+    "backend/component1-traceability/package-lock.json": "Base commit Git blob bytes",
+    "frontend/package-lock.json": "Base commit text checked out with CRLF",
+    "shared/abis/MedicineTraceability.json": "Base commit Git blob bytes",
+    "backend/component1-traceability/server.js": "Base commit Git blob bytes",
+    "backend/component1-traceability/blockchain/client.js": "Base commit Git blob bytes",
+    "backend/component1-traceability/ipfs/documents.js": "Base commit Git blob bytes",
+    "frontend/src/component1/client.js": "Exact saved uncommitted snapshot",
+    "frontend/component1-document-gateway.js": "Base commit Git blob bytes",
+    "integration/component1-evaluation/run.js": "Base commit Git blob bytes",
+    "integration/component1-evaluation/statistics.js": "Base commit Git blob bytes",
+    "integration/component1-evaluation/cross-component.js": "Base commit Git blob bytes",
+    "blockchain/test/component1/MedicineTraceability.test.js": "Exact saved uncommitted snapshot",
+    "blockchain/test/component1/MedicineBatchSchema.test.js": "Base commit Git blob bytes",
+    "blockchain/test/component1/TraceabilityDeployment.test.js": "Base commit Git blob bytes",
+    "blockchain/test/component1/TraceabilityPreflight.test.js": "Base commit Git blob bytes",
+    "frontend/src/component1/TraceabilityApp.jsx": "Exact saved uncommitted snapshot",
+    "frontend/src/component1/client.test.js": "Exact saved uncommitted snapshot"
+  },
+  "historicalArtifactsSha256": {
+    "results.json": "d9a8cdd007007ce40a0ea232309ed1ec45cfd27c9682131d152413d5ae583233",
+    "transactions.csv": "58c37b5cc9e98c5ea955f74575bd32e9bedffc24321885c7492c258e6a5480f8",
+    "report.md": "96720f983ffb1f547e240dfee976ed8863172bbc4e40ff3242bb4b0efc67fab4"
+  },
+  "historicalArtifactsUnchanged": true,
+  "localBlockBefore": 16,
+  "localBlockAfter": 16,
+  "localBlockHashUnchanged": true,
+  "evaluationWallMs": 40228.5756
+}

@@ -1,0 +1,5263 @@
+{
+  "methodology": "Sequential local automined EVM, loopback HTTP backend, real frontend helper calls, synthetic unlocked Hardhat test accounts, mocked pinning/content delivery. No browser/MetaMask/public chain.",
+  "environment": {
+    "collectedAt": "2026-10-20T20:06:48.848Z",
+    "commit": "6bd743d672a64b140bc384296e34bb53203e1b84",
+    "node": "v23.10.0",
+    "platform": "win32",
+    "arch": "x64",
+    "osRelease": "10.0.26200",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13620H",
+    "logicalCpus": 16,
+    "memoryBytes": 16868962304,
+    "hardhat": "2.29.1",
+    "solidity": "0.8.20+commit.a1b79de6",
+    "compilerSettings": {
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "evmVersion": "paris",
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    },
+    "chainId": 31337,
+    "automine": true,
+    "startTimestamp": 1900000000,
+    "replicas": 10,
+    "sourceSha256": {
+      "blockchain/contracts/MedicineTraceability.sol": "98c74382c3fa75ead878c55e7b5c2b2ac056500ebeb7d001308378eec1db51c7",
+      "blockchain/contracts/MedicineRiskRegistry.sol": "235236bd70af22ed79a578e7a009b7430f27ac18fcc901de967723eeab66f034",
+      "blockchain/contracts/PharmacyTrust.sol": "a9c3677c1a2e3438a6c063dfb3255559e8906ea72e4b7c5b77130f5f0e8f01fb",
+      "blockchain/contracts/PrescriptionRegistry.sol": "de482037bc7f83e5b2dda484c28defb1542adcf4c04d25240529c71d46f1ae2c",
+      "blockchain/package-lock.json": "2cb511f994181ca1bd8f41d2806bce04014f131261b26ad836e5bd5c3ac9a9f1",
+      "backend/component1-traceability/package-lock.json": "af6237af94d4c39233fe34f17ab59e76115903e1e4e9c2f88555a8e43db95c1c",
+      "frontend/package-lock.json": "a834d6d45f44edca4ad63942595f677768ee6fa96c004047bf63de4f0465a8a8",
+      "shared/abis/MedicineTraceability.json": "eba86abd126255798222460af9a1021948ce77396ae722213a46f90082c87e1a",
+      "backend/component1-traceability/server.js": "8ca4d28c446d7799f734b29ea449b10c0cb58146f2fbe5e51166cfdb151979db",
+      "backend/component1-traceability/blockchain/client.js": "c8d06148d30c81101fd03a2311f35dcceb4c50da6cd2f2b84a49164f89b46e2f",
+      "backend/component1-traceability/ipfs/documents.js": "ec768b24867c7a0081675ada988624fd0a4c45f4dfd089d74d6dfdb24f4ebb58",
+      "frontend/src/component1/client.js": "d1b86f73c918798bf70a81729a056d83f1275f8d5e492765f5888117d0d4d538",
+      "frontend/component1-document-gateway.js": "9e6e3d82863c46787938c8f0460e67f7ab98500e0b14f432c090748b555c4c03",
+      "integration/component1-evaluation/run.js": "fd545d94281058a00ffd14b2776081cc4d2da03c44c348f8005620054033ccd8",
+      "integration/component1-evaluation/statistics.js": "9b304c58b958a9f129556dde4cefc7dd5db8c093c25d6ec7ac55718b5c38431c",
+      "integration/component1-evaluation/cross-component.js": "5016f6e09abb8e9e7395545720a4b919551c6f1dcff1d047fa96760e96bea9c9"
+    }
+  },
+  "integrations": [
+    {
+      "name": "documents",
+      "passed": true,
+      "detail": "Real frontend signing + HTTP gateway + current EVM role checks + backend allowlist and upload/retrieval validation; provider and gateway content delivery mocked; 2 uploads, 1 download."
+    },
+    {
+      "name": "cross_component_contracts",
+      "passed": true,
+      "recallExpiryPropagationGap": true,
+      "observations": [
+        {
+          "condition": "recalled",
+          "batchId": "RECL-010",
+          "traceabilityInvalid": true,
+          "dispensingSucceeded": true,
+          "transactionHash": "0x181905818180f65648ac27371d1d20a9d787c1444c3a8581d0e43da243b94c45"
+        },
+        {
+          "condition": "expired",
+          "batchId": "EXPR-010",
+          "traceabilityInvalid": true,
+          "dispensingSucceeded": true,
+          "transactionHash": "0xcb0941abe68d010aa3503250e2d35a6809360b31bfba3770e29ba7518a51aaf6"
+        }
+      ],
+      "controls": {
+        "unsafeRisk": "HighMedicineRisk",
+        "missingRisk": "RiskRecordNotFound",
+        "lowTrust": "LowPharmacyTrust"
+      },
+      "detail": "Real local Component 2/3/4 contracts with manually seeded risk/trust; no AI inference. Legacy Component 4 dispenses invalid Component 1 batches because it has no traceability link. Expected gap observations are excluded from Component 1 enforcement accuracy."
+    }
+  ],
+  "transactions": [
+    {
+      "replica": 1,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-001",
+      "gasUsed": "535623",
+      "transactionHash": "0xcfa0e994db26d97e44d70bc3c0edfd2337e055651a0c8e139d0ff6f55f0da999",
+      "blockNumber": 7,
+      "prepareMs": 85.51719999999978,
+      "walletPipelineMs": 96.01809999999978,
+      "broadcastToReceiptMs": 31.173499999999876,
+      "endToEndMs": 181.53940000000011
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "148553",
+      "transactionHash": "0xb2b4210d06db4ae3dbca14603b2ace0d01cb79999ae6908d48f50eb395845ef4",
+      "blockNumber": 8,
+      "prepareMs": 66.2215000000001,
+      "walletPipelineMs": 91.4051000000004,
+      "broadcastToReceiptMs": 19.806200000000445,
+      "endToEndMs": 157.6296000000002
+    },
+    {
+      "replica": 1,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "39569",
+      "transactionHash": "0x7ab2f43e08d0a9cb9ed091e1db868798d42205567919e7a877bd9000e0318a23",
+      "blockNumber": 9,
+      "prepareMs": 83.95299999999997,
+      "walletPipelineMs": 83.04150000000027,
+      "broadcastToReceiptMs": 22.945600000000468,
+      "endToEndMs": 166.99910000000045
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "131453",
+      "transactionHash": "0x9ed2716cf7662f014e599c4481a7b04661eb7b8ea6fbed7ac5e9c4c6f6cb0856",
+      "blockNumber": 10,
+      "prepareMs": 59.265700000000834,
+      "walletPipelineMs": 92.95560000000023,
+      "broadcastToReceiptMs": 20.77600000000075,
+      "endToEndMs": 152.22440000000006
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "39523",
+      "transactionHash": "0x140e273829873f522446192896165e81ad92b9edcf306843506c375499299647",
+      "blockNumber": 11,
+      "prepareMs": 39.87750000000051,
+      "walletPipelineMs": 82.52589999999964,
+      "broadcastToReceiptMs": 33.061499999999796,
+      "endToEndMs": 122.40579999999954
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "131453",
+      "transactionHash": "0x9b05c773e5cbb1530fece31ef1bbd799cc6161247cce5aa778ab464f5fef0c17",
+      "blockNumber": 12,
+      "prepareMs": 59.107999999999265,
+      "walletPipelineMs": 119.75450000000001,
+      "broadcastToReceiptMs": 42.32629999999972,
+      "endToEndMs": 178.86569999999938
+    },
+    {
+      "replica": 1,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "175217",
+      "transactionHash": "0x8f01baac57319a95d77b5ceb38782a11151fa1e17cf46cfb4da2cbccf4ca7dad",
+      "blockNumber": 13,
+      "prepareMs": 72.01050000000032,
+      "walletPipelineMs": 155.77859999999964,
+      "broadcastToReceiptMs": 69.59580000000005,
+      "endToEndMs": 227.79199999999946
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "131515",
+      "transactionHash": "0xa097e4cdb789bb950738f2bcc1d0fe2b95fee72bdfb9635a3f4d05813b17c7f3",
+      "blockNumber": 14,
+      "prepareMs": 42.740499999999884,
+      "walletPipelineMs": 69.51919999999973,
+      "broadcastToReceiptMs": 13.242400000000089,
+      "endToEndMs": 112.26180000000022
+    },
+    {
+      "replica": 1,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-001",
+      "gasUsed": "158167",
+      "transactionHash": "0x0a7980f80871c216b3f75a6ff61cab042f19ec8d9c9e81586e1a638832ca2609",
+      "blockNumber": 15,
+      "prepareMs": 66.84179999999924,
+      "walletPipelineMs": 122.44769999999971,
+      "broadcastToReceiptMs": 33.6845000000003,
+      "endToEndMs": 189.29249999999956
+    },
+    {
+      "replica": 1,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-001",
+      "gasUsed": "535623",
+      "transactionHash": "0xd61512154b8564a69e0bb47c84bbfbe826e8ee2813afc0eb8044076f59903926",
+      "blockNumber": 16,
+      "prepareMs": 52.55869999999959,
+      "walletPipelineMs": 101.1199000000006,
+      "broadcastToReceiptMs": 31.582000000000335,
+      "endToEndMs": 153.6815999999999
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-001",
+      "gasUsed": "148553",
+      "transactionHash": "0x1e563372b0ef0e73fb76a97ff9be371ec9bc884f9cf62b30082a8713d1d19d1c",
+      "blockNumber": 17,
+      "prepareMs": 40.90399999999954,
+      "walletPipelineMs": 90.67280000000028,
+      "broadcastToReceiptMs": 17.43000000000029,
+      "endToEndMs": 131.57930000000033
+    },
+    {
+      "replica": 1,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-001",
+      "gasUsed": "35097",
+      "transactionHash": "0xdbb462e9f998b74fb575196e85b2cc9a6ffeeb1b2279aa506e53fe57b92b23b5",
+      "blockNumber": 18,
+      "prepareMs": 67.07530000000042,
+      "walletPipelineMs": 105.92709999999988,
+      "broadcastToReceiptMs": 25.692599999999402,
+      "endToEndMs": 173.0050999999994
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-001",
+      "gasUsed": "39523",
+      "transactionHash": "0x837b0aec3adbb292a785453845c247008fe59dd7d566e750a704ae9a3c48a411",
+      "blockNumber": 19,
+      "prepareMs": 80.08480000000054,
+      "walletPipelineMs": 112.27620000000024,
+      "broadcastToReceiptMs": 33.58429999999953,
+      "endToEndMs": 192.36340000000018
+    },
+    {
+      "replica": 1,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-001",
+      "gasUsed": "535623",
+      "transactionHash": "0xde2cd54c200784a774bfa988a8893e8201bbe48a55ab21cb777592a4458d0e2a",
+      "blockNumber": 20,
+      "prepareMs": 76.13400000000001,
+      "walletPipelineMs": 163.04089999999997,
+      "broadcastToReceiptMs": 47.188100000000304,
+      "endToEndMs": 239.1814000000004
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-001",
+      "gasUsed": "148553",
+      "transactionHash": "0xb8d0e7fa9bba70f338166d561b096179b9e62b2c323dc1343b48e1ca8e463b99",
+      "blockNumber": 21,
+      "prepareMs": 75.65139999999974,
+      "walletPipelineMs": 44.99340000000029,
+      "broadcastToReceiptMs": 15.435699999999997,
+      "endToEndMs": 120.64720000000034
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-001",
+      "gasUsed": "39523",
+      "transactionHash": "0x99cffd00093071620e8f1111ba14df3d25f471e4f85298c858657cda5c6d1bb2",
+      "blockNumber": 23,
+      "prepareMs": 43.20460000000003,
+      "walletPipelineMs": 50.77099999999973,
+      "broadcastToReceiptMs": 21.807799999999588,
+      "endToEndMs": 93.97810000000027
+    },
+    {
+      "replica": 2,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-002",
+      "gasUsed": "535623",
+      "transactionHash": "0x17a16dc6228cad88fb16700fd8572fba246ff416e3212ec27c84a8e945aa3c89",
+      "blockNumber": 24,
+      "prepareMs": 55.88040000000001,
+      "walletPipelineMs": 65.50820000000022,
+      "broadcastToReceiptMs": 13.052499999999782,
+      "endToEndMs": 121.39090000000033
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "148553",
+      "transactionHash": "0x860d9913e2374f44a7278d5c09e0671f8f8eb66a52c78cc8ba4a26fc096d1ee3",
+      "blockNumber": 25,
+      "prepareMs": 30.301800000000185,
+      "walletPipelineMs": 59.481299999999464,
+      "broadcastToReceiptMs": 23.913899999999558,
+      "endToEndMs": 89.78519999999935
+    },
+    {
+      "replica": 2,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "39569",
+      "transactionHash": "0xed0ab6e479be45ddfcda67b8850783b5659b896ef50d1b0c2b3e09442dbd958b",
+      "blockNumber": 26,
+      "prepareMs": 71.84560000000056,
+      "walletPipelineMs": 64.88630000000012,
+      "broadcastToReceiptMs": 30.218300000000454,
+      "endToEndMs": 136.73430000000008
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "131453",
+      "transactionHash": "0x11d43c9fd01a6c84f7a78290b90ba7af0a50c34e975ab5cdd741ea34e1fb4563",
+      "blockNumber": 27,
+      "prepareMs": 35.13600000000042,
+      "walletPipelineMs": 61.20010000000002,
+      "broadcastToReceiptMs": 23.44999999999891,
+      "endToEndMs": 96.33859999999913
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "39523",
+      "transactionHash": "0xb456311e06163aef5878994372ca7dce226b4af0423a53d2885a1a00b8622a2e",
+      "blockNumber": 28,
+      "prepareMs": 29.26929999999993,
+      "walletPipelineMs": 63.80969999999979,
+      "broadcastToReceiptMs": 27.246100000000297,
+      "endToEndMs": 93.08140000000094
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "131453",
+      "transactionHash": "0xb542560ab0ff7ffcaa88618bc1a65c6de276b5f335d5e6664712ff2953dd0e19",
+      "blockNumber": 29,
+      "prepareMs": 35.86959999999999,
+      "walletPipelineMs": 47.31970000000001,
+      "broadcastToReceiptMs": 16.277500000000146,
+      "endToEndMs": 83.19150000000081
+    },
+    {
+      "replica": 2,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "175217",
+      "transactionHash": "0xcdd237315c0b5571e3ec629b9c7e811c91cf95152d727b9eefc6284cef93f577",
+      "blockNumber": 30,
+      "prepareMs": 33.47540000000117,
+      "walletPipelineMs": 68.71889999999985,
+      "broadcastToReceiptMs": 28.676299999999173,
+      "endToEndMs": 102.1966999999986
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "131515",
+      "transactionHash": "0xac836ec1d10b923c1263e3822d350a0bf7d8a4ee569fb48408e582c6acaa1f0d",
+      "blockNumber": 31,
+      "prepareMs": 37.154200000000856,
+      "walletPipelineMs": 77.05450000000019,
+      "broadcastToReceiptMs": 19.15990000000056,
+      "endToEndMs": 114.21190000000024
+    },
+    {
+      "replica": 2,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-002",
+      "gasUsed": "158167",
+      "transactionHash": "0x072bf5d42291541a3a25dff72bc1b07ebc7411ec2a60b5711cf2cfb35fada390",
+      "blockNumber": 32,
+      "prepareMs": 42.13329999999951,
+      "walletPipelineMs": 61.82480000000032,
+      "broadcastToReceiptMs": 22.097799999999552,
+      "endToEndMs": 103.96090000000004
+    },
+    {
+      "replica": 2,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-002",
+      "gasUsed": "535623",
+      "transactionHash": "0xc4a450eb138b1ce35b2fffecc92e45724a581ab37b6714bcf241db67169dd8be",
+      "blockNumber": 33,
+      "prepareMs": 41.2432000000008,
+      "walletPipelineMs": 59.334500000000844,
+      "broadcastToReceiptMs": 14.417600000000675,
+      "endToEndMs": 100.57990000000063
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-002",
+      "gasUsed": "148553",
+      "transactionHash": "0xd39bb58c6012b9ab04b815bb7677b83d98432a3fc1628bc0f09d23a7141a48de",
+      "blockNumber": 34,
+      "prepareMs": 38.39849999999933,
+      "walletPipelineMs": 51.71589999999924,
+      "broadcastToReceiptMs": 14.317600000000311,
+      "endToEndMs": 90.11629999999968
+    },
+    {
+      "replica": 2,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-002",
+      "gasUsed": "35097",
+      "transactionHash": "0xeae43bc0044fc2d967e82c19cd7f4f89fc62c3452532c0c1be61dafe71fd5f87",
+      "blockNumber": 35,
+      "prepareMs": 26.470799999999144,
+      "walletPipelineMs": 52.597999999999956,
+      "broadcastToReceiptMs": 20.90899999999965,
+      "endToEndMs": 79.07099999999991
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-002",
+      "gasUsed": "39523",
+      "transactionHash": "0x5d6171f02efce19bf8bd6304580746d6f88c625383142613f372f76f9bd55097",
+      "blockNumber": 36,
+      "prepareMs": 30.652000000000044,
+      "walletPipelineMs": 69.7546999999995,
+      "broadcastToReceiptMs": 32.23559999999998,
+      "endToEndMs": 100.40829999999914
+    },
+    {
+      "replica": 2,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-002",
+      "gasUsed": "535623",
+      "transactionHash": "0xe411c298397eae30db1eb5c720e6aade88361c131b522afa79c4db4b37e11820",
+      "blockNumber": 37,
+      "prepareMs": 57.471700000000055,
+      "walletPipelineMs": 84.04010000000017,
+      "broadcastToReceiptMs": 14.864300000001094,
+      "endToEndMs": 141.51990000000114
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-002",
+      "gasUsed": "148553",
+      "transactionHash": "0x231ed9fc92c9bef87011a26e0c1c84b627ec9353586f19763ed05ef9bb58c4ef",
+      "blockNumber": 38,
+      "prepareMs": 41.64390000000094,
+      "walletPipelineMs": 50.82560000000012,
+      "broadcastToReceiptMs": 15.896099999999933,
+      "endToEndMs": 92.47199999999975
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-002",
+      "gasUsed": "39523",
+      "transactionHash": "0x07f565d51e2e6338678eedd1c528769713f497438fc550f81d74caf89cc709dc",
+      "blockNumber": 40,
+      "prepareMs": 41.149100000000544,
+      "walletPipelineMs": 65.53770000000077,
+      "broadcastToReceiptMs": 13.121600000000399,
+      "endToEndMs": 106.68940000000111
+    },
+    {
+      "replica": 3,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-003",
+      "gasUsed": "535623",
+      "transactionHash": "0xb0cd42b6b6a336dd6468d5200297a874eb4b30a45193aa1b070df0fdadf94a8a",
+      "blockNumber": 41,
+      "prepareMs": 44.64009999999871,
+      "walletPipelineMs": 73.28189999999995,
+      "broadcastToReceiptMs": 30.225399999999354,
+      "endToEndMs": 117.92410000000018
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "148553",
+      "transactionHash": "0x6415f871534094daac0c644988258b0dd5ecb0fcc993828b5e735aab579b3253",
+      "blockNumber": 42,
+      "prepareMs": 29.28100000000086,
+      "walletPipelineMs": 82.81650000000081,
+      "broadcastToReceiptMs": 29.457900000001246,
+      "endToEndMs": 112.09960000000137
+    },
+    {
+      "replica": 3,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "39569",
+      "transactionHash": "0x154e294124ccb272ac8de51d680ec4e3c1a6b38490db28626a535bfd70148ae4",
+      "blockNumber": 43,
+      "prepareMs": 59.995600000000195,
+      "walletPipelineMs": 52.08770000000004,
+      "broadcastToReceiptMs": 22.57170000000042,
+      "endToEndMs": 112.08630000000085
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "131453",
+      "transactionHash": "0xee4a79f81a7600431061036dc9b9c7fbe2d8ed6124c41aaecd11277862b3cbbf",
+      "blockNumber": 44,
+      "prepareMs": 40.21010000000024,
+      "walletPipelineMs": 47.04100000000108,
+      "broadcastToReceiptMs": 14.603500000001077,
+      "endToEndMs": 87.2528000000002
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "39523",
+      "transactionHash": "0x97f974710f5341bd5b4a5869ec9391a67569dedfe23e43d6be46279b19f8fe98",
+      "blockNumber": 45,
+      "prepareMs": 56.348299999999654,
+      "walletPipelineMs": 37.409200000000055,
+      "broadcastToReceiptMs": 8.191999999999098,
+      "endToEndMs": 93.76000000000022
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "131453",
+      "transactionHash": "0x7b8d00702372a6b83c375c4831daf6809e4662fc3b742c1a75bb211679d946f2",
+      "blockNumber": 46,
+      "prepareMs": 25.688899999999194,
+      "walletPipelineMs": 61.58969999999863,
+      "broadcastToReceiptMs": 22.581099999999424,
+      "endToEndMs": 87.28039999999964
+    },
+    {
+      "replica": 3,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "175217",
+      "transactionHash": "0x9590c75613c1cd967368fdaac47719f39eb48c202a93505aa02811e4cb1d0f02",
+      "blockNumber": 47,
+      "prepareMs": 43.235499999998865,
+      "walletPipelineMs": 55.697799999999916,
+      "broadcastToReceiptMs": 21.96480000000156,
+      "endToEndMs": 98.9354000000003
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "131515",
+      "transactionHash": "0xe963f5dc79bc75fc5ec3398eb0b06f83a726e96f12c3bc6f9ebdcbd9ccf5868a",
+      "blockNumber": 48,
+      "prepareMs": 29.17239999999947,
+      "walletPipelineMs": 53.39680000000044,
+      "broadcastToReceiptMs": 14.733900000001086,
+      "endToEndMs": 82.57090000000062
+    },
+    {
+      "replica": 3,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-003",
+      "gasUsed": "158167",
+      "transactionHash": "0x791a10ec9d61a9e8439645350e15268124ea3a23166a3e87d6d35646560cd589",
+      "blockNumber": 49,
+      "prepareMs": 37.28369999999995,
+      "walletPipelineMs": 72.85100000000057,
+      "broadcastToReceiptMs": 21.511000000000422,
+      "endToEndMs": 110.13700000000063
+    },
+    {
+      "replica": 3,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-003",
+      "gasUsed": "535623",
+      "transactionHash": "0x6e71a616c971582142fb383c547a1501d8fc83f18edc877573a629b3d515ac34",
+      "blockNumber": 50,
+      "prepareMs": 56.474200000000565,
+      "walletPipelineMs": 65.87119999999959,
+      "broadcastToReceiptMs": 20.8734000000004,
+      "endToEndMs": 122.34770000000026
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-003",
+      "gasUsed": "148553",
+      "transactionHash": "0x8cbfe45165031e73097ff054217dce3377bae4b68a398718b394a10af3681bf2",
+      "blockNumber": 51,
+      "prepareMs": 41.51440000000002,
+      "walletPipelineMs": 52.42749999999978,
+      "broadcastToReceiptMs": 23.226599999999962,
+      "endToEndMs": 93.94419999999991
+    },
+    {
+      "replica": 3,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-003",
+      "gasUsed": "35097",
+      "transactionHash": "0x8ab459e964564a26e0d0413df652a5988bc13f6ce5fb405dcbbfcf69d008c70a",
+      "blockNumber": 52,
+      "prepareMs": 46.85850000000028,
+      "walletPipelineMs": 39.57959999999912,
+      "broadcastToReceiptMs": 14.684400000000096,
+      "endToEndMs": 86.4403000000002
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-003",
+      "gasUsed": "39523",
+      "transactionHash": "0xc6ba50b7490f2527c73af2804c2c07cf16da5c45968573ce1dc9c4de82305d46",
+      "blockNumber": 53,
+      "prepareMs": 30.901899999998932,
+      "walletPipelineMs": 38.99909999999909,
+      "broadcastToReceiptMs": 7.706699999998818,
+      "endToEndMs": 69.90279999999984
+    },
+    {
+      "replica": 3,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-003",
+      "gasUsed": "535623",
+      "transactionHash": "0x85b26ea3f08f05281a03b61fa94f932fcd6fa85972d2040fa7b09784053e1e38",
+      "blockNumber": 54,
+      "prepareMs": 44.839200000000346,
+      "walletPipelineMs": 39.70510000000104,
+      "broadcastToReceiptMs": 14.221800000001167,
+      "endToEndMs": 84.54660000000149
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-003",
+      "gasUsed": "148553",
+      "transactionHash": "0x8e13f42812955453aedbc5a1ba3e00ca67229beec4e3c51d0d4796363fcab3d3",
+      "blockNumber": 55,
+      "prepareMs": 26.298099999999977,
+      "walletPipelineMs": 60.586999999999534,
+      "broadcastToReceiptMs": 14.417299999999159,
+      "endToEndMs": 86.88700000000063
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-003",
+      "gasUsed": "39523",
+      "transactionHash": "0xa8947e2e66943bb4c4f5562cf918d30a7743ea7d643a4ed9be9175a8b0510d23",
+      "blockNumber": 57,
+      "prepareMs": 36.15070000000014,
+      "walletPipelineMs": 44.853800000000774,
+      "broadcastToReceiptMs": 15.95890000000145,
+      "endToEndMs": 81.00700000000143
+    },
+    {
+      "replica": 4,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-004",
+      "gasUsed": "535623",
+      "transactionHash": "0x80fbfa18721738f6d632c3774a42107adc33952309b788731f194680d1a6336c",
+      "blockNumber": 58,
+      "prepareMs": 33.86570000000029,
+      "walletPipelineMs": 58.98999999999978,
+      "broadcastToReceiptMs": 19.45669999999882,
+      "endToEndMs": 92.85759999999937
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "148553",
+      "transactionHash": "0x14b0d4adb2a428016053c5872676f6f675883f9ecaca99faf1a1aceae7597544",
+      "blockNumber": 59,
+      "prepareMs": 44.345799999999144,
+      "walletPipelineMs": 46.8093000000008,
+      "broadcastToReceiptMs": 14.683600000000297,
+      "endToEndMs": 91.15750000000116
+    },
+    {
+      "replica": 4,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "39569",
+      "transactionHash": "0x92032a4b62f0d0b22a6941a1a0ff4fbe266b07270904b700b2977bd81b0dcd67",
+      "blockNumber": 60,
+      "prepareMs": 55.83899999999994,
+      "walletPipelineMs": 51.4926000000014,
+      "broadcastToReceiptMs": 20.814800000000105,
+      "endToEndMs": 107.33400000000074
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "131453",
+      "transactionHash": "0xd1a0de1869a9639f43aea404c71e2778c7c303fb7bf82acefc04c45319851bd9",
+      "blockNumber": 61,
+      "prepareMs": 29.017100000000937,
+      "walletPipelineMs": 55.8695000000007,
+      "broadcastToReceiptMs": 20.98750000000109,
+      "endToEndMs": 84.88850000000093
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "39523",
+      "transactionHash": "0xf5e34ba58a2ae711ae90f8720c67a6cb1996e88a065686c944d66d51bcd15bd1",
+      "blockNumber": 62,
+      "prepareMs": 22.40860000000066,
+      "walletPipelineMs": 34.883200000000215,
+      "broadcastToReceiptMs": 7.8967999999986205,
+      "endToEndMs": 57.293399999998655
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "131453",
+      "transactionHash": "0x46ec4dc274310b2e15db30b155075aa4d3fa641c27e83841e02cb63ce04517e6",
+      "blockNumber": 63,
+      "prepareMs": 40.29349999999977,
+      "walletPipelineMs": 35.83630000000085,
+      "broadcastToReceiptMs": 11.081700000000637,
+      "endToEndMs": 76.13180000000102
+    },
+    {
+      "replica": 4,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "175217",
+      "transactionHash": "0x0a1bc4be1ad30ba34e5c3c8d974753c5986fabd1a24de14858a90cc27bc9fa72",
+      "blockNumber": 64,
+      "prepareMs": 31.13959999999861,
+      "walletPipelineMs": 78.00930000000153,
+      "broadcastToReceiptMs": 21.693700000001627,
+      "endToEndMs": 109.15070000000014
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "131515",
+      "transactionHash": "0x8dae3b0100314dadc11d4e423674d3ca9fed67a2314588524433a3eee136106b",
+      "blockNumber": 65,
+      "prepareMs": 36.33849999999984,
+      "walletPipelineMs": 44.61199999999917,
+      "broadcastToReceiptMs": 16.188399999999092,
+      "endToEndMs": 80.95240000000013
+    },
+    {
+      "replica": 4,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-004",
+      "gasUsed": "158167",
+      "transactionHash": "0xbc342664f18fb9cecdac26b53cdb390f46396600ffa845404b028473f81a05a9",
+      "blockNumber": 66,
+      "prepareMs": 30.55789999999979,
+      "walletPipelineMs": 47.7520999999997,
+      "broadcastToReceiptMs": 14.888899999999921,
+      "endToEndMs": 78.31210000000101
+    },
+    {
+      "replica": 4,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-004",
+      "gasUsed": "535623",
+      "transactionHash": "0x6759c0bf67e56aa9c20ec0095e44006c2cd2602fb1509c1cd66e9c193f922e94",
+      "blockNumber": 67,
+      "prepareMs": 46.76300000000083,
+      "walletPipelineMs": 39.71240000000034,
+      "broadcastToReceiptMs": 8.105600000000777,
+      "endToEndMs": 86.47689999999966
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-004",
+      "gasUsed": "148553",
+      "transactionHash": "0x8cc7a3bcf396e12de0729c685bb0e119458b449d5de4fb04301732749f723046",
+      "blockNumber": 68,
+      "prepareMs": 45.42789999999877,
+      "walletPipelineMs": 61.55479999999989,
+      "broadcastToReceiptMs": 29.08730000000105,
+      "endToEndMs": 106.98960000000079
+    },
+    {
+      "replica": 4,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-004",
+      "gasUsed": "35097",
+      "transactionHash": "0xddb86f0f0c963ec442327f0efbb654e38cfd50b5d80b7c190aebdc30242148d1",
+      "blockNumber": 69,
+      "prepareMs": 22.07140000000072,
+      "walletPipelineMs": 53.12120000000141,
+      "broadcastToReceiptMs": 13.60910000000149,
+      "endToEndMs": 75.19450000000143
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-004",
+      "gasUsed": "39523",
+      "transactionHash": "0x8230e2384983e937d2d884c9f9d07bb2501041fe2d53c7f53b606328d59b7d36",
+      "blockNumber": 70,
+      "prepareMs": 24.317800000000716,
+      "walletPipelineMs": 50.364299999999275,
+      "broadcastToReceiptMs": 14.327699999999822,
+      "endToEndMs": 74.68419999999969
+    },
+    {
+      "replica": 4,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-004",
+      "gasUsed": "535623",
+      "transactionHash": "0xde78b3c03deeb7fd04845c4d1723935a3c8a07b69f8a51ad413b0da4e729f691",
+      "blockNumber": 71,
+      "prepareMs": 43.32630000000063,
+      "walletPipelineMs": 39.393299999999726,
+      "broadcastToReceiptMs": 15.274999999999636,
+      "endToEndMs": 82.72199999999975
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-004",
+      "gasUsed": "148553",
+      "transactionHash": "0x4168f1eacfb1fa2e8d92c44d71f6804e2d58ae1e5ed39178e4789c30883ab11a",
+      "blockNumber": 72,
+      "prepareMs": 26.55529999999999,
+      "walletPipelineMs": 62.7520999999997,
+      "broadcastToReceiptMs": 13.781600000000253,
+      "endToEndMs": 89.3091000000004
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-004",
+      "gasUsed": "39523",
+      "transactionHash": "0x147674f605ec6d2eb6f05febda2e0b6465715e294f978bb7b90efd8dd22aab15",
+      "blockNumber": 74,
+      "prepareMs": 42.975899999999456,
+      "walletPipelineMs": 57.81739999999991,
+      "broadcastToReceiptMs": 19.465700000000652,
+      "endToEndMs": 100.79590000000098
+    },
+    {
+      "replica": 5,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-005",
+      "gasUsed": "535623",
+      "transactionHash": "0xaa49a47cdfc148d8bf022ae89c7a81586c89eb242c18bf2aedd8c5584acb5d8b",
+      "blockNumber": 75,
+      "prepareMs": 34.95499999999993,
+      "walletPipelineMs": 37.405800000000454,
+      "broadcastToReceiptMs": 15.692800000000716,
+      "endToEndMs": 72.36280000000079
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "148553",
+      "transactionHash": "0x55d79ecf8a828bce8a28d9e6c60e1cb9eaf96affcaaf37220e48f20fb5029647",
+      "blockNumber": 76,
+      "prepareMs": 34.89940000000024,
+      "walletPipelineMs": 41.625,
+      "broadcastToReceiptMs": 7.561900000000605,
+      "endToEndMs": 76.52660000000105
+    },
+    {
+      "replica": 5,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "39569",
+      "transactionHash": "0x8312f1390089ed324c86763ec01e43cb51a19b5df753e870b7d15f432028e797",
+      "blockNumber": 77,
+      "prepareMs": 47.10149999999885,
+      "walletPipelineMs": 33.98290000000088,
+      "broadcastToReceiptMs": 8.582800000000134,
+      "endToEndMs": 81.08620000000155
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "131453",
+      "transactionHash": "0x34371f63ecc295e5123b339b1bfc318b98b73b93c36d25028c4751601e2bae36",
+      "blockNumber": 78,
+      "prepareMs": 47.35750000000007,
+      "walletPipelineMs": 67.46299999999974,
+      "broadcastToReceiptMs": 22.257300000001123,
+      "endToEndMs": 114.82300000000032
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "39523",
+      "transactionHash": "0xb47d2e32fe6a106c2fa2727b14f76e66735071a79bd258192594da4bab6a1625",
+      "blockNumber": 79,
+      "prepareMs": 39.76020000000062,
+      "walletPipelineMs": 65.47899999999936,
+      "broadcastToReceiptMs": 12.484300000000076,
+      "endToEndMs": 105.24139999999898
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "131453",
+      "transactionHash": "0xa69b059db0f601030af3d2d1008bd1134260383c5a703ee9725e9056c9b13769",
+      "blockNumber": 80,
+      "prepareMs": 25.115499999999884,
+      "walletPipelineMs": 33.742999999998574,
+      "broadcastToReceiptMs": 14.463199999998324,
+      "endToEndMs": 58.85979999999836
+    },
+    {
+      "replica": 5,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "175217",
+      "transactionHash": "0xfc5c77e971b9eb0016cf384f72f57a5a78a17b4dc2ec9016026e0830bd0255d5",
+      "blockNumber": 81,
+      "prepareMs": 38.87880000000223,
+      "walletPipelineMs": 58.754399999997986,
+      "broadcastToReceiptMs": 29.52850000000035,
+      "endToEndMs": 97.63520000000062
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "131515",
+      "transactionHash": "0x05ca1d6173486bc2555c3777e1a44f7fc3cf03a6457d5713f24e79f257cca399",
+      "blockNumber": 82,
+      "prepareMs": 23.195099999997183,
+      "walletPipelineMs": 40.38390000000072,
+      "broadcastToReceiptMs": 14.267100000000937,
+      "endToEndMs": 63.581200000000536
+    },
+    {
+      "replica": 5,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-005",
+      "gasUsed": "158167",
+      "transactionHash": "0x1afba36280c03c5b0878b3caace208076974ac1e95be7a8e29cabd00bce27590",
+      "blockNumber": 83,
+      "prepareMs": 36.019899999999325,
+      "walletPipelineMs": 51.60540000000037,
+      "broadcastToReceiptMs": 15.1221000000005,
+      "endToEndMs": 87.62749999999869
+    },
+    {
+      "replica": 5,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-005",
+      "gasUsed": "535623",
+      "transactionHash": "0x691e60094cb2b6eb86b29eaab007663980f0f727f44da5952dcb96a13df24593",
+      "blockNumber": 84,
+      "prepareMs": 28.691800000000512,
+      "walletPipelineMs": 79.3839999999982,
+      "broadcastToReceiptMs": 32.05489999999918,
+      "endToEndMs": 108.07779999999912
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-005",
+      "gasUsed": "148553",
+      "transactionHash": "0x4dcbb8d19fab7e8bf509ff7887f72836b9193e0e8b149a0a28dc31a9461c2661",
+      "blockNumber": 85,
+      "prepareMs": 36.30489999999918,
+      "walletPipelineMs": 48.44889999999941,
+      "broadcastToReceiptMs": 7.829600000000937,
+      "endToEndMs": 84.7554999999993
+    },
+    {
+      "replica": 5,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-005",
+      "gasUsed": "35097",
+      "transactionHash": "0xa44b71fb2e2416627963ab354a75746e4ba104b494c62dd2f346905b1a441717",
+      "blockNumber": 86,
+      "prepareMs": 32.457900000001246,
+      "walletPipelineMs": 46.695700000000215,
+      "broadcastToReceiptMs": 15.97700000000259,
+      "endToEndMs": 79.15620000000126
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-005",
+      "gasUsed": "39523",
+      "transactionHash": "0x3366af12be61075876842c91ae2148846be2b5fbe26cf827794254df75376861",
+      "blockNumber": 87,
+      "prepareMs": 41.733100000001286,
+      "walletPipelineMs": 37.039700000001176,
+      "broadcastToReceiptMs": 9.876599999999598,
+      "endToEndMs": 78.77500000000146
+    },
+    {
+      "replica": 5,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-005",
+      "gasUsed": "535623",
+      "transactionHash": "0xc9a596376cdcb78d35c905f079abbbd16e6b576f5fb4194ee5cbb839fb823127",
+      "blockNumber": 88,
+      "prepareMs": 41.45110000000204,
+      "walletPipelineMs": 52.60429999999906,
+      "broadcastToReceiptMs": 14.397100000001956,
+      "endToEndMs": 94.05710000000181
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-005",
+      "gasUsed": "148553",
+      "transactionHash": "0xd42500ae62c1ad518a627ead8e6aa1925f751002e0be218863bcaad80a1879a8",
+      "blockNumber": 89,
+      "prepareMs": 22.68249999999898,
+      "walletPipelineMs": 56.42399999999907,
+      "broadcastToReceiptMs": 24.35639999999694,
+      "endToEndMs": 79.10819999999876
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-005",
+      "gasUsed": "39523",
+      "transactionHash": "0x9f8f78df304e8f54bb220cd581de818ddf335aba2504e5596fc885e25a2550b4",
+      "blockNumber": 91,
+      "prepareMs": 35.290899999999965,
+      "walletPipelineMs": 39.581999999998516,
+      "broadcastToReceiptMs": 16.71059999999852,
+      "endToEndMs": 74.8752999999997
+    },
+    {
+      "replica": 6,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-006",
+      "gasUsed": "535623",
+      "transactionHash": "0xfc97280e23ffe318b89af9e95139f4ce66a827e7f60b645b6cbb07af08c672fa",
+      "blockNumber": 92,
+      "prepareMs": 44.69800000000032,
+      "walletPipelineMs": 100.43240000000151,
+      "broadcastToReceiptMs": 28.033699999999953,
+      "endToEndMs": 145.1324999999997
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "148553",
+      "transactionHash": "0xa61ba7265ba357fafc03d11172b67bd7835db07b56bdcd203665ac47accb289e",
+      "blockNumber": 93,
+      "prepareMs": 21.41439999999784,
+      "walletPipelineMs": 48.57960000000094,
+      "broadcastToReceiptMs": 14.657999999999447,
+      "endToEndMs": 69.9964
+    },
+    {
+      "replica": 6,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "39569",
+      "transactionHash": "0xa9bb9adef77909dc569c8c704ebffa0dbf1f448cfec3926bae1859e593d8c444",
+      "blockNumber": 94,
+      "prepareMs": 68.40999999999985,
+      "walletPipelineMs": 48.792099999998754,
+      "broadcastToReceiptMs": 9.065199999997276,
+      "endToEndMs": 117.2042999999976
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "131453",
+      "transactionHash": "0xf1798bfe23f53f211819acbd817f405355c2cd12434b656072efe08467109710",
+      "blockNumber": 95,
+      "prepareMs": 29.02850000000035,
+      "walletPipelineMs": 66.38420000000042,
+      "broadcastToReceiptMs": 27.09740000000238,
+      "endToEndMs": 95.41510000000198
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "39523",
+      "transactionHash": "0xb9dc14e0a34996fdb5c968984e807e75f4b5b344bac857b79f35d55919611514",
+      "blockNumber": 96,
+      "prepareMs": 49.697000000000116,
+      "walletPipelineMs": 68.84210000000166,
+      "broadcastToReceiptMs": 25.5054999999993,
+      "endToEndMs": 118.54110000000219
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "131453",
+      "transactionHash": "0xf30d4dcac8d1eb4e3d84c7647dc6f039c0dfa3fe3c8a1b19451d514d96eb8aec",
+      "blockNumber": 97,
+      "prepareMs": 28.449899999999616,
+      "walletPipelineMs": 69.29910000000018,
+      "broadcastToReceiptMs": 39.32010000000082,
+      "endToEndMs": 97.75430000000051
+    },
+    {
+      "replica": 6,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "175217",
+      "transactionHash": "0xf7d4d812ebff937558d6f3cd4ef4c5c61f25c6931970731f0afd6f73af1b5a26",
+      "blockNumber": 98,
+      "prepareMs": 72.60350000000108,
+      "walletPipelineMs": 84.63639999999941,
+      "broadcastToReceiptMs": 32.35689999999886,
+      "endToEndMs": 157.242000000002
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "131515",
+      "transactionHash": "0x94d85558002d6d8c549bd15dfbaa0f4109d04300006945cea08d3b456d046a75",
+      "blockNumber": 99,
+      "prepareMs": 32.42280000000028,
+      "walletPipelineMs": 81.62459999999919,
+      "broadcastToReceiptMs": 31.67320000000109,
+      "endToEndMs": 114.04950000000099
+    },
+    {
+      "replica": 6,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-006",
+      "gasUsed": "158167",
+      "transactionHash": "0xb02281d13c9dffd4d0390cbf2f1797261f9cf054ec1cb4dd4b720182fbce353c",
+      "blockNumber": 100,
+      "prepareMs": 48.82619999999952,
+      "walletPipelineMs": 58.22910000000047,
+      "broadcastToReceiptMs": 21.96140000000014,
+      "endToEndMs": 107.05750000000262
+    },
+    {
+      "replica": 6,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-006",
+      "gasUsed": "535623",
+      "transactionHash": "0x304e8b4bd5660b21ee9432e89ea58f1b1b35335fba1efc0dfbba600724d77c30",
+      "blockNumber": 101,
+      "prepareMs": 47.886099999999715,
+      "walletPipelineMs": 63.282500000001164,
+      "broadcastToReceiptMs": 14.44380000000092,
+      "endToEndMs": 111.17130000000179
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-006",
+      "gasUsed": "148553",
+      "transactionHash": "0xc05616a444007f2968d00f06c0dedee5874c6d292a481b0111c9ef2ffc0475a0",
+      "blockNumber": 102,
+      "prepareMs": 46.95730000000185,
+      "walletPipelineMs": 64.22329999999783,
+      "broadcastToReceiptMs": 19.566100000000006,
+      "endToEndMs": 111.1826000000001
+    },
+    {
+      "replica": 6,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-006",
+      "gasUsed": "35097",
+      "transactionHash": "0xe63b587521cd383c0f11a2ebd58804e7e595b1c89150cba2b143ced3dd2dd7f5",
+      "blockNumber": 103,
+      "prepareMs": 32.90480000000025,
+      "walletPipelineMs": 82.07459999999992,
+      "broadcastToReceiptMs": 29.731400000000576,
+      "endToEndMs": 114.98129999999946
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-006",
+      "gasUsed": "39523",
+      "transactionHash": "0xf2cb65543ef05c122828b095a00424567f2e3979f74116594c0337e608fe4dc4",
+      "blockNumber": 104,
+      "prepareMs": 44.891999999999825,
+      "walletPipelineMs": 48.63589999999749,
+      "broadcastToReceiptMs": 18.449399999997695,
+      "endToEndMs": 93.52980000000025
+    },
+    {
+      "replica": 6,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-006",
+      "gasUsed": "535623",
+      "transactionHash": "0x3d73ac6c0a7477357c02b451a9b9017609061d29ded23912723e2f0122971a3e",
+      "blockNumber": 105,
+      "prepareMs": 51.17059999999765,
+      "walletPipelineMs": 60.912899999999354,
+      "broadcastToReceiptMs": 22.75119999999879,
+      "endToEndMs": 112.08610000000044
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-006",
+      "gasUsed": "148553",
+      "transactionHash": "0xa86e61fd9f61a22774334063884d6c3259698d8a378ba7b1ecd2b3f93be4c571",
+      "blockNumber": 106,
+      "prepareMs": 53.96509999999762,
+      "walletPipelineMs": 70.35020000000077,
+      "broadcastToReceiptMs": 22.860000000000582,
+      "endToEndMs": 124.31730000000243
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-006",
+      "gasUsed": "39523",
+      "transactionHash": "0x94f776c825aa4912dd652650b4b6c7039bd1a4bb1ec09ddf76af2b68cbeba6a8",
+      "blockNumber": 108,
+      "prepareMs": 27.57380000000194,
+      "walletPipelineMs": 58.94880000000194,
+      "broadcastToReceiptMs": 21.67740000000049,
+      "endToEndMs": 86.52480000000287
+    },
+    {
+      "replica": 7,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-007",
+      "gasUsed": "535623",
+      "transactionHash": "0x266ad4e88df1a4a1daae54a00bbc64debe0838a1b2e838e5c221aa0e69069196",
+      "blockNumber": 109,
+      "prepareMs": 38.38940000000002,
+      "walletPipelineMs": 79.08099999999831,
+      "broadcastToReceiptMs": 22.125700000000506,
+      "endToEndMs": 117.47249999999985
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "148553",
+      "transactionHash": "0xc3add6e610e45c2224ae272677d79e10e3a31311319bc9f82e1ccc5bcede3a3b",
+      "blockNumber": 110,
+      "prepareMs": 48.19930000000022,
+      "walletPipelineMs": 53.58559999999852,
+      "broadcastToReceiptMs": 19.97399999999834,
+      "endToEndMs": 101.78729999999996
+    },
+    {
+      "replica": 7,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "39569",
+      "transactionHash": "0x43b709bc25847927eab843bb13e8d21812a3536ff37190562c27eede330010d0",
+      "blockNumber": 111,
+      "prepareMs": 85.73080000000118,
+      "walletPipelineMs": 80.66589999999997,
+      "broadcastToReceiptMs": 24.2628999999979,
+      "endToEndMs": 166.3992999999973
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "131453",
+      "transactionHash": "0x322f5286bd52995a91c40bcfd640ce43894c4d48ccbca55b3dd530da26032ec8",
+      "blockNumber": 112,
+      "prepareMs": 41.42740000000049,
+      "walletPipelineMs": 71.20499999999811,
+      "broadcastToReceiptMs": 25.726299999998446,
+      "endToEndMs": 112.634399999999
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "39523",
+      "transactionHash": "0xa140d5882d850f344526153626ed45ca937d954a379af305d04eebbabef7a0f7",
+      "blockNumber": 113,
+      "prepareMs": 45.76300000000265,
+      "walletPipelineMs": 138.34010000000126,
+      "broadcastToReceiptMs": 39.67290000000139,
+      "endToEndMs": 184.10510000000068
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "131453",
+      "transactionHash": "0x11c1ead3bdadaae294ccc1dbb5c29dcf4f162fe5a5d8e7dfeb2d55776e6c4cfe",
+      "blockNumber": 114,
+      "prepareMs": 88.16460000000006,
+      "walletPipelineMs": 86.74820000000182,
+      "broadcastToReceiptMs": 36.94710000000123,
+      "endToEndMs": 174.91540000000168
+    },
+    {
+      "replica": 7,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "175217",
+      "transactionHash": "0x07740450e0a71c7082cef11740c9f45e037f357f148d52aa627331825ed80672",
+      "blockNumber": 115,
+      "prepareMs": 63.99490000000151,
+      "walletPipelineMs": 98.3156999999992,
+      "broadcastToReceiptMs": 31.519000000000233,
+      "endToEndMs": 162.3132000000005
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "131515",
+      "transactionHash": "0x18ed667cfd5037711aa9a1979c79bbf2a523cbc035875e063c9bedfce6616c0b",
+      "blockNumber": 116,
+      "prepareMs": 41.12329999999929,
+      "walletPipelineMs": 84.8875999999982,
+      "broadcastToReceiptMs": 32.01640000000043,
+      "endToEndMs": 126.01350000000093
+    },
+    {
+      "replica": 7,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-007",
+      "gasUsed": "158167",
+      "transactionHash": "0x111d765ae85ba6e5b8d7d1c884e5ace972089182821e194118f3fd756267a968",
+      "blockNumber": 117,
+      "prepareMs": 43.632000000001426,
+      "walletPipelineMs": 76.74569999999949,
+      "broadcastToReceiptMs": 21.11369999999806,
+      "endToEndMs": 120.3798999999999
+    },
+    {
+      "replica": 7,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-007",
+      "gasUsed": "535623",
+      "transactionHash": "0x8fec28e38b56bc81091812dd1a19e8072483406150e1a94292a24e67cd880277",
+      "blockNumber": 118,
+      "prepareMs": 41.986400000001595,
+      "walletPipelineMs": 75.13800000000265,
+      "broadcastToReceiptMs": 26.423500000000786,
+      "endToEndMs": 117.12660000000324
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-007",
+      "gasUsed": "148553",
+      "transactionHash": "0x805b9fa2c0d130c5ae37af37cb86e60137e10eeb8336fdf525af5f53a7685461",
+      "blockNumber": 119,
+      "prepareMs": 63.81130000000121,
+      "walletPipelineMs": 87.53689999999915,
+      "broadcastToReceiptMs": 20.37199999999939,
+      "endToEndMs": 151.35619999999835
+    },
+    {
+      "replica": 7,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-007",
+      "gasUsed": "35097",
+      "transactionHash": "0x8d0338c4c1deccdc45c2a266628424a1c9647ef697348e8c7b912479b7f44ce9",
+      "blockNumber": 120,
+      "prepareMs": 39.034999999999854,
+      "walletPipelineMs": 98.30649999999878,
+      "broadcastToReceiptMs": 32.86319999999978,
+      "endToEndMs": 137.34319999999934
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-007",
+      "gasUsed": "39523",
+      "transactionHash": "0xeecf8c0be9cde977909352aff2fb25ca1779cc63212eee9a84740ad244bc5265",
+      "blockNumber": 121,
+      "prepareMs": 44.47569999999905,
+      "walletPipelineMs": 72.27960000000166,
+      "broadcastToReceiptMs": 6.218199999999342,
+      "endToEndMs": 116.75660000000062
+    },
+    {
+      "replica": 7,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-007",
+      "gasUsed": "535623",
+      "transactionHash": "0xb4c3f1fc252e4852423acc9d390d0ec9108bdbd27d5b8103e86e00d81f1a8328",
+      "blockNumber": 122,
+      "prepareMs": 43.780800000000454,
+      "walletPipelineMs": 79.46210000000065,
+      "broadcastToReceiptMs": 24.916399999998248,
+      "endToEndMs": 123.24559999999838
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-007",
+      "gasUsed": "148553",
+      "transactionHash": "0x847a0b0ee54e008216e0f4ef6d7148203d02c2430635bad29357bc110581157a",
+      "blockNumber": 123,
+      "prepareMs": 69.75540000000183,
+      "walletPipelineMs": 73.8666000000012,
+      "broadcastToReceiptMs": 14.087800000001153,
+      "endToEndMs": 143.6268999999993
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-007",
+      "gasUsed": "39523",
+      "transactionHash": "0x43074ba88d88e0aae4826540ec1a254d133feb73728249142481355863fc7648",
+      "blockNumber": 125,
+      "prepareMs": 119.36959999999817,
+      "walletPipelineMs": 109.38739999999962,
+      "broadcastToReceiptMs": 38.30449999999837,
+      "endToEndMs": 228.76499999999942
+    },
+    {
+      "replica": 8,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-008",
+      "gasUsed": "535623",
+      "transactionHash": "0x4a52844f4a667e789b398ce24aadb5b44860432026e44ff1211c795949b67ba6",
+      "blockNumber": 126,
+      "prepareMs": 41.80489999999918,
+      "walletPipelineMs": 58.71019999999771,
+      "broadcastToReceiptMs": 15.023599999996804,
+      "endToEndMs": 100.517399999997
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "148553",
+      "transactionHash": "0x448757ef02e106ae4f784a335cf0ac364facb06c6beeb4173ca373376d9b8861",
+      "blockNumber": 127,
+      "prepareMs": 79.23210000000108,
+      "walletPipelineMs": 125.96000000000276,
+      "broadcastToReceiptMs": 42.87130000000252,
+      "endToEndMs": 205.19730000000345
+    },
+    {
+      "replica": 8,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "39569",
+      "transactionHash": "0x49202c8ef8cf6999e401035bac35cd8cf9bc2002d017093d1785accffa15b77d",
+      "blockNumber": 128,
+      "prepareMs": 103.73210000000108,
+      "walletPipelineMs": 89.33439999999973,
+      "broadcastToReceiptMs": 29.771099999998114,
+      "endToEndMs": 193.0741999999991
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "131453",
+      "transactionHash": "0x0eb75d3eca0b5f1eddaea1f53bc670e1dec9231501af8fe9b795428d7f019b51",
+      "blockNumber": 129,
+      "prepareMs": 78.61460000000079,
+      "walletPipelineMs": 64.7544999999991,
+      "broadcastToReceiptMs": 25.85229999999865,
+      "endToEndMs": 143.37389999999868
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "39523",
+      "transactionHash": "0x787e3d07673304b3c2bf6c9559bd199c922436e591229761e30104b31ef2f6e7",
+      "blockNumber": 130,
+      "prepareMs": 97.44319999999789,
+      "walletPipelineMs": 96.51920000000246,
+      "broadcastToReceiptMs": 21.608899999999267,
+      "endToEndMs": 193.96930000000066
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "131453",
+      "transactionHash": "0xebff23aa227bb4db2024be51b7a47cec55661464f772f8482467a1a1bc1b3f35",
+      "blockNumber": 131,
+      "prepareMs": 30.75640000000203,
+      "walletPipelineMs": 68.61759999999776,
+      "broadcastToReceiptMs": 26.010800000000017,
+      "endToEndMs": 99.3786
+    },
+    {
+      "replica": 8,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "175217",
+      "transactionHash": "0x27c253a9d6cd4073339361e3edccd3d3da096331a3fbc376187841a6463d3a3f",
+      "blockNumber": 132,
+      "prepareMs": 47.930499999998574,
+      "walletPipelineMs": 89.51169999999911,
+      "broadcastToReceiptMs": 23.28519999999844,
+      "endToEndMs": 137.4442999999992
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "131515",
+      "transactionHash": "0x7470e8a5e3e0afb371591c8c116b4c5af9bf794d64a96f96e8b3e1bda73c1dc1",
+      "blockNumber": 133,
+      "prepareMs": 59.465500000002066,
+      "walletPipelineMs": 90.73919999999998,
+      "broadcastToReceiptMs": 35.61750000000029,
+      "endToEndMs": 150.21359999999913
+    },
+    {
+      "replica": 8,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-008",
+      "gasUsed": "158167",
+      "transactionHash": "0x07a9cc0de10d79ee56e8e792b9a4cead5e65762ead57128fb4d18db682c1a71f",
+      "blockNumber": 134,
+      "prepareMs": 119.37769999999728,
+      "walletPipelineMs": 111.5630999999994,
+      "broadcastToReceiptMs": 23.680700000000797,
+      "endToEndMs": 230.94870000000083
+    },
+    {
+      "replica": 8,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-008",
+      "gasUsed": "535623",
+      "transactionHash": "0xf7792bf2532eb1f3058823080577f6883680a82776688b82752333c7c4c7473f",
+      "blockNumber": 135,
+      "prepareMs": 55.51550000000134,
+      "walletPipelineMs": 92.58910000000105,
+      "broadcastToReceiptMs": 36.86220000000321,
+      "endToEndMs": 148.1091000000015
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-008",
+      "gasUsed": "148553",
+      "transactionHash": "0xf5e76ef21a9bd339572e17294fcf30b635fa384db868a3b42bea56a7093e154d",
+      "blockNumber": 136,
+      "prepareMs": 65.75210000000152,
+      "walletPipelineMs": 83.45180000000255,
+      "broadcastToReceiptMs": 38.412899999999354,
+      "endToEndMs": 149.20980000000054
+    },
+    {
+      "replica": 8,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-008",
+      "gasUsed": "35097",
+      "transactionHash": "0x5717edeea053e08ea2d551e278cbc22c1b22b189f214a9ebbe4772af84fea5c0",
+      "blockNumber": 137,
+      "prepareMs": 67.4398000000001,
+      "walletPipelineMs": 88.59180000000197,
+      "broadcastToReceiptMs": 42.79880000000048,
+      "endToEndMs": 156.03940000000148
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-008",
+      "gasUsed": "39523",
+      "transactionHash": "0xd029a64f42cf4a32d111bb4da2b04e6e093ba70dba29a80a6fdc3d82ae9fd08d",
+      "blockNumber": 138,
+      "prepareMs": 29.32060000000274,
+      "walletPipelineMs": 66.15420000000086,
+      "broadcastToReceiptMs": 15.835399999999936,
+      "endToEndMs": 95.47910000000047
+    },
+    {
+      "replica": 8,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-008",
+      "gasUsed": "535623",
+      "transactionHash": "0x1ae8f6120745a901ab14bda5d641dae81333d87f396445352c5c0af4eddb52e3",
+      "blockNumber": 139,
+      "prepareMs": 88.63680000000022,
+      "walletPipelineMs": 116.24209999999948,
+      "broadcastToReceiptMs": 36.62489999999889,
+      "endToEndMs": 204.8862999999983
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-008",
+      "gasUsed": "148553",
+      "transactionHash": "0xe6d6bb99f293d38a2a0c353c34b1454f912cba4b8d7e3d0e91327924df54affe",
+      "blockNumber": 140,
+      "prepareMs": 69.91249999999854,
+      "walletPipelineMs": 85.34470000000147,
+      "broadcastToReceiptMs": 37.50909999999931,
+      "endToEndMs": 155.26480000000083
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-008",
+      "gasUsed": "39523",
+      "transactionHash": "0x0c3f1fb64af6f26f34b8aa8697b80fbe5e64db5a469c4dd03a57f386c422f916",
+      "blockNumber": 142,
+      "prepareMs": 80.29999999999927,
+      "walletPipelineMs": 81.91460000000006,
+      "broadcastToReceiptMs": 31.049699999999575,
+      "endToEndMs": 162.22270000000208
+    },
+    {
+      "replica": 9,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-009",
+      "gasUsed": "535623",
+      "transactionHash": "0x133ff8aa64a34b8aa6cee08e70f3ec1e98266b303fa60982bfa0d9ed4ed09804",
+      "blockNumber": 143,
+      "prepareMs": 106.45030000000042,
+      "walletPipelineMs": 116.82830000000104,
+      "broadcastToReceiptMs": 25.06300000000192,
+      "endToEndMs": 223.2869000000028
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "148553",
+      "transactionHash": "0xed7b9168817abee33eee7fcccd31f0afc0e546877b81762d0bb962378ab74781",
+      "blockNumber": 144,
+      "prepareMs": 52.916699999997945,
+      "walletPipelineMs": 97.69250000000102,
+      "broadcastToReceiptMs": 37.21870000000126,
+      "endToEndMs": 150.61239999999816
+    },
+    {
+      "replica": 9,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "39569",
+      "transactionHash": "0xbcd480d813a66c4e27e558f39c93611e3778c6717530a9d1d242e6389b6620f5",
+      "blockNumber": 145,
+      "prepareMs": 100.21780000000217,
+      "walletPipelineMs": 59.99399999999878,
+      "broadcastToReceiptMs": 26.497999999999593,
+      "endToEndMs": 160.22799999999916
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "131453",
+      "transactionHash": "0xc508ad7fd1f6fa987d1a632bb6676a09ffb887f13b8c76ec5d42c355ca40624d",
+      "blockNumber": 146,
+      "prepareMs": 48.78859999999986,
+      "walletPipelineMs": 74.37279999999737,
+      "broadcastToReceiptMs": 24.147399999998015,
+      "endToEndMs": 123.16929999999775
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "39523",
+      "transactionHash": "0x4cdd1533085eb6f59c5d5f4285f39d8de268c5246c22b4c8bfea5a44cf21b076",
+      "blockNumber": 147,
+      "prepareMs": 68.24239999999918,
+      "walletPipelineMs": 79.4455999999991,
+      "broadcastToReceiptMs": 21.223400000002584,
+      "endToEndMs": 147.6921000000002
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "131453",
+      "transactionHash": "0x88a2d6a7bd5a602975155d42806aab0490e11df6818569b09ebeae7103b45913",
+      "blockNumber": 148,
+      "prepareMs": 51.59969999999885,
+      "walletPipelineMs": 86.27459999999701,
+      "broadcastToReceiptMs": 29.35979999999836,
+      "endToEndMs": 137.87869999999384
+    },
+    {
+      "replica": 9,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "175217",
+      "transactionHash": "0x35a21a1535bb51b7e453ecfdfa87d9bc65fb0be451f294d7c33d6698c5e421bc",
+      "blockNumber": 149,
+      "prepareMs": 102.55080000000453,
+      "walletPipelineMs": 97.1362999999983,
+      "broadcastToReceiptMs": 38.76260000000184,
+      "endToEndMs": 199.6947
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "131515",
+      "transactionHash": "0x427d5b7306936e68a9f182d06321992db279f15572c6e962653113925d17caf0",
+      "blockNumber": 150,
+      "prepareMs": 32.98539999999775,
+      "walletPipelineMs": 65.83489999999438,
+      "broadcastToReceiptMs": 28.992599999997765,
+      "endToEndMs": 98.82229999999981
+    },
+    {
+      "replica": 9,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-009",
+      "gasUsed": "158167",
+      "transactionHash": "0x1143b8a16f5bffd56fe2b42c858b551f0f5ec9750891f10f8454acfe5a80c7e6",
+      "blockNumber": 151,
+      "prepareMs": 79.62319999999454,
+      "walletPipelineMs": 78.91749999999593,
+      "broadcastToReceiptMs": 26.37489999999525,
+      "endToEndMs": 158.54969999999594
+    },
+    {
+      "replica": 9,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-009",
+      "gasUsed": "535623",
+      "transactionHash": "0x984dc912246cb622191f1bf5754feeaf51196286e94b67aa8caf30e45d77f5c7",
+      "blockNumber": 152,
+      "prepareMs": 95.23419999999896,
+      "walletPipelineMs": 123.67760000000271,
+      "broadcastToReceiptMs": 50.239300000001094,
+      "endToEndMs": 218.91760000000068
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-009",
+      "gasUsed": "148553",
+      "transactionHash": "0xcdac34216fcf78640f87a7ff86b6b4dc631b3119a92bb50793da202d734eba7f",
+      "blockNumber": 153,
+      "prepareMs": 62.69930000000022,
+      "walletPipelineMs": 69.04230000000098,
+      "broadcastToReceiptMs": 34.14639999999781,
+      "endToEndMs": 131.748599999999
+    },
+    {
+      "replica": 9,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-009",
+      "gasUsed": "35097",
+      "transactionHash": "0xadf27669a0061697f30724c859014a6fac7d39f99452b56d0e586863a7869f55",
+      "blockNumber": 154,
+      "prepareMs": 51.83380000000034,
+      "walletPipelineMs": 86.56300000000192,
+      "broadcastToReceiptMs": 39.052899999995134,
+      "endToEndMs": 138.39869999999792
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-009",
+      "gasUsed": "39523",
+      "transactionHash": "0x1f56a1ce332a4e363fda4e5fe53e5dd397f7e410183d965bd33ce8e0f6bce9a3",
+      "blockNumber": 155,
+      "prepareMs": 40.273699999997916,
+      "walletPipelineMs": 78.26750000000175,
+      "broadcastToReceiptMs": 19.770400000001246,
+      "endToEndMs": 118.5434000000023
+    },
+    {
+      "replica": 9,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-009",
+      "gasUsed": "535623",
+      "transactionHash": "0x38f78b9a350d4f11475b45855aa0fc31441e290901709738c3abacb5b67dd616",
+      "blockNumber": 156,
+      "prepareMs": 80.25270000000455,
+      "walletPipelineMs": 70.01289999999426,
+      "broadcastToReceiptMs": 20.392199999994773,
+      "endToEndMs": 150.27149999999529
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-009",
+      "gasUsed": "148553",
+      "transactionHash": "0x985950275ba19e98a332ffc1f1d426275be562d3b133f0206ff5c4ad354c51b3",
+      "blockNumber": 157,
+      "prepareMs": 33.342200000006414,
+      "walletPipelineMs": 88.5544000000009,
+      "broadcastToReceiptMs": 40.97649999999703,
+      "endToEndMs": 121.89890000000014
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-009",
+      "gasUsed": "39523",
+      "transactionHash": "0x1dd58c260bffd33ce5b3c71f17bb71791b5e55f127dfd369c340a1112918dfcc",
+      "blockNumber": 159,
+      "prepareMs": 56.50239999999758,
+      "walletPipelineMs": 90.64190000000235,
+      "broadcastToReceiptMs": 25.42500000000291,
+      "endToEndMs": 147.15099999999802
+    },
+    {
+      "replica": 10,
+      "scenario": "register",
+      "method": "registerBatch",
+      "batchId": "FLOW-010",
+      "gasUsed": "535623",
+      "transactionHash": "0xa0ccba76c118aa1f6793de50b7bd920329ff3683d0b36a29aee99ccec7b6b101",
+      "blockNumber": 160,
+      "prepareMs": 53.67099999999482,
+      "walletPipelineMs": 87.15090000000055,
+      "broadcastToReceiptMs": 36.013700000003155,
+      "endToEndMs": 140.82430000000022
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "148553",
+      "transactionHash": "0xb938cc1ca4b51599ba95e730a1748bb63e6b2335901dccabc7806c2f0616b9c9",
+      "blockNumber": 161,
+      "prepareMs": 53.964700000004086,
+      "walletPipelineMs": 64.36770000000251,
+      "broadcastToReceiptMs": 16.083299999998417,
+      "endToEndMs": 118.33419999999751
+    },
+    {
+      "replica": 10,
+      "scenario": "recipient_rejection",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "39569",
+      "transactionHash": "0x433e5fe36b0e95fb9bc5a56b3103a63fd22fbb4a87fbb255a6575e16bae6f0eb",
+      "blockNumber": 162,
+      "prepareMs": 56.90660000000207,
+      "walletPipelineMs": 66.46940000000177,
+      "broadcastToReceiptMs": 12.351600000001781,
+      "endToEndMs": 123.37749999999505
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "131453",
+      "transactionHash": "0xb96be3f5d4a3a39c76136d4784bfd332be5752c8b4b8e281946f329fea9f86de",
+      "blockNumber": 163,
+      "prepareMs": 48.77339999999822,
+      "walletPipelineMs": 61.464599999999336,
+      "broadcastToReceiptMs": 23.30630000000383,
+      "endToEndMs": 110.24399999999878
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "39523",
+      "transactionHash": "0x7f9836987c8fc1918fb9df76103e0ff3b97ffff493889150079bb5386ac18956",
+      "blockNumber": 164,
+      "prepareMs": 52.60650000000169,
+      "walletPipelineMs": 84.2696999999971,
+      "broadcastToReceiptMs": 23.989300000001094,
+      "endToEndMs": 136.8778999999995
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "131453",
+      "transactionHash": "0xa92a0f39932fdee2986dc068e0c453c8b26e42d819f8980cdf11ddc0e9265e5c",
+      "blockNumber": 165,
+      "prepareMs": 65.54309999999532,
+      "walletPipelineMs": 50.551100000004226,
+      "broadcastToReceiptMs": 16.847099999999045,
+      "endToEndMs": 116.101800000004
+    },
+    {
+      "replica": 10,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "175217",
+      "transactionHash": "0xa803ca04de7a8e04a16c8e1c8051ae2272bc068cde2cc2c643679a9dc42c72e3",
+      "blockNumber": 166,
+      "prepareMs": 91.6533999999956,
+      "walletPipelineMs": 80.1678999999931,
+      "broadcastToReceiptMs": 29.781999999999243,
+      "endToEndMs": 171.82309999999416
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "131515",
+      "transactionHash": "0xd31b44a13e701c55265fabc2a264afa5ec40d5d879f49d99dacdc5c68f6ff42f",
+      "blockNumber": 167,
+      "prepareMs": 79.83819999999832,
+      "walletPipelineMs": 102.32179999999789,
+      "broadcastToReceiptMs": 40.2528999999995,
+      "endToEndMs": 182.1678000000029
+    },
+    {
+      "replica": 10,
+      "scenario": "confirm",
+      "method": "confirmTransfer",
+      "batchId": "FLOW-010",
+      "gasUsed": "158167",
+      "transactionHash": "0xaa8afc99374d24710ffe766871b7149a2a48e2dfa0649824c6fc1a0ce2a3a0ed",
+      "blockNumber": 168,
+      "prepareMs": 106.0434000000023,
+      "walletPipelineMs": 101.06660000000556,
+      "broadcastToReceiptMs": 26.305200000002515,
+      "endToEndMs": 207.11840000000666
+    },
+    {
+      "replica": 10,
+      "scenario": "register_recall_fixture",
+      "method": "registerBatch",
+      "batchId": "RECL-010",
+      "gasUsed": "535623",
+      "transactionHash": "0xc902d4aed73a284860ffbd07d3bd867c858dd1a98ddf024489ef1da4af940712",
+      "blockNumber": 169,
+      "prepareMs": 101.6275999999998,
+      "walletPipelineMs": 60.26249999999709,
+      "broadcastToReceiptMs": 16.385999999998603,
+      "endToEndMs": 161.89570000000094
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "RECL-010",
+      "gasUsed": "148553",
+      "transactionHash": "0x4ac975b344e866c9f95b708ec1f52e985f9e969aebb61cfd8683abb051a6b3a7",
+      "blockNumber": 170,
+      "prepareMs": 39.22559999999794,
+      "walletPipelineMs": 44.770999999993364,
+      "broadcastToReceiptMs": 14.367999999994936,
+      "endToEndMs": 83.99839999999676
+    },
+    {
+      "replica": 10,
+      "scenario": "recall_pending",
+      "method": "recallBatch",
+      "batchId": "RECL-010",
+      "gasUsed": "35097",
+      "transactionHash": "0x8dd5c64b743d8c45ecaebb87c5b49a39f0d2cb974a851271a2b95e1631fcf318",
+      "blockNumber": 171,
+      "prepareMs": 19.770700000000943,
+      "walletPipelineMs": 54.3946999999971,
+      "broadcastToReceiptMs": 14.968800000002375,
+      "endToEndMs": 74.16739999999845
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "RECL-010",
+      "gasUsed": "39523",
+      "transactionHash": "0xce74456d4b6f7e247fa8e14c85cdf873154107e5bac91a7e8ffff1b8abb701b0",
+      "blockNumber": 172,
+      "prepareMs": 57.68300000000454,
+      "walletPipelineMs": 65.20969999999943,
+      "broadcastToReceiptMs": 22.2554999999993,
+      "endToEndMs": 122.89749999999913
+    },
+    {
+      "replica": 10,
+      "scenario": "register_expiry_fixture",
+      "method": "registerBatch",
+      "batchId": "EXPR-010",
+      "gasUsed": "535623",
+      "transactionHash": "0x0960c2b6030c92f68c59b19ae2680d2aa256323f6bc2ff6307577b8f761e3e83",
+      "blockNumber": 173,
+      "prepareMs": 86.22030000000086,
+      "walletPipelineMs": 77.0225999999966,
+      "broadcastToReceiptMs": 30.825599999996484,
+      "endToEndMs": 163.25019999999495
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "method": "initiateTransfer",
+      "batchId": "EXPR-010",
+      "gasUsed": "148553",
+      "transactionHash": "0xbd7e07b071ba8bc023f56f01b7ba52c02f523dafee299eb1e446fe21d29ae74c",
+      "blockNumber": 174,
+      "prepareMs": 22.32759999999689,
+      "walletPipelineMs": 72.67150000000402,
+      "broadcastToReceiptMs": 28.63570000000618,
+      "endToEndMs": 95.00110000000132
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "method": "cancelTransfer",
+      "batchId": "EXPR-010",
+      "gasUsed": "39523",
+      "transactionHash": "0xa841fbf15b58476bfc1dd92c951723b1410f847ae629fff5fc8e83953e656f79",
+      "blockNumber": 176,
+      "prepareMs": 69.69959999999992,
+      "walletPipelineMs": 65.03310000000056,
+      "broadcastToReceiptMs": 14.771199999995588,
+      "endToEndMs": 134.738400000002
+    }
+  ],
+  "rules": [
+    {
+      "replica": 1,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_registration",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "register",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "duplicate_registration",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchAlreadyExists",
+      "actualStatus": 409,
+      "apiError": "BatchAlreadyExists",
+      "evmError": "BatchAlreadyExists",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_owner",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotCurrentOwner",
+      "actualStatus": 403,
+      "apiError": "NotCurrentOwner",
+      "evmError": "NotCurrentOwner",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "skip_distributor",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "self_transfer",
+      "expected": "deny",
+      "expectedStatus": 400,
+      "expectedError": "InvalidRecipient",
+      "actualStatus": 400,
+      "apiError": "InvalidRecipient",
+      "evmError": "InvalidRecipient",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "wrong_recipient",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotRecipient",
+      "actualStatus": 403,
+      "apiError": "NotRecipient",
+      "evmError": "NotRecipient",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "stale_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "StaleTransfer",
+      "actualStatus": 409,
+      "apiError": "StaleTransfer",
+      "evmError": "StaleTransfer",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "third_party_cancellation",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "NotTransferParticipant",
+      "actualStatus": 403,
+      "apiError": "NotTransferParticipant",
+      "evmError": "NotTransferParticipant",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "recipient_rejection",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "confirm_rejected",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "duplicate_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "NoPendingTransfer",
+      "actualStatus": 409,
+      "apiError": "NoPendingTransfer",
+      "evmError": "NoPendingTransfer",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "reverse_transfer",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "InvalidParticipantRole",
+      "actualStatus": 403,
+      "apiError": "InvalidParticipantRole",
+      "evmError": "InvalidParticipantRole",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "confirm",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "terminal_pharmacy",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "FinalStage",
+      "actualStatus": 409,
+      "apiError": "FinalStage",
+      "evmError": "FinalStage",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "register_recall_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_recall",
+      "expected": "deny",
+      "expectedStatus": 403,
+      "expectedError": "AccessControlUnauthorizedAccount",
+      "actualStatus": 403,
+      "apiError": "AccessControlUnauthorizedAccount",
+      "evmError": "AccessControlUnauthorizedAccount",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "recall_pending",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "recalled_confirmation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "recalled_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchRecalled",
+      "actualStatus": 409,
+      "apiError": "BatchRecalled",
+      "evmError": "BatchRecalled",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "register_expiry_fixture",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "initiate",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "expired_confirmation_at_boundary",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "expired_initiation",
+      "expected": "deny",
+      "expectedStatus": 409,
+      "expectedError": "BatchExpired",
+      "actualStatus": 409,
+      "apiError": "BatchExpired",
+      "evmError": "BatchExpired",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "sender_cancellation",
+      "expected": "allow",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "operations": {
+      "registerBatch": {
+        "gasUsed": {
+          "n": 30,
+          "min": 535623,
+          "max": 535623,
+          "mean": 535623,
+          "median": 535623,
+          "p95": 535623,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 30,
+          "min": 28.691800000000512,
+          "max": 106.45030000000042,
+          "mean": 57.3712066666668,
+          "median": 49.52834999999868,
+          "p95": 101.6275999999998,
+          "sampleStdDev": 21.69932554645401
+        },
+        "walletPipelineMs": {
+          "n": 30,
+          "min": 37.405800000000454,
+          "max": 163.04089999999997,
+          "mean": 77.20715999999979,
+          "median": 74.2099500000013,
+          "p95": 123.67760000000271,
+          "sampleStdDev": 28.155654683949596
+        },
+        "broadcastToReceiptMs": {
+          "n": 30,
+          "min": 8.105600000000777,
+          "max": 50.239300000001094,
+          "mean": 24.290183333333275,
+          "median": 22.438449999999648,
+          "p95": 47.188100000000304,
+          "sampleStdDev": 10.397619534068093
+        },
+        "endToEndMs": {
+          "n": 30,
+          "min": 72.36280000000079,
+          "max": 239.1814000000004,
+          "mean": 134.58197666666666,
+          "median": 121.8693000000003,
+          "p95": 223.2869000000028,
+          "sampleStdDev": 43.86177563226264
+        }
+      },
+      "initiateTransfer": {
+        "gasUsed": {
+          "n": 60,
+          "min": 131453,
+          "max": 148553,
+          "mean": 140013.33333333334,
+          "median": 140034,
+          "p95": 148553,
+          "sampleStdDev": 8611.757860409669
+        },
+        "prepareMs": {
+          "n": 60,
+          "min": 21.41439999999784,
+          "max": 88.16460000000006,
+          "mean": 45.10916666666655,
+          "median": 41.27534999999989,
+          "p95": 78.61460000000079,
+          "sampleStdDev": 16.864445667330187
+        },
+        "walletPipelineMs": {
+          "n": 60,
+          "min": 33.742999999998574,
+          "max": 125.96000000000276,
+          "mean": 67.75593166666653,
+          "median": 65.29469999999674,
+          "p95": 97.69250000000102,
+          "sampleStdDev": 19.638447243578604
+        },
+        "broadcastToReceiptMs": {
+          "n": 60,
+          "min": 7.561900000000605,
+          "max": 42.87130000000252,
+          "mean": 23.375074999999992,
+          "median": 22.419200000000274,
+          "p95": 40.2528999999995,
+          "sampleStdDev": 9.263949961217515
+        },
+        "endToEndMs": {
+          "n": 60,
+          "min": 58.85979999999836,
+          "max": 205.19730000000345,
+          "mean": 112.86843333333337,
+          "median": 110.71329999999944,
+          "p95": 174.91540000000168,
+          "sampleStdDev": 31.633466430116695
+        }
+      },
+      "cancelTransfer": {
+        "gasUsed": {
+          "n": 40,
+          "min": 39523,
+          "max": 39569,
+          "mean": 39534.5,
+          "median": 39523,
+          "p95": 39569,
+          "sampleStdDev": 20.172334444061672
+        },
+        "prepareMs": {
+          "n": 40,
+          "min": 22.40860000000066,
+          "max": 119.36959999999817,
+          "mean": 55.29248000000028,
+          "median": 48.39924999999948,
+          "p95": 100.21780000000217,
+          "sampleStdDev": 23.76539679359502
+        },
+        "walletPipelineMs": {
+          "n": 40,
+          "min": 33.98290000000088,
+          "max": 138.34010000000126,
+          "mean": 67.14347750000017,
+          "median": 65.3443499999994,
+          "p95": 109.38739999999962,
+          "sampleStdDev": 22.763636661294697
+        },
+        "broadcastToReceiptMs": {
+          "n": 40,
+          "min": 6.218199999999342,
+          "max": 39.67290000000139,
+          "mean": 20.662872499999764,
+          "median": 21.416150000000926,
+          "p95": 33.58429999999953,
+          "sampleStdDev": 8.7698954925503
+        },
+        "endToEndMs": {
+          "n": 40,
+          "min": 57.293399999998655,
+          "max": 228.76499999999942,
+          "mean": 122.4394600000001,
+          "median": 116.98044999999911,
+          "p95": 193.0741999999991,
+          "sampleStdDev": 40.190423995375866
+        }
+      },
+      "confirmTransfer": {
+        "gasUsed": {
+          "n": 20,
+          "min": 158167,
+          "max": 175217,
+          "mean": 166692,
+          "median": 166692,
+          "p95": 175217,
+          "sampleStdDev": 8746.465451525939
+        },
+        "prepareMs": {
+          "n": 20,
+          "min": 30.55789999999979,
+          "max": 119.37769999999728,
+          "mean": 60.390599999999765,
+          "median": 48.378349999999045,
+          "p95": 106.0434000000023,
+          "sampleStdDev": 27.420030180162904
+        },
+        "walletPipelineMs": {
+          "n": 20,
+          "min": 47.7520999999997,
+          "max": 155.77859999999964,
+          "mean": 82.48649999999948,
+          "median": 78.46339999999873,
+          "p95": 122.44769999999971,
+          "sampleStdDev": 26.644101323024294
+        },
+        "broadcastToReceiptMs": {
+          "n": 20,
+          "min": 14.888899999999921,
+          "max": 69.59580000000005,
+          "mean": 27.69524999999994,
+          "median": 24.992950000001656,
+          "p95": 38.76260000000184,
+          "sampleStdDev": 11.550797612855972
+        },
+        "endToEndMs": {
+          "n": 20,
+          "min": 78.31210000000101,
+          "max": 230.94870000000083,
+          "mean": 142.88057500000005,
+          "median": 128.91209999999955,
+          "p95": 227.79199999999946,
+          "sampleStdDev": 48.41738862320448
+        }
+      },
+      "recallBatch": {
+        "gasUsed": {
+          "n": 10,
+          "min": 35097,
+          "max": 35097,
+          "mean": 35097,
+          "median": 35097,
+          "p95": 35097,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 10,
+          "min": 19.770700000000943,
+          "max": 67.4398000000001,
+          "mean": 40.59180000000033,
+          "median": 35.96990000000005,
+          "p95": 67.4398000000001,
+          "sampleStdDev": 17.293045988232038
+        },
+        "walletPipelineMs": {
+          "n": 10,
+          "min": 39.57959999999912,
+          "max": 105.92709999999988,
+          "mean": 70.78522000000002,
+          "median": 68.23464999999851,
+          "p95": 105.92709999999988,
+          "sampleStdDev": 23.924354698730802
+        },
+        "broadcastToReceiptMs": {
+          "n": 10,
+          "min": 13.60910000000149,
+          "max": 42.79880000000048,
+          "mean": 25.028720000000156,
+          "median": 23.300799999999526,
+          "p95": 42.79880000000048,
+          "sampleStdDev": 10.718150628390214
+        },
+        "endToEndMs": {
+          "n": 10,
+          "min": 74.16739999999845,
+          "max": 173.0050999999994,
+          "mean": 111.37970999999989,
+          "median": 100.71079999999984,
+          "p95": 173.0050999999994,
+          "sampleStdDev": 37.427832240027584
+        }
+      }
+    },
+    "rules": {
+      "all": {
+        "n": 330,
+        "passed": 330,
+        "accuracy": 1
+      },
+      "allowed": {
+        "n": 160,
+        "passed": 160,
+        "accuracy": 1
+      },
+      "denied": {
+        "n": 170,
+        "passed": 170,
+        "accuracy": 1
+      }
+    }
+  }
+}

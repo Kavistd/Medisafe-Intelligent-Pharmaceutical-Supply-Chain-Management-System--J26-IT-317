@@ -2,6 +2,8 @@
 
 Recorded on **19 October 2026**. No other component's implementation or shared configuration was changed. All blockchain deployments were disposable in-process Hardhat fixtures; no public network or real document service was used.
 
+**Historical-record clarification:** the preserved dataset predates the current frontend client/gateway and the later, separately approved Sepolia deployment and role grants. All 16 captured source fingerprints match commit `483709f1dd29f68e2d0750ec6c6be9a0feba456a` with documented checkout line endings, but the exact full execution-time revision is unverified because the evaluator was uncommitted at collection. See [provenance and explicit historical audit](../../integration/component1-evaluation/PROVENANCE.md). The saved-result audit result below refers to the original verification, not current-working-tree equivalence; current default auditing correctly rejects the two changed frontend files. Original measurements and artifacts have not been edited.
+
 ## Reproduce
 
 See [local setup, commands, methodology and troubleshooting](../../integration/component1-evaluation/README.md). From `blockchain/`, after installing the three existing lockfiles and compiling:

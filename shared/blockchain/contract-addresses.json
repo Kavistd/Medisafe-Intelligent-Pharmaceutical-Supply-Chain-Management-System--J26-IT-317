@@ -16,7 +16,7 @@
     "PrescriptionRegistry": "",
     "MedicineRiskRegistry": "",
     "PharmacyTrust": "",
-    "MedicineTraceability": ""
+    "MedicineTraceability": "0xe3095b57F50421452f5795A39888258E9Fce764e"
   },
   "mainnet": {
     "PrescriptionRegistry": "",

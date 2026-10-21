@@ -1,0 +1,23 @@
+{
+  "samples": 10,
+  "outputDirectory": "integration/component1-evaluation/results/2026-10-21T01-36-08-Asia-Colombo",
+  "chain": "isolated in-process Hardhat",
+  "chainId": 31337,
+  "automine": true,
+  "syntheticBatches": 30,
+  "confirmedMeasuredTransactions": 160,
+  "ruleChecks": 330,
+  "allowedChecks": 160,
+  "deniedSimulationChecks": 170,
+  "ipfs": "mocked in memory; no uploads",
+  "realBrowser": false,
+  "realMetaMask": false,
+  "existingLocalNodeModified": false,
+  "publicTransactionsSent": 0,
+  "testCommand": "node node_modules/hardhat/internal/cli/cli.js test --no-compile --network hardhat test/component1/MedicineTraceability.test.js test/component1/MedicineBatchSchema.test.js test/component1/TraceabilityDeployment.test.js test/component1/TraceabilityPreflight.test.js",
+  "testWorkingDirectory": "blockchain",
+  "suitePassed": 109,
+  "suiteFailed": 0,
+  "missingReferenceCasesStrengthened": 4,
+  "reproduce": "From blockchain/: node ../integration/component1-evaluation/run.js --samples 10 --out results/NEW-UNIQUE-TIMESTAMP (never overwrite this directory)"
+}

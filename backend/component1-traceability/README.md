@@ -80,3 +80,16 @@ The API binds locally and has no CORS middleware or identity/session system. Pub
 Errors: `{success:false,error:"CODE",message:"safe message"}`. Validation/malformed input: 400; role/participant rejection: 403; missing batch/route: 404; contract state conflicts (including stale IDs, recall, expiry): 409; oversized JSON (>32 KB): 413; missing/invalid configuration, wrong chain, absent bytecode or RPC failure: 503. Known ABI custom errors retain their names. Provider messages, URLs, stack traces and request bodies are not logged or returned.
 
 `npm test` uses Node's test runner and a mocked read-only RPC provider with actual shared ABI encoding/decoding. It checks every supported write, reads, schema validation, rejection semantics, revert mapping, chain/code checks, error redaction and HTTP input boundaries. Tests do not start a blockchain or establish deployment readiness. Existing contract tests separately cover the Solidity state machine.
+## Read-only registration discovery
+
+`GET /api/v1/traceability/batches` returns configured public `chainId`, `address`, `startBlock`, captured `headBlock`, `fromBlock`, `toBlock`, `nextBlock`, `windowSize`, `complete` and deduplicated registered batch `ids`. Continue with `?fromBlock=<nextBlock>&headBlock=<capturedHead>`. An optional `windowSize` (1?1,000) retains the reduced RPC window on continuation; `direction=backward` scans from the captured head toward deployment (forward is the API default); no other query parameters are accepted. No wallet, document operator token, signer or transaction is involved. RPC credentials are never returned.
+
+`TRACEABILITY_START_BLOCK` defaults to zero and must agree with frontend `VITE_TRACEABILITY_START_BLOCK`; the existing Sepolia profile uses the deployment block. Configuration is unchanged by this feature. Each request queries at most 1,000 blocks from this contract and the actual ABI `BatchRegistered` topic. Recognized range/result-limit failures halve the window, including down to a single block; other failures return the existing sanitized API errors. Cursors advance only after successful log retrieval. No account/custody filter is applied, so subsequent transfers do not hide a registration. Current batch values use existing GET routes.
+
+Completion means discovery through the captured head, not finality or a permanent up-to-date index. Clients must refresh after new blocks or reorganizations. This local API has no persistent event index. Before exposing it publicly, put it behind normal deployment-level request throttling and caching to control RPC use.
+
+Run `npm test` from `backend/component1-traceability`; new discovery tests use mocked read-only RPC and actual ABI logs, not public blockchain writes.
+
+`GET /api/v1/traceability/network` returns only public chain/address/deployment-block/head metadata after validating the configured RPC chain and deployed bytecode. Public QR verification checks this before reading a batch; it does not scan events.
+
+For backward scans, `fromBlock` is the upper cursor, `fromBlock`/`toBlock` in the response are the actual scanned interval, and `nextBlock` is one less than its lower boundary. Retain `direction=backward` and the returned window size when continuing. The public UI uses this order; existing role-dashboard discovery is unchanged.

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import { Wallet, sha256 } from 'ethers';
 import { documentGateway } from '../../component1-document-gateway.js';
-import { documentMessage } from './client.js';
+import { documentMessage, iface } from './client.js';
 const env = { IPFS_API_TOKEN: 'server-only-operator-token-'.repeat(2), VITE_TRACEABILITY_ADDRESS: '0x2222222222222222222222222222222222222222' };
 async function serve(options, run) {
-  const { onRequest, ...gatewayOptions } = options;
-  const middleware = documentGateway(env, gatewayOptions);
+  const { onRequest, environment = env, ...gatewayOptions } = options;
+  const middleware = documentGateway(environment, gatewayOptions);
   const server = http.createServer((req, res) => {
     middleware(req, res, () => { res.statusCode = 404; res.end(); });
     onRequest?.();
@@ -31,9 +31,37 @@ function pausedRequest(root, options) {
   });
   return { request, result };
 }
-async function signed(root, { wallet = Wallet.createRandom(), method = 'POST', path = '/api/v1/traceability/documents', body = Buffer.from('fixture'), timestamp = String(Date.now()), nonce = '0x' + 'aa'.repeat(16) } = {}) {
-  const message = documentMessage({ host: new URL(root).host, method, path, digest: sha256(body), timestamp, nonce, address: env.VITE_TRACEABILITY_ADDRESS });
+async function signed(root, { wallet = Wallet.createRandom(), chainId = 31337n, method = 'POST', path = '/api/v1/traceability/documents', body = Buffer.from('fixture'), timestamp = String(Date.now()), nonce = '0x' + 'aa'.repeat(16) } = {}) {
+  const message = documentMessage({ host: new URL(root).host, method, path, digest: sha256(body), timestamp, nonce, address: env.VITE_TRACEABILITY_ADDRESS, chainId });
   return { method, body: method === 'GET' ? undefined : body, headers: { 'Content-Type': 'multipart/form-data; boundary=test', 'X-Document-Time': timestamp, 'X-Document-Nonce': nonce, 'X-Document-Signature': await wallet.signMessage(message) } };
+}
+
+for (const chainId of [31337n, 11155111n]) {
+  test(`gateway validates live RPC chain ${chainId} before role queries and forwarding`, async () => {
+    let rpcChain = chainId, calls = 0, roleCalls = 0;
+    await serve({ environment: { ...env, VITE_TRACEABILITY_CHAIN_ID: String(chainId) },
+      makeProvider: () => ({ send: async method => { assert.equal(method, 'eth_chainId'); return '0x' + rpcChain.toString(16); },
+        call: async () => { roleCalls++; return iface.encodeFunctionResult('hasRole', [true]); } }),
+      fetcher: async () => { calls++; return Response.json({ success: true }); } }, async root => {
+      assert.equal((await fetch(root + '/api/v1/traceability/documents', await signed(root, { chainId }))).status, 200);
+      assert.equal(roleCalls, 1);
+      rpcChain = chainId === 31337n ? 11155111n : 31337n;
+      assert.equal((await fetch(root + '/api/v1/traceability/documents', await signed(root, { chainId }))).status, 502);
+      assert.equal(roleCalls, 1); assert.equal(calls, 1);
+    });
+  });
+  test(`document signatures cannot cross from another chain into ${chainId}`, async () => {
+    const wallet = Wallet.createRandom(); let calls = 0;
+    await serve({ environment: { ...env, VITE_TRACEABILITY_CHAIN_ID: String(chainId) },
+      roleCheck: async account => account === wallet.address,
+      fetcher: async () => { calls++; return Response.json({ success: true }); } }, async root => {
+      const path = '/api/v1/traceability/documents';
+      const other = chainId === 31337n ? 11155111n : 31337n;
+      assert.equal((await fetch(root + path, await signed(root, { wallet, chainId: other }))).status, 403);
+      assert.equal(calls, 0);
+      assert.equal((await fetch(root + path, await signed(root, { wallet, chainId }))).status, 200);
+    });
+  });
 }
 test('unsigned and unauthorized uploads never receive operator credentials', async () => {
   let calls = 0;

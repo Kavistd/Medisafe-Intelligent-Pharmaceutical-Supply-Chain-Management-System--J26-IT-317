@@ -64,6 +64,8 @@ Business-rule enforcement accuracy is `checks matching expected status/error/sta
 
 ## Artifacts and provenance
 
+**Archived dataset:** `results/latest/` predates the latest Component 1 client/gateway changes. See [historical provenance](PROVENANCE.md) for the verified matching snapshot, execution-time revision uncertainty and original artifact hashes. Audit the preserved dataset with `node integration/component1-evaluation/verify-results.js --source-revision 483709f1dd29f68e2d0750ec6c6be9a0feba456a` from the repository root. The default current-tree audit remains strict and is expected to fail on the updated client/gateway; do not overwrite historical fingerprints to make it pass.
+
 `results/latest/results.json` contains raw transactions, scenario outcomes, integration observations, timestamps, Git base commit, source SHA-256 fingerprints, runtime/OS/CPU/memory, Solidity build version/settings, chain ID and sample counts. `transactions.csv` supports independent tabular analysis. `report.md` is generated directly from those rows. Source fingerprints include uncommitted implementation files; the base commit alone is not the identity of the evaluated checkout. Preserve the result directory with the source revision used for a report. From the repository root, run `node integration/component1-evaluation/verify-results.js` to recompute distributions, check CSV consistency and verify current source fingerprints. This verifies artifact consistency, not public-chain authenticity.
 
 ## Automated checks

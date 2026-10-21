@@ -4,9 +4,63 @@ The document service uploads/pins medicine certificates and laboratory test repo
 
 ## Configure and authorize
 
-Set `IPFS_PROVIDER=pinata`, `IPFS_PROVIDER_TOKEN` to a provider JWT, and `IPFS_API_TOKEN` to a **different**, randomly generated token of at least 32 characters. The document API fails closed without its API token. Give the API token only to approved document publishing operators; it is an administrative service credential, not a public browser token or a blockchain wallet credential. Never put either token in source, URLs, logs or frontend configuration. Use TLS if exposing the locally bound API through a reverse proxy. Provider endpoint and gateway must be trusted, administrator-configured HTTPS URLs without embedded credentials, queries or fragments. Redirects are rejected. Only the pinning endpoint receives the provider JWT; the gateway receives no credentials.
+Set `IPFS_PROVIDER=pinata`, `IPFS_PROVIDER_TOKEN` to a provider JWT, and `IPFS_API_TOKEN` to a **different**, randomly generated token of at least 32 characters. The document API fails closed without its API token. Give the API token only to approved document publishing operators; it is an administrative service credential, not a public browser token or a blockchain wallet credential. Never put either token in source, URLs, logs or browser-exposed configuration. The existing Vite gateway needs only the operator token in its ignored, server-only environment; never use a `VITE_` prefix for secrets or place the provider JWT there. Use TLS if exposing the locally bound API through a reverse proxy. Provider endpoint and gateway must be trusted, administrator-configured HTTPS URLs without embedded credentials, queries or fragments. Redirects are rejected. Only the pinning endpoint receives the provider JWT; the gateway receives no credentials.
 
 Supported implementation: `pinata`. Override `IPFS_PIN_ENDPOINT` for a compatible pin-file provider endpoint, or `IPFS_GATEWAY_URL` for a trusted HTTPS gateway whose base path ends in `/ipfs/`. Other protocols require another adapter. Provider responses must include a valid `IpfsHash`, numeric `PinSize` and parseable `Timestamp`; asynchronous pin jobs are not accepted as successful uploads.
+
+## Separate local Pinata profile (no publication approval)
+
+Use `backend/component1-traceability/.env.pinata.local` for real-provider preparation, leaving the managed backend `.env`, frontend `.env.local` and mock launchers unchanged. The backend-local `.gitignore` excludes this profile. It starts with an empty provider JWT and empty publication allowlist, reuses the existing server-side operator token so the frontend gateway still matches, and retains the current local contract address. Do not run local setup to switch providers: that utility intentionally configures mock mode.
+
+1. Open `.env.pinata.local` directly in your editor. Enter the scoped Pinata JWT after `IPFS_PROVIDER_TOKEN=` and save. Never paste it into chat, commands, tracked files or screenshots. No API key/secret pair is needed by this bearer-JWT adapter.
+2. Retain these settings:
+
+   ```dotenv
+   IPFS_PROVIDER=pinata
+   IPFS_PIN_ENDPOINT=https://api.pinata.cloud/pinning/pinFileToIPFS
+   IPFS_GATEWAY_URL=https://gateway.pinata.cloud/ipfs/
+   ```
+
+   The endpoint expects the legacy `IpfsHash`, `PinSize`, `Timestamp` response. Do not replace it with a V3 upload URL without adapting the implementation. The gateway must permit credential-free retrieval; authenticated gateway URLs are not supported by this adapter. Live account permissions, endpoint access and gateway availability remain unverified until separately authorized live checks.
+3. Keep `IPFS_APPROVED_SHA256=` empty until explicit approval to publish the exact synthetic files. Calculate their public hashes from the repository root:
+
+   ```powershell
+   Get-FileHash -Algorithm SHA256 -LiteralPath integration/component1-local/.runtime/certificate.pdf
+   Get-FileHash -Algorithm SHA256 -LiteralPath integration/component1-local/.runtime/laboratory-report.pdf
+   ```
+
+   After document review and publication approval, enter both hash values separated by a comma. Any byte change requires review and a new hash. The browser approval checkbox alone cannot bypass the allowlist. Never use patient or confidential documents.
+4. `IPFS_API_TOKEN` is a separate random service credential, not the Pinata JWT. The prepared profile reuses the existing matching backend/Vite operator token. If generating a replacement, use the following from `backend/component1-traceability/`; it writes a random 256-bit token only to the ignored profile and prints no value. Then manually copy that operator value in your editor to the server-only `IPFS_API_TOKEN` in ignored `frontend/.env.local` before restarting frontend services. Leave the mock backend profile unchanged and restore the frontend token when returning to mock mode. Rotation is unnecessary for this prepared profile.
+
+   ```powershell
+   @'
+   const fs = require('node:fs'), crypto = require('node:crypto');
+   const file = '.env.pinata.local';
+   const text = fs.readFileSync(file, 'utf8');
+   if (!/^IPFS_API_TOKEN=.*$/m.test(text)) throw new Error('Missing operator setting');
+   fs.writeFileSync(file, text.replace(/^IPFS_API_TOKEN=.*$/m, 'IPFS_API_TOKEN=' + crypto.randomBytes(32).toString('hex')));
+   '@ | node
+   ```
+
+5. Confirm ignore status without displaying configuration contents:
+
+   ```powershell
+   git check-ignore backend/component1-traceability/.env.pinata.local backend/component1-traceability/.env frontend/.env.local
+   ```
+
+After a separate decision to switch the API, stop only the mock backend terminal with Ctrl+C. Do not stop or restart Hardhat. From `backend/component1-traceability/`, start the prepared profile:
+
+```powershell
+node --env-file=.env.pinata.local server.js
+```
+
+Both profiles use port 5001, so run only one backend at a time. The existing frontend gateway continues to use that port and the same operator token. Never place a provider JWT in a shell environment that also launches Vite. Existing shell environment variables override Node env-file values; use a fresh terminal without conflicting IPFS variables. The frontend remains at `/traceability.html`. Starting a service does not upload files; do not submit any upload until explicit publication approval. Registration continues to store CID references, not PDF bytes, on the existing local contract.
+
+To return to the unchanged mock setup, stop the real backend, then from the repository root run `node integration/component1-local/start-backend.js`. No blockchain redeployment or reset is involved.
+
+Offline checks (no provider credentials or public uploads): from `backend/component1-traceability/`, run `node --test --experimental-test-isolation=none --test-concurrency=1 tests/documents.test.js`; from `frontend/`, run `node --test --experimental-test-isolation=none --test-concurrency=1 src/component1/gateway.test.js`. These mock provider responses and are not proof that the real JWT works.
+
+Configuration-preparation verification: backend document tests **10 passed, 0 failed**; frontend gateway security tests **10 passed, 0 failed**. No real provider authentication, pinning or gateway availability was tested and no documents were published.
 
 ## Mandatory public-content review
 
