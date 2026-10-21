@@ -5,7 +5,20 @@ import { documentGateway } from './component1-document-gateway.js';
 
 export default defineConfig(({ mode }) => {
   const env = { ...loadEnv(mode, process.cwd(), ''), ...process.env };
-  const traceabilityProxy = { '/api/v1/traceability': { target: 'http://127.0.0.1:5001', changeOrigin: true }, '/api': { target: 'http://localhost:5004', changeOrigin: true } };
+  const traceabilityProxy = {
+    '/api/v1/traceability': { target: 'http://127.0.0.1:5001', changeOrigin: true },
+    '/api': { target: 'http://localhost:5004', changeOrigin: true },
+    '/c3-api': {
+      target: 'http://127.0.0.1:5005',
+      changeOrigin: true,
+      rewrite: path => path.replace(/^\/c3-api/, ''),
+    },
+    '/c3-demo-api': {
+      target: 'http://127.0.0.1:5003',
+      changeOrigin: true,
+      rewrite: path => path.replace(/^\/c3-demo-api/, ''),
+    },
+  };
   return {
   plugins: [react(), { name: 'component1-local-document-authorization',
     configureServer(server) { server.middlewares.use(documentGateway(env)); },
@@ -14,6 +27,7 @@ export default defineConfig(({ mode }) => {
   build: { rollupOptions: { input: {
     prescriptions: fileURLToPath(new URL('./index.html', import.meta.url)),
     traceability: fileURLToPath(new URL('./traceability.html', import.meta.url)),
+    component3: fileURLToPath(new URL('./component3.html', import.meta.url)),
   } } },
   preview: { proxy: traceabilityProxy },
   server: {

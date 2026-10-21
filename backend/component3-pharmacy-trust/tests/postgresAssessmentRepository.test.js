@@ -128,20 +128,57 @@ test('database errors roll back and release the checked-out client', async () =>
   assert.ok(calls.some(call => call.release));
 });
 
-test('runtime validates local port and fails closed before creating a pool without auth configuration', () => {
+test('runtime validates local port and fails closed before creating a pool without auth configuration', async () => {
   assert.equal(HOST, '127.0.0.1');
-  assert.equal(DEFAULT_PORT, 5004);
+  assert.equal(DEFAULT_PORT, 5005);
   assert.equal(parsePort(undefined), DEFAULT_PORT);
   assert.equal(parsePort('5124'), 5124);
   for (const port of ['0', '-1', '65536', 'abc']) assert.throws(() => parsePort(port), /COMPONENT3_PORT/);
 
   let poolCreated = false;
   class MockPool { constructor() { poolCreated = true; } }
-  assert.throws(() => createPostgresRuntime({
+  await assert.rejects(createPostgresRuntime({
     env: { DATABASE_URL: 'postgres://test', COMPONENT3_PORT: '5004' },
     PoolClass: MockPool,
   }), /COMPONENT3_AUTH_MODULE/);
   assert.equal(poolCreated, false);
+});
+
+test('PostgreSQL runtime requires the dedicated non-bypass Component 3 role', async () => {
+  class UnsafePool {
+    constructor() { this.ended = false; }
+    async query(sql) {
+      assert.match(sql, /pg_has_role\(current_user, 'component3_runtime', 'USAGE'\)/);
+      return { rows: [{ rolsuper: false, rolbypassrls: true, component3_runtime: true }] };
+    }
+    async end() { this.ended = true; }
+  }
+  const module = {
+    validateComponent3AuthConfig() {},
+    createComponent3Auth() { return { authenticate: async () => null, authorizePharmacy: async () => false }; },
+  };
+  await assert.rejects(createPostgresRuntime({
+    env: { DATABASE_URL: 'postgres://test', COMPONENT3_PORT: '5004' },
+    PoolClass: UnsafePool,
+    authModule: module,
+  }), /non-superuser, non-BYPASSRLS/);
+});
+
+test('PostgreSQL runtime gives a safe migration instruction when its authorization role is missing', async () => {
+  class MissingAuthorizationRolePool {
+    async query() { throw Object.assign(new Error('private role lookup detail'), { code: '42704' }); }
+    async end() {}
+  }
+  const authModule = {
+    validateComponent3AuthConfig() {},
+    createComponent3Auth() { throw new Error('must not be reached'); },
+  };
+  await assert.rejects(createPostgresRuntime({
+    env: { DATABASE_URL: 'postgres://test', COMPONENT3_PORT: '5005' },
+    PoolClass: MissingAuthorizationRolePool,
+    authModule,
+  }), error => /001_component3_authorization\.sql/.test(error.message) &&
+    !/private role lookup detail/.test(error.message));
 });
 
 test('database server factory keeps injected authentication and authorization dependencies', () => {
