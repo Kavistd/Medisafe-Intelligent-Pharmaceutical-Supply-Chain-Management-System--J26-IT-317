@@ -1,13 +1,47 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Wallet, getBytes, verifyMessage, sha256 } from 'ethers';
-import { settings, selectWalletProvider, watchWallet, connectWallet, iface, verifyPrepared, walletContext, sendPrepared, loadBatch, api, batchPath, registration, discover, documentMessage, documentRequest } from './client.js';
+import { dashboardBatches, transferTarget, settings, selectWalletProvider, watchWallet, connectWallet, iface, verifyPrepared, walletContext, sendPrepared, loadBatch, api, batchPath, registration, discover, documentMessage, documentRequest } from './client.js';
 import { EventEmitter } from 'node:events';
 const account = '0x1111111111111111111111111111111111111111', address = '0x2222222222222222222222222222222222222222';
 const config = { address, chainId: 31337n };
 const expected = { method: 'confirmTransfer', args: ['B/ 1', '7'] };
 const transaction = { from: account, to: address, chainId: 31337, value: '0x0', data: iface.encodeFunctionData(expected.method, expected.args) };
 const ethereum = { request: async ({ method }) => method === 'eth_accounts' ? [account] : '0x7a69' };
+
+test('Distributor keeps a confirmed batch visible and eligible for pharmacy transfer', async () => {
+  const session = { account, roles: { DISTRIBUTOR: true } };
+  const incoming = { data: { batchId: 'TEST-AMX-2026-002' }, manufacturer: address, owner: address, stage: '0',
+    pending: { id: '1', to: account }, history: [], recalled: false, expired: false };
+  assert.deepEqual(dashboardBatches([incoming], 'distributor', session), [incoming]);
+  assert.equal(transferTarget(incoming, session), null);
+  const received = { ...incoming, owner: account, stage: '1', pending: { id: '0' }, history: [{ id: '1', to: account }] };
+  assert.deepEqual(dashboardBatches([received], 'distributor', session), [received]);
+  assert.equal(transferTarget(received, session), 'pharmacy');
+  assert.equal(received.history.length, 1);
+  const event = iface.encodeEventLog(iface.getEvent('TransferInitiated'), ['0x' + '00'.repeat(32), received.data.batchId, 1, address, account, 1]);
+  const found = await discover({ account, contract: { getAddress: async () => address }, provider: { getLogs: async () => [event] } }, 1, 10);
+  assert.deepEqual(found.ids, ['TEST-AMX-2026-002']);
+});
+
+test('transfer actions require current custody, correct role, active status and no pending request', () => {
+  const session = { account, roles: { DISTRIBUTOR: true } };
+  const batch = { owner: account, stage: '1', pending: { id: '0' }, recalled: false, expired: false };
+  for (const change of [{ owner: address }, { stage: '0' }, { stage: '2' }, { recalled: true }, { expired: true },
+    { pending: { id: '2' } }, { pending: undefined }]) assert.equal(transferTarget({ ...batch, ...change }, session), null);
+  assert.equal(transferTarget(batch, null), null);
+  assert.equal(transferTarget(batch, { account, roles: {} }), null);
+  assert.equal(transferTarget({ ...batch, stage: '0' }, { account, roles: { MANUFACTURER: true } }), 'distributor');
+});
+
+test('Distributor list excludes unrelated batches and keeps owned batches visible while pending or unsafe', () => {
+  const owned = { owner: account, pending: { id: '2', to: address }, recalled: true };
+  const unrelated = { owner: address, pending: { id: '0' } };
+  assert.deepEqual(dashboardBatches([owned, unrelated], 'distributor', { account }), [owned]);
+  assert.deepEqual(dashboardBatches([owned], 'distributor', null), []);
+  assert.deepEqual(dashboardBatches([owned], 'pharmacy', { account }), []);
+  assert.deepEqual(dashboardBatches([{ ...owned, manufacturer: account }], 'manufacturer', { account }), [{ ...owned, manufacturer: account }]);
+});
 
 test('Component 1 selects MetaMask instead of the global competing wallet and reads its live Sepolia chain', async () => {
   const metamask = { isMetaMask: true, request: async ({ method }) => method === 'eth_accounts' ? [account] : '0xaa36a7' };

@@ -12,6 +12,20 @@ export const abi = artifact.abi;
 export const iface = new Interface(abi);
 export const BASE = '/api/v1/traceability';
 export const STAGES = ['Manufacturer', 'Distributor', 'Pharmacy'];
+const sameWallet = (a, b) => Boolean(a && b && a.toLowerCase() === b.toLowerCase());
+export function dashboardBatches(rows, tab, session) {
+  if (!session?.account) return [];
+  if (tab === 'manufacturer') return rows.filter(row => sameWallet(row.manufacturer, session.account));
+  return rows.filter(row => (String(row.pending?.id || 0) !== '0' && sameWallet(row.pending?.to, session.account)) ||
+    (tab === 'distributor' && sameWallet(row.owner, session.account)));
+}
+export function transferTarget(record, session) {
+  if (!record || !sameWallet(record.owner, session?.account) || record.recalled || record.expired ||
+      !record.pending || String(record.pending.id) !== '0') return null;
+  if (Number(record.stage) === 0 && session.roles?.MANUFACTURER) return 'distributor';
+  if (Number(record.stage) === 1 && session.roles?.DISTRIBUTOR) return 'pharmacy';
+  return null;
+}
 export function networkName(chainId) {
   const value = BigInt(chainId);
   if (value === 31337n) return 'Hardhat Local';

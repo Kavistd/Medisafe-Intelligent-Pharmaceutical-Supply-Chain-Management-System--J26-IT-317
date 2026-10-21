@@ -17,7 +17,15 @@ function createApp({ client, env = process.env, documentService } = {}) {
   app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'component1-traceability' }));
   app.get('/health/blockchain', route(async () => { await getClient().ready(); return { status: 'ok' }; }));
   const base = '/api/v1/traceability/batches';
+  app.get('/api/v1/traceability/network', route(() => getClient().network()));
   const batchId = req => validate.text(req.params.batchId, 'batchId');
+  app.get(base, route(req => {
+    if (Object.keys(req.query).some(key => !['fromBlock', 'headBlock', 'windowSize', 'direction'].includes(key)) || Object.values(req.query).some(value => typeof value !== 'string')) {
+      const { ApiError } = require('./blockchain/client');
+      throw new ApiError(400, 'VALIDATION_ERROR', 'Expected optional fromBlock, headBlock, windowSize and direction cursors only.');
+    }
+    return getClient().discovery(req.query);
+  }));
   app.get(`${base}/:batchId`, route(req => getClient().read('getBatch', [batchId(req)])));
   app.get(`${base}/:batchId/pending-transfer`, route(req => getClient().read('getPendingTransfer', [batchId(req)])));
   app.get(`${base}/:batchId/history`, route(req => getClient().read('getTransferHistory', [batchId(req)])));
