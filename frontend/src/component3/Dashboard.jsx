@@ -329,7 +329,7 @@ export default function Dashboard() {
 
         <section className="c3-card c3-evidence-section">
           <div className="c3-section-title"><div><p className="c3-eyebrow">SUPPORTING RECORDS</p><h2>Evidence overview</h2></div>
-            <span className={`c3-status ${evidence?.status === 'VALID' ? 'good' : 'muted'}`}>{canReadEvidence ? (evidence?.status || 'Unavailable') : 'Permission not granted'}</span></div>
+            <span className={`c3-status ${canReadEvidence && evidence?.evidenceValidation?.status === 'USABLE' ? 'good' : 'muted'}`}>{canReadEvidence ? (evidence?.evidenceValidation?.status || 'Unavailable') : 'Permission not granted'}</span></div>
           {!canReadEvidence || evidence?.accessDenied ? <p className="c3-muted">Your current permission does not include evidence details.</p> : <div className="c3-evidence-list">{INDICATORS.map(([key, label]) => {
             const item = summaryRows[key] || {};
             const ids = Array.isArray(item.evidenceIds) ? item.evidenceIds : [];
