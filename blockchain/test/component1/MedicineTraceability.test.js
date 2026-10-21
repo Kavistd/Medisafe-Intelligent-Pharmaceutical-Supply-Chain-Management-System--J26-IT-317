@@ -144,8 +144,13 @@ describe("Component 1: MedicineTraceability", function () {
       for (const value of ["", " \t\r\n "]) {
         it(`rejects ${value === "" ? "empty" : "whitespace-only"} ${field}`, async function () {
           const { contract, manufacturer, data } = await loadFixture(fixture);
-          await expect(contract.connect(manufacturer).registerBatch({ ...data, [field]: value }))
-            .to.be.revertedWithCustomError(contract, "InvalidField").withArgs(field);
+          const batch = { ...data, [field]: value };
+          if (["documentReference", "certificateReference"].includes(field)) {
+            await rejectsWithoutStateChange(contract, data.batchId, manufacturer, "registerBatch", [batch], "InvalidField", [field]);
+          } else {
+            await expect(contract.connect(manufacturer).registerBatch(batch))
+              .to.be.revertedWithCustomError(contract, "InvalidField").withArgs(field);
+          }
         });
       }
     }

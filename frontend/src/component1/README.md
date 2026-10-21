@@ -8,7 +8,7 @@ From `frontend/`, install the existing lockfile with `npm ci`, copy `.env.exampl
 
 Manufacturer, distributor, pharmacy and tracking views share exact batch search, current ownership, metadata, pending custody, completed history, recall/expiry badges and document downloads. Manufacturers can register and transfer to distributors; distributors can accept/reject and transfer to pharmacies; pharmacies can accept/reject and inspect history. Senders can cancel pending requests, including invalidated batches. Confirm/transfer controls are disabled for expired/recalled records. Contract simulation and execution remain authoritative. The frontend does not present an automatic recall action in this phase.
 
-Batch lists use actual `BatchRegistered` and `TransferInitiated` logs from the configured contract via the connected wallet's RPC, followed by existing backend batch/pending/history/status reads. No list endpoint is invented. Each scan covers up to 1,000 blocks; click again to continue. Start at the deployment block to avoid unnecessary empty scans. Lists only include activity already scanned, and incoming lists filter current pending recipients. Search works without a connected wallet using backend reads. Existing legacy contract references may not be downloadable if they are not valid CIDs.
+Role-dashboard batch lists use actual `BatchRegistered` and `TransferInitiated` logs from the configured contract via the connected wallet's RPC, followed by existing backend batch/pending/history/status reads. The public catalogue uses the separate read-only discovery endpoint documented below. Each scan covers up to 1,000 blocks; click again to continue. Start at the deployment block to avoid unnecessary empty scans. Lists only include activity already scanned, and incoming lists filter current pending recipients. Search works without a connected wallet using backend reads. Existing legacy contract references may not be downloadable if they are not valid CIDs.
 
 ## Wallet transaction security
 
@@ -27,3 +27,7 @@ This adapter is for local research with Vite dev/preview, not a production autho
 ## Verification
 
 `npm test` runs existing Component 4 tests plus Component 1 client/gateway tests. `npm run build` builds both pages. Tests use Node's test runner, mocked wallets/providers and local HTTP server fixtures; they do not claim real MetaMask, browser-layout or live IPFS verification.
+
+## Medicine Tracking
+
+Medicine Tracking uses the existing exact Batch ID search to open batch details and custody history without connecting a wallet. The All Medicine Batches catalogue and its automatic event scanning have been removed from the page. Role-dashboard event discovery and all existing wallet-authorized actions remain unchanged.
