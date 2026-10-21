@@ -1,0 +1,40 @@
+/* Live workspaces: only new pieces; everything else reuses dashboard.css. */
+.c3-live{display:grid;gap:0}
+.c3-live-grid{display:grid;gap:16px;margin-bottom:16px}
+.c3-live-section{padding:21px 24px}
+.c3-live-section .c3-section-title{margin-bottom:12px}
+.c3-live-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;background:#f0f4f1;border-radius:9px;width:max-content;max-width:100%}
+.c3-live-tabs button{border:0;border-radius:7px;background:transparent;color:#60756b;padding:9px 14px;font:600 12px 'DM Sans',sans-serif;cursor:pointer}
+.c3-live-tabs button.selected{background:#fff;color:var(--c3-green);box-shadow:0 1px 4px #183b3218}
+.c3-live-form{display:grid;gap:14px;max-width:760px}
+.c3-live-form fieldset{border:1px solid var(--c3-line);border-radius:9px;padding:12px 14px;margin:0;display:grid;gap:8px}
+.c3-live-form legend{font-size:11px;font-weight:700;color:#445f53;padding:0 4px}
+.c3-live-form select,.c3-live-form textarea,.c3-live-task textarea,.c3-live-task input,.c3-live-table select,.c3-live-table input:not([type=checkbox]),.c3-live-action-row input{width:100%;min-height:38px;border:1px solid #d5e1d9;border-radius:8px;background:#fff;padding:8px 10px;color:var(--c3-ink);font:13px 'DM Sans',sans-serif}
+.c3-live-form textarea,.c3-live-task textarea{min-height:60px;resize:vertical}
+.c3-live-check,.c3-live-radio{display:inline-flex;align-items:center;gap:6px;margin-right:14px;font-size:12px}
+.c3-live-action-row{display:grid;grid-template-columns:minmax(150px,200px) minmax(180px,260px) 1fr;gap:10px;align-items:center}
+.c3-live-tasks{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.c3-live-task{border:1px solid var(--c3-line);border-radius:10px;padding:12px 14px;display:grid;gap:8px;background:#fafcfb}
+.c3-live-task p{margin:0;font-size:12px}
+.c3-live-task fieldset{border:0;padding:0;margin:0}
+.c3-live-task legend{font-size:11px;font-weight:700;color:#445f53;margin-bottom:4px}
+.c3-live-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.c3-live-subtitle{font:700 14px/1.3 'Manrope',sans-serif;margin:18px 0 10px}
+.c3-live-pharmacy{font:700 17px/1.3 'Manrope',sans-serif;margin:0}
+.c3-live-summary{margin:6px 0 18px}
+.c3-live-tier{margin:8px 0 0;font-size:12px}
+.c3-live-table td,.c3-live-table th{white-space:normal}
+.c3-live-details{border-top:1px solid #edf1ee;padding:9px 0}
+.c3-live-details summary{cursor:pointer;font-size:12px;font-weight:700;color:#3d584c}
+.c3-live-details code,.c3-live-hash code,.c3-live-table code{font:10px/1.5 ui-monospace,Consolas,monospace;overflow-wrap:anywhere}
+.c3-live-list-title{margin:8px 0 0;font-size:11px;font-weight:700;color:#5f7068}
+.c3-live-snapshot{margin-top:16px;border-top:1px solid #edf1ee;padding-top:8px}
+.c3-live-hash{margin-top:10px}
+.c3-live-alert{margin:8px 0;padding:10px 12px;border:1px solid #efd0c7;border-radius:8px;background:#fff7f4;color:#8e3e2d;font-size:12px}
+.c3-live-success{margin:8px 0;padding:10px 12px;border:1px solid #cfe6d8;border-radius:8px;background:#f1f8f3;color:#23704f;font-size:12px}
+.c3-live-field-error{color:#a74330;font-size:11px}
+.c3-live-empty{margin:8px 0}
+.c3-chip-prototype .c3-chip-dot{background:#7c8fc9}
+.c3-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.c3-live select:focus-visible,.c3-live textarea:focus-visible,.c3-live input:focus-visible,.c3-live summary:focus-visible{outline:3px solid #95cbb0;outline-offset:2px}
+@media(max-width:620px){.c3-live-action-row{grid-template-columns:1fr}.c3-live-section{padding:16px}.c3-live-tabs{width:100%}}

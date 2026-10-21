@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAuthorizedPharmacies, fetchComponent3Dashboard } from './api.js';
 import { getSupabasePublicConfig, refreshSupabaseSession, revokeSupabaseSession, signInWithSupabase } from './supabaseAuth.js';
 import { createPharmacyWalletSession } from './walletSession.js';
@@ -6,6 +6,9 @@ import { ProvenanceChip, displayLabel, resolveProvenance } from './provenance.js
 import { loadOverview, shouldShowOverview, toOverviewRow } from './overview.js';
 import { HealthAuthorityView, ValidationSummaryPanel } from './HealthAuthorityView.js';
 import validationSummary from './validationSummary.json';
+import { createLiveClient } from './live/liveApi.js';
+import { LiveProvenanceChip } from './live/provenance.js';
+import LiveWorkspace from './live/LiveWorkspace.jsx';
 import './dashboard.css';
 
 const INDICATORS = [
@@ -56,6 +59,17 @@ export default function Dashboard() {
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState('');
   const [overviewSort, setOverviewSort] = useState({ key: 'score', direction: 'desc' });
+  // Live role-based workspaces: the role comes only from GET /api/v1/live/session.
+  const [liveSession, setLiveSession] = useState(null);
+  const sessionRef = useRef(null);
+  useEffect(() => { sessionRef.current = session; }, [session]);
+  const liveClient = useMemo(() => createLiveClient({
+    getAccessToken: async () => {
+      const fresh = await refreshSupabaseSession(sessionRef.current, { config: getSupabasePublicConfig() });
+      if (fresh !== sessionRef.current) { sessionRef.current = fresh; setSession(fresh); }
+      return fresh.accessToken;
+    },
+  }), []);
 
   useEffect(() => {
     if (!session) return undefined;
@@ -83,6 +97,24 @@ export default function Dashboard() {
     setRequiresWalletVerification(false);
     setOverviewEntries([]);
     setOverviewError('');
+    setLiveSession(null);
+  }
+
+  async function loadLiveSession(activeSession) {
+    sessionRef.current = activeSession;
+    const resolved = await liveClient.getSession();
+    setLiveSession(resolved);
+    setMode('workspace');
+    return resolved;
+  }
+
+  function handleLiveSessionExpired() {
+    sessionRef.current = null;
+    setSession(null);
+    clearWorkspace();
+    setMode('login');
+    setError('Your sign-in session expired. Sign in again to continue.');
+    setErrorKind('session');
   }
 
   async function refreshOverview(directoryPharmacies, activeMode, accessToken, walletToken) {
@@ -142,7 +174,7 @@ export default function Dashboard() {
       setSession(authenticatedSession);
       setPassword('');
       setMode('live');
-      await loadDirectory(authenticatedSession, null);
+      await loadLiveSession(authenticatedSession);
     } catch (requestError) {
       setSession(authenticatedSession);
       if (authenticatedSession) setMode('live');
@@ -268,7 +300,7 @@ export default function Dashboard() {
     <header className="c3-header">
       <a className="c3-brand" href="/" aria-label="MediSafe Chain home"><span className="c3-mark">M</span>
         <span>MediSafe Chain<small>PHARMACY TRUST</small></span></a>
-      <div className="c3-header-right"><ProvenanceChip provenance={provenance}/><span className="c3-network-dot"/> Component 3</div>
+      <div className="c3-header-right">{mode === 'workspace' ? <LiveProvenanceChip/> : <ProvenanceChip provenance={provenance}/>}<span className="c3-network-dot"/> Component 3</div>
     </header>
 
     <div className="c3-content">
@@ -312,9 +344,12 @@ export default function Dashboard() {
             ? 'Your account has an active pharmacy membership. Verify the wallet assigned to that pharmacy to continue.'
             : 'This authenticated account has no active pharmacy membership with an approved wallet assignment or active regulatory grant.'}</p>
           {requiresWalletVerification && <button type="button" className="c3-primary" onClick={handleWalletVerification} disabled={walletLoading || loading}>{walletLoading ? 'Verifying wallet…' : 'Verify pharmacy wallet with MetaMask'}</button>}
-          {session && error && <button type="button" className="c3-secondary c3-retry-access" onClick={async () => { setLoading(true); setError(''); try { await loadDirectory(session); } catch (retryError) { setError(retryError.message || 'Access could not be checked.'); setErrorKind(errorCategory(retryError)); } finally { setLoading(false); } }} disabled={loading || walletLoading}>Retry access check</button>}
+          {session && error && <button type="button" className="c3-secondary c3-retry-access" onClick={async () => { setLoading(true); setError(''); try { await loadLiveSession(session); } catch (retryError) { setError(retryError.message || 'Access could not be checked.'); setErrorKind(errorCategory(retryError)); } finally { setLoading(false); } }} disabled={loading || walletLoading}>Retry access check</button>}
         </div>}
       </section>}
+
+      {mode === 'workspace' && liveSession && <LiveWorkspace session={liveSession} client={liveClient}
+        onSignOut={handleLogout} onSessionExpired={handleLiveSessionExpired}/>}
 
       {mode === 'demo' && <section className="c3-card c3-search-card">
         <div className="c3-access-heading"><div><p className="c3-eyebrow">SAMPLE DATA</p><h2>Choose a sample pharmacy</h2></div>
@@ -404,7 +439,9 @@ export default function Dashboard() {
 
         {(assessmentLimitations.length > 0 || evidenceLimitations.length > 0) && <details className="c3-card c3-limitations"><summary>Interpretation notes</summary><TextList items={[...assessmentLimitations, ...evidenceLimitations]}/></details>}
       </>}
-      <footer className="c3-footer">Research prototype · Decision support only · Scores and tier thresholds are not official NMRA ratings or regulatory determinations · Blockchain verification is shown only where the API confirms it.</footer>
+      {mode === 'workspace'
+        ? <footer className="c3-footer">Decision support only. Not a regulatory decision. · Weights and tier thresholds are proposed research parameters, not NMRA values · Blockchain verification: not performed.</footer>
+        : <footer className="c3-footer">Research prototype · Decision support only · Scores and tier thresholds are not official NMRA ratings or regulatory determinations · Blockchain verification is shown only where the API confirms it.</footer>}
     </div>
   </main>;
 }

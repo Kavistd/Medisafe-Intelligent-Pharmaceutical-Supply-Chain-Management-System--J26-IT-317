@@ -1,0 +1,33 @@
+/** Small shared presentation pieces for the live workspaces (loading, empty, error and action states). */
+const FALLBACK = 'The request could not be completed. Try again shortly.';
+
+export function ResourceState({ resource, emptyText = 'Nothing to show yet.', isEmpty, children }) {
+  if (resource.loading && !resource.data) {
+    return <div className="c3-state c3-loading" role="status"><span className="c3-spinner"/> Loading…</div>;
+  }
+  if (resource.error) {
+    return <div className="c3-state c3-error" role="alert"><strong>Could not load</strong><p>{resource.error.message || FALLBACK}</p>
+      <button type="button" className="c3-secondary" onClick={resource.reload}>Try again</button></div>;
+  }
+  if (isEmpty ? isEmpty(resource.data) : (Array.isArray(resource.data) && resource.data.length === 0)) {
+    return <p className="c3-muted c3-live-empty">{emptyText}</p>;
+  }
+  return children(resource.data);
+}
+
+export function ActionStatus({ action }) {
+  if (action.error) return <p className="c3-live-alert" role="alert">{action.error.message || FALLBACK}</p>;
+  if (action.success) return <p className="c3-live-success" role="status">{action.success}</p>;
+  return null;
+}
+
+export function FieldError({ id, message }) {
+  return message ? <small id={id} className="c3-live-field-error" role="alert">{message}</small> : null;
+}
+
+export function Section({ eyebrow, title, actions, children }) {
+  return <section className="c3-card c3-live-section">
+    <div className="c3-section-title"><div>{eyebrow && <p className="c3-eyebrow">{eyebrow}</p>}<h2>{title}</h2></div>{actions}</div>
+    {children}
+  </section>;
+}
