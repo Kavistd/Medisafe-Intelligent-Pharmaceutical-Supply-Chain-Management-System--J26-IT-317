@@ -52,7 +52,7 @@ INSERT INTO c3.distributors (distributor_code, display_name, evidence_class) VAL
 -- Roles (assigned only by provisioning SQL) ----------------------------------------------------
 
 INSERT INTO c3.user_roles (user_id, role, pharmacy_id, distributor_id, status)
-SELECT current_setting('c3_seed.regulator_user_id')::uuid, 'REGULATOR', NULL, NULL, 'ACTIVE'
+SELECT current_setting('c3_seed.regulator_user_id')::uuid, 'REGULATOR', NULL::uuid, NULL::uuid, 'ACTIVE'
 UNION ALL
 SELECT current_setting('c3_seed.pharmacy_a_user_id')::uuid, 'PHARMACY_USER', p.id, NULL, 'ACTIVE'
 FROM c3.pharmacies AS p WHERE p.pharmacy_code = 'C3-PH-A'
