@@ -1,0 +1,11 @@
+# SYNTHETIC DATA - NOT REAL PHARMACY DATA.
+# Proposed weights (D 0.35, R 0.30, C 0.20, I 0.15) and tier thresholds (80 / 60 / 40) are research parameters, not NMRA-prescribed values.
+# These results show computational correctness and robustness to weight assumptions only. They do not show real-world accuracy.
+check,description,profiles_checked,passed,pass,failures
+S1,"Missing indicator -> NOT_ASSESSABLE, score null, no renormalisation",5,5,true,
+S2,Critical finding -> escalation required regardless of score; score unchanged,3,3,true,
+S3,No critical finding -> escalation not required,37,37,true,
+S4,Boundary profiles (80/60/40) -> exact score and tier,3,3,true,
+S5,Zero-value indicator is ASSESSABLE and distinct from NOT_ASSESSABLE,1,1,true,
+S6,All evidence SYNTHETIC; assessable scores labelled SYNTHETIC,40,40,true,
+S7,Determinism: same seed -> identical results; different seed -> different profiles,2,2,true,
