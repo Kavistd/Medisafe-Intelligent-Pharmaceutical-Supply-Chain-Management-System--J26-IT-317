@@ -3,6 +3,9 @@ import { fetchAuthorizedPharmacies, fetchComponent3Dashboard } from './api.js';
 import { getSupabasePublicConfig, refreshSupabaseSession, revokeSupabaseSession, signInWithSupabase } from './supabaseAuth.js';
 import { createPharmacyWalletSession } from './walletSession.js';
 import { ProvenanceChip, displayLabel, resolveProvenance } from './provenance.js';
+import { loadOverview, shouldShowOverview, toOverviewRow } from './overview.js';
+import { HealthAuthorityView, ValidationSummaryPanel } from './HealthAuthorityView.js';
+import validationSummary from './validationSummary.json';
 import './dashboard.css';
 
 const INDICATORS = [
@@ -12,6 +15,7 @@ const INDICATORS = [
   ['inspection', 'Inspection Performance', '15%'],
 ];
 const DEMO_CODE = 'C3-DEMO-PHARMACY-001';
+const DEFAULT_DEMO_CODES = [DEMO_CODE, 'C3-DEMO-PHARMACY-INSUFFICIENT'];
 
 function TextList({ items }) {
   if (!Array.isArray(items) || items.length === 0) return <p className="c3-muted">None reported.</p>;
@@ -48,6 +52,10 @@ export default function Dashboard() {
   const [walletLoading, setWalletLoading] = useState(false);
   const [error, setError] = useState('');
   const [errorKind, setErrorKind] = useState('request');
+  const [overviewEntries, setOverviewEntries] = useState([]);
+  const [overviewLoading, setOverviewLoading] = useState(false);
+  const [overviewError, setOverviewError] = useState('');
+  const [overviewSort, setOverviewSort] = useState({ key: 'score', direction: 'desc' });
 
   useEffect(() => {
     if (!session) return undefined;
@@ -73,6 +81,36 @@ export default function Dashboard() {
     setBundle(null);
     setWalletSession(null);
     setRequiresWalletVerification(false);
+    setOverviewEntries([]);
+    setOverviewError('');
+  }
+
+  async function refreshOverview(directoryPharmacies, activeMode, accessToken, walletToken) {
+    if (!shouldShowOverview(activeMode, directoryPharmacies)) {
+      setOverviewEntries([]);
+      return;
+    }
+    setOverviewLoading(true);
+    setOverviewError('');
+    try {
+      setOverviewEntries(await loadOverview({ pharmacies: directoryPharmacies, mode: activeMode, accessToken, walletToken }));
+    } catch (overviewFailure) {
+      setOverviewEntries([]);
+      setOverviewError(overviewFailure.message || 'The overview could not be loaded.');
+    } finally {
+      setOverviewLoading(false);
+    }
+  }
+
+  async function handleOverviewRefresh() {
+    if (mode === 'demo') return refreshOverview(pharmacies, 'demo');
+    try {
+      const freshSession = await refreshSupabaseSession(session, { config: getSupabasePublicConfig() });
+      setSession(freshSession);
+      await refreshOverview(pharmacies, 'live', freshSession.accessToken, walletSession?.token);
+    } catch (refreshError) {
+      setOverviewError(refreshError.message || 'The overview could not be refreshed.');
+    }
   }
 
   async function loadDirectory(activeSession, activeWallet = walletSession) {
@@ -88,6 +126,7 @@ export default function Dashboard() {
     setPharmacyCode(current => directory.pharmacies.some(item => item.pharmacyCode === current)
       ? current : directory.pharmacies[0]?.pharmacyCode || '');
     setBundle(null);
+    await refreshOverview(directory.pharmacies, 'live', freshSession.accessToken, activeWallet?.token);
     return directory;
   }
 
@@ -144,16 +183,35 @@ export default function Dashboard() {
     if (current) await revokeSupabaseSession(current, { config: getSupabasePublicConfig() }).catch(() => {});
   }
 
-  function enterDemo() {
+  async function enterDemo() {
     clearWorkspace();
     setError('');
     setErrorKind('request');
     setMode('demo');
     setPharmacyCode(DEMO_CODE);
+    setOverviewLoading(true);
+    try {
+      const directory = await fetchAuthorizedPharmacies({ mode: 'demo' });
+      setPharmacies(directory.pharmacies);
+      await refreshOverview(directory.pharmacies, 'demo');
+    } catch (directoryError) {
+      setOverviewError(`Sample overview unavailable: ${directoryError.message || 'the sample pharmacy list could not be loaded.'}`);
+    } finally {
+      setOverviewLoading(false);
+    }
   }
 
-  async function loadDashboard(event) {
+  function loadDashboard(event) {
     event.preventDefault();
+    return loadDetail(pharmacyCode);
+  }
+
+  function selectPharmacy(code) {
+    setPharmacyCode(code);
+    return loadDetail(code);
+  }
+
+  async function loadDetail(code) {
     setLoading(true);
     setError('');
     setErrorKind('request');
@@ -161,7 +219,7 @@ export default function Dashboard() {
     try {
       let accessToken;
       if (mode === 'live') {
-        const selected = pharmacies.find(item => item.pharmacyCode === pharmacyCode);
+        const selected = pharmacies.find(item => item.pharmacyCode === code);
         if (!selected || !selected.permissions.includes('ASSESSMENT_READ')) {
           throw Object.assign(new Error('This account has no assessment permission for the selected pharmacy.'), { status: 403 });
         }
@@ -170,13 +228,13 @@ export default function Dashboard() {
         accessToken = freshSession.accessToken;
       }
       const result = await fetchComponent3Dashboard({
-        pharmacyCode,
+        pharmacyCode: code,
         mode,
         accessToken,
         walletToken: walletSession?.token,
       });
       setBundle({ ...result, permissions: mode === 'live'
-        ? pharmacies.find(item => item.pharmacyCode === pharmacyCode)?.permissions || []
+        ? pharmacies.find(item => item.pharmacyCode === code)?.permissions || []
         : ['ASSESSMENT_READ', 'EVIDENCE_READ', 'CRITICAL_FINDINGS_READ'] });
     } catch (requestError) {
       setError(requestError.message || 'The assessment could not be loaded.');
@@ -197,7 +255,10 @@ export default function Dashboard() {
   const summaryRows = evidence?.indicatorEvidence || {};
   const assessmentLimitations = assessment?.limitations || [];
   const evidenceLimitations = evidence?.limitations || [];
-  const provenance = resolveProvenance({ mode, bundle });
+  const provenance = resolveProvenance({ mode, bundle, overview: overviewEntries });
+  const showOverview = shouldShowOverview(mode, pharmacies);
+  const overviewRows = overviewEntries.map(toOverviewRow);
+  const demoCodes = mode === 'demo' && pharmacies.length > 0 ? pharmacies.map(item => item.pharmacyCode) : DEFAULT_DEMO_CODES;
   const assessable = assessment?.status === 'ASSESSABLE' && Number.isFinite(assessment.score);
   const permissions = bundle?.permissions || [];
   const canReadEvidence = permissions.includes('EVIDENCE_READ');
@@ -261,14 +322,20 @@ export default function Dashboard() {
         <form className="c3-directory-form" onSubmit={loadDashboard}>
           <div className="c3-field"><label htmlFor="c3-demo-code">Sample pharmacy</label>
             <select id="c3-demo-code" value={pharmacyCode} onChange={event => { setPharmacyCode(event.target.value); setBundle(null); setError(''); }}>
-              <option value="C3-DEMO-PHARMACY-001">C3-DEMO-PHARMACY-001 — complete record set</option>
-              <option value="C3-DEMO-PHARMACY-INSUFFICIENT">C3-DEMO-PHARMACY-INSUFFICIENT — not assessable</option>
+              {demoCodes.map(code => <option key={code} value={code}>{code}</option>)}
             </select>
           </div>
           <button className="c3-primary" type="submit" disabled={loading}>{loading ? 'Loading assessment…' : 'Load assessment'}</button>
           <p className="c3-helper">No sign-in or database access is used in this mode.</p>
         </form>
       </section>}
+
+      {showOverview && <>
+        <HealthAuthorityView rows={overviewRows} sort={overviewSort} onSortChange={setOverviewSort}
+          onSelect={selectPharmacy} onRefresh={handleOverviewRefresh} loading={overviewLoading}
+          error={overviewError} selectedCode={bundle?.assessment?.pharmacyId || ''}/>
+        <ValidationSummaryPanel summary={validationSummary}/>
+      </>}
 
       {error && <div className={`c3-state ${errorKind === 'empty' ? 'c3-empty' : 'c3-error'}`} role={errorKind === 'empty' ? 'status' : 'alert'}>
         <strong>{errorKind === 'empty' ? 'No assessment found' : errorKind === 'authorization' ? 'Access denied' : errorKind === 'session' ? 'Session expired' : errorKind === 'server' ? 'Component 3 service error' : 'Request unavailable'}</strong>

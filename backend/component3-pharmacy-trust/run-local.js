@@ -8,6 +8,7 @@ const {
   assessComplaintHandling,
   assessInspectionPerformance,
 } = require('./services/indicatorScoring');
+const { createSampleOverviewFixtures } = require('./sampleOverviewFixtures');
 
 const HOST = '127.0.0.1';
 const DEFAULT_PORT = 5003;
@@ -98,11 +99,29 @@ function createInsufficientFixture(pharmacyId) {
   return { pharmacyId, demoLabel: DEMO_LABEL, assessments, evidence: [], criticalFindings: [] };
 }
 
-function createLocalDemoServer() {
-  const fixtures = new Map([
+function createDemoFixtures() {
+  return new Map([
     [DEMO_IDS.assessable, createAssessableFixture(DEMO_IDS.assessable)],
     [DEMO_IDS.insufficient, createInsufficientFixture(DEMO_IDS.insufficient)],
+    ...createSampleOverviewFixtures().map(fixture => [fixture.pharmacyId, fixture]),
   ]);
+}
+
+/** Sample-mode session list, in the same shape server.js expects from listAuthorizedPharmacies. */
+function listDemoPharmacies(fixtures, principal) {
+  if (principal?.mode !== 'LOCAL_DEMO') return { pharmacies: [], requiresWalletVerification: false };
+  return {
+    pharmacies: [...fixtures.keys()].sort().map(pharmacyCode => ({
+      pharmacyCode,
+      accessTypes: ['REGULATORY'],
+      permissions: ['ASSESSMENT_READ', 'EVIDENCE_READ', 'CRITICAL_FINDINGS_READ'],
+    })),
+    requiresWalletVerification: false,
+  };
+}
+
+function createLocalDemoServer() {
+  const fixtures = createDemoFixtures();
   const assessmentService = createAssessmentService({
     readPharmacyAssessment: async pharmacyId => fixtures.get(pharmacyId) || null,
   });
@@ -113,6 +132,7 @@ function createLocalDemoServer() {
       : null,
     authorizePharmacy: async ({ principal, pharmacyId }) =>
       principal?.mode === 'LOCAL_DEMO' && pharmacyId.startsWith('C3-DEMO-'),
+    listAuthorizedPharmacies: async ({ principal }) => listDemoPharmacies(fixtures, principal),
   });
 }
 
@@ -136,4 +156,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = { HOST, DEFAULT_PORT, DEMO_TOKEN, DEMO_IDS, DEMO_LABEL, parsePort, createLocalDemoServer, startLocalDemo };
+module.exports = {
+  HOST, DEFAULT_PORT, DEMO_TOKEN, DEMO_IDS, DEMO_LABEL, parsePort,
+  createDemoFixtures, listDemoPharmacies, createLocalDemoServer, startLocalDemo,
+};

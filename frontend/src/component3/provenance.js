@@ -45,17 +45,21 @@ const PROVENANCE = Object.freeze({
 /**
  * Decide the single provenance notice for the current view. Any synthetic
  * signal (demo mode, the demo label on any resource, or a SYNTHETIC evidence
- * source) always yields the simulated notice. Returns null only when no data
- * is on screen and the view is not the sample-data demo.
+ * source) always yields the simulated notice. Overview entries count as data on
+ * screen exactly like the detail bundle. Returns null only when no data is on
+ * screen and the view is not the sample-data demo.
  */
-export function resolveProvenance({ mode, bundle } = {}) {
-  const resources = [bundle?.assessment, bundle?.evidence, bundle?.criticalFindings]
+export function resolveProvenance({ mode, bundle, overview } = {}) {
+  const overviewResources = (Array.isArray(overview) ? overview : [])
+    .filter(entry => entry?.available)
+    .flatMap(entry => [entry.assessment, entry.criticalFindings]);
+  const resources = [bundle?.assessment, bundle?.evidence, bundle?.criticalFindings, ...overviewResources]
     .filter(item => item && typeof item === 'object');
   const sources = resources.map(item => item.evidenceSource).filter(Boolean);
   const demoLabelled = resources.some(item => item.demoLabel === SYNTHETIC_DEMO_LABEL);
 
   if (mode === 'demo' || demoLabelled) return PROVENANCE.SIMULATED;
-  if (!bundle) return null;
+  if (!bundle && overviewResources.length === 0) return null;
   if (sources.includes('MIXED')) return PROVENANCE.MIXED;
   if (sources.includes('SYNTHETIC') && sources.some(source => source !== 'SYNTHETIC')) return PROVENANCE.MIXED;
   if (sources.includes('SYNTHETIC')) return PROVENANCE.SIMULATED;
