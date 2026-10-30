@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useLiveAction, useLiveResource } from './hooks.js';
-import { ActionStatus, FieldError, ResourceState, Section } from './liveUi.jsx';
+import { ActionStatus, FieldError, ResourceState, Section, SectionUnavailable } from './liveUi.jsx';
 import { canDo, distributorDeliveryRows, formatTime } from './liveModel.js';
 import { validateDeliveryForm } from './validators.js';
+import HeroCard from '../ui/HeroCard.jsx';
+import { Stepper } from '../ui/Stepper.js';
+import { distributorHeroStats, sectionAllowed } from '../ui/uiModel.js';
 
 /** Distributor: create deliveries, mark own deliveries arrived, list own deliveries. No scores or assessments. */
-export default function DistributorWorkspace({ client, session, onAuthError }) {
+export default function DistributorWorkspace({ client, session, onAuthError, section }) {
   const deliveries = useLiveResource(async () => distributorDeliveryRows(await client.getDistributorDeliveries()), [client], onAuthError);
   const directory = useLiveResource(() => client.getPharmacyDirectory(), [client], onAuthError);
   const create = useLiveAction(onAuthError);
@@ -22,8 +25,17 @@ export default function DistributorWorkspace({ client, session, onAuthError }) {
     if (created) setForm({ pharmacyCode: '', expectedBy: '' });
   }
 
+  if (!sectionAllowed(session, section)) return <SectionUnavailable/>;
   return <div className="c3-live-grid">
-    {canDo(session, 'delivery.create') && <Section eyebrow="NEW DELIVERY" title="Create a delivery">
+    <HeroCard badge="Distributor workspace" title="Deliveries" highlight="in transit"
+      description="Create deliveries and record arrival. Trust scores are not shown to distributors."
+      stats={deliveries.data ? distributorHeroStats(deliveries.data) : []}/>
+    {section === 'newDelivery' && canDo(session, 'delivery.create') && <Section eyebrow="NEW DELIVERY" title="Create a delivery">
+      <Stepper label="Delivery steps" steps={[
+        { label: 'Select pharmacy', done: Boolean(form.pharmacyCode) },
+        { label: 'Delivery details', done: Boolean(form.expectedBy) },
+        { label: 'Submit', done: false },
+      ]}/>
       <form className="c3-live-form" onSubmit={submit} noValidate>
         <div className="c3-field"><label htmlFor="c3-del-pharmacy">Pharmacy</label>
           <select id="c3-del-pharmacy" value={form.pharmacyCode} onChange={event => setForm({ ...form, pharmacyCode: event.target.value })}
@@ -41,14 +53,14 @@ export default function DistributorWorkspace({ client, session, onAuthError }) {
       </form>
     </Section>}
 
-    <Section eyebrow="MY DELIVERIES" title="Deliveries" actions={<button type="button" className="c3-secondary" onClick={deliveries.reload} disabled={deliveries.loading}>Refresh</button>}>
+    {section === 'deliveries' && <Section eyebrow="MY DELIVERIES" title="Deliveries" actions={<button type="button" className="c3-secondary" onClick={deliveries.reload} disabled={deliveries.loading}>Refresh</button>}>
       <ActionStatus action={arrive}/>
       <ResourceState resource={deliveries} emptyText="No deliveries yet.">
-        {rows => <div className="c3-table-wrap"><table className="c3-ha-table c3-live-table">
+        {rows => <div className="c3-table-wrap c3-sticky-table"><table className="c3-ha-table c3-live-table">
           <caption>Your distributor's deliveries. Trust scores are not shown to distributors.</caption>
           <thead><tr><th scope="col">Reference</th><th scope="col">Pharmacy</th><th scope="col">Status</th><th scope="col">Expected by</th><th scope="col">Arrived</th><th scope="col">Pharmacy confirmation</th><th scope="col"><span className="c3-sr-only">Actions</span></th></tr></thead>
           <tbody>{rows.map(row => <tr key={row.id}>
-            <th scope="row">{row.delivery_ref}</th><td>{row.pharmacy_code}</td><td>{row.status}</td>
+            <th scope="row">{row.delivery_ref}</th><td>{row.pharmacy_code}</td><td><span className="c3-status-pill">{row.status}</span></td>
             <td>{formatTime(row.expected_by)}</td><td>{formatTime(row.arrived_at)}</td>
             <td>{row.confirmation_status ? `${row.confirmation_status} · ${formatTime(row.confirmed_at)}` : '—'}</td>
             <td>{row.canMarkArrived && canDo(session, 'delivery.markArrived') &&
@@ -58,6 +70,6 @@ export default function DistributorWorkspace({ client, session, onAuthError }) {
           </tr>)}</tbody>
         </table></div>}
       </ResourceState>
-    </Section>
+    </Section>}
   </div>;
 }

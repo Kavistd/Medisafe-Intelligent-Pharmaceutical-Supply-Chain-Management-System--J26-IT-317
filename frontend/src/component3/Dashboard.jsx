@@ -3,12 +3,19 @@ import { fetchAuthorizedPharmacies, fetchComponent3Dashboard } from './api.js';
 import { getSupabasePublicConfig, refreshSupabaseSession, revokeSupabaseSession, signInWithSupabase } from './supabaseAuth.js';
 import { createPharmacyWalletSession } from './walletSession.js';
 import { ProvenanceChip, displayLabel, resolveProvenance } from './provenance.js';
-import { loadOverview, shouldShowOverview, toOverviewRow } from './overview.js';
+import { loadOverview, overviewSummary, shouldShowOverview, toOverviewRow } from './overview.js';
 import { HealthAuthorityView, ValidationSummaryPanel } from './HealthAuthorityView.js';
 import validationSummary from './validationSummary.json';
 import { createLiveClient } from './live/liveApi.js';
 import { LiveProvenanceChip } from './live/provenance.js';
 import LiveWorkspace from './live/LiveWorkspace.jsx';
+import { TIER_LABELS } from './live/liveModel.js';
+import AppShell from './ui/AppShell.jsx';
+import HeroCard from './ui/HeroCard.jsx';
+import ScoreRing from './ui/ScoreRing.jsx';
+import { TierPill } from './ui/TierPill.js';
+import { LogoMark } from './ui/icons.jsx';
+import { defaultSection, navItemsFor, navLabel, roleBadge, sampleHeroStats, statusIndicator } from './ui/uiModel.js';
 import './dashboard.css';
 
 const INDICATORS = [
@@ -61,6 +68,7 @@ export default function Dashboard() {
   const [overviewSort, setOverviewSort] = useState({ key: 'score', direction: 'desc' });
   // Live role-based workspaces: the role comes only from GET /api/v1/live/session.
   const [liveSession, setLiveSession] = useState(null);
+  const [liveSection, setLiveSection] = useState(null);
   const sessionRef = useRef(null);
   useEffect(() => { sessionRef.current = session; }, [session]);
   const liveClient = useMemo(() => createLiveClient({
@@ -104,6 +112,7 @@ export default function Dashboard() {
     sessionRef.current = activeSession;
     const resolved = await liveClient.getSession();
     setLiveSession(resolved);
+    setLiveSection(defaultSection(resolved));
     setMode('workspace');
     return resolved;
   }
@@ -296,22 +305,28 @@ export default function Dashboard() {
   const canReadEvidence = permissions.includes('EVIDENCE_READ');
   const canReadCritical = permissions.includes('CRITICAL_FINDINGS_READ');
 
-  return <main className="c3-shell">
-    <header className="c3-header">
-      <a className="c3-brand" href="/" aria-label="MediSafe Chain home"><span className="c3-mark">M</span>
-        <span>MediSafe Chain<small>PHARMACY TRUST</small></span></a>
-      <div className="c3-header-right">{mode === 'workspace' ? <LiveProvenanceChip/> : <ProvenanceChip provenance={provenance}/>}<span className="c3-network-dot"/> Component 3</div>
-    </header>
+  const navGroups = navItemsFor({ mode, session: liveSession });
+  const pageTitle = mode === 'workspace' ? (navLabel(navGroups, liveSection) || 'Workspace')
+    : mode === 'demo' ? 'Sample data' : mode === 'live' ? 'Access check' : 'Sign in';
 
-    <div className="c3-content">
-      <section className="c3-intro">
-        <div><p className="c3-eyebrow">PHARMACY TRUST &amp; VERIFICATION</p>
-          <h1>{mode === 'login' ? 'Sign in to Component 3' : 'Trust assessment'}</h1>
-          <p className="c3-lede">A transparent view of available indicators, supporting evidence, and separate escalation signals.</p>
-        </div>
-      </section>
+  return <AppShell
+    nav={navGroups}
+    activeId={mode === 'workspace' ? liveSection : null}
+    onNavigate={setLiveSection}
+    title={pageTitle}
+    status={statusIndicator({ mode, liveSession, error })}
+    provenanceChip={mode === 'workspace' ? <LiveProvenanceChip/> : <ProvenanceChip provenance={provenance}/>}
+    roleLabel={mode === 'workspace' ? roleBadge(liveSession) : null}
+    onSignOut={mode === 'workspace' ? handleLogout : null}
+    bare={mode === 'login' || mode === 'live'}
+    sidebarFooter={mode === 'workspace' ? 'Live prototype · decision support only' : mode === 'demo' ? 'Sample mode · no sign-in' : null}>
+
+      {mode === 'demo' && <HeroCard badge="Sample data" title="Pharmacy trust" highlight="overview"
+        description="A transparent view of available indicators, supporting evidence, and separate escalation signals."
+        stats={sampleHeroStats(overviewSummary(overviewRows))}/>}
 
       {mode === 'login' && <section className="c3-card c3-auth-card">
+        <div className="c3-auth-brand"><LogoMark size={64}/><span><strong>MediSafe Chain</strong><small>Pharmacy trust &amp; verification</small></span></div>
         <p className="c3-eyebrow">SECURE ACCESS</p><h2>Sign in with your account</h2>
         <p className="c3-helper c3-auth-copy">Your Component 3 access is checked by the backend after sign-in. Pharmacy accounts also verify their assigned wallet. Regulatory access requires an active pharmacy-scoped grant.</p>
         <form className="c3-auth-form" onSubmit={handleSignIn}>
@@ -349,9 +364,9 @@ export default function Dashboard() {
       </section>}
 
       {mode === 'workspace' && liveSession && <LiveWorkspace session={liveSession} client={liveClient}
-        onSignOut={handleLogout} onSessionExpired={handleLiveSessionExpired}/>}
+        onSessionExpired={handleLiveSessionExpired} section={liveSection} onNavigate={setLiveSection}/>}
 
-      {mode === 'demo' && <section className="c3-card c3-search-card">
+      {mode === 'demo' && <section id="c3-assessment-detail" className="c3-card c3-search-card">
         <div className="c3-access-heading"><div><p className="c3-eyebrow">SAMPLE DATA</p><h2>Choose a sample pharmacy</h2></div>
           <button type="button" className="c3-secondary c3-logout" onClick={() => { clearWorkspace(); setMode('login'); setBundle(null); setError(''); }}>Return to sign in</button></div>
         <form className="c3-directory-form" onSubmit={loadDashboard}>
@@ -366,10 +381,12 @@ export default function Dashboard() {
       </section>}
 
       {showOverview && <>
-        <HealthAuthorityView rows={overviewRows} sort={overviewSort} onSortChange={setOverviewSort}
-          onSelect={selectPharmacy} onRefresh={handleOverviewRefresh} loading={overviewLoading}
-          error={overviewError} selectedCode={bundle?.assessment?.pharmacyId || ''}/>
-        <ValidationSummaryPanel summary={validationSummary}/>
+        <div id="c3-sample-overview" className="c3-anchor-target">
+          <HealthAuthorityView rows={overviewRows} sort={overviewSort} onSortChange={setOverviewSort}
+            onSelect={selectPharmacy} onRefresh={handleOverviewRefresh} loading={overviewLoading}
+            error={overviewError} selectedCode={bundle?.assessment?.pharmacyId || ''}/>
+        </div>
+        <div id="c3-validation" className="c3-anchor-target"><ValidationSummaryPanel summary={validationSummary}/></div>
       </>}
 
       {error && <div className={`c3-state ${errorKind === 'empty' ? 'c3-empty' : 'c3-error'}`} role={errorKind === 'empty' ? 'status' : 'alert'}>
@@ -387,10 +404,10 @@ export default function Dashboard() {
         <section className="c3-summary-grid" aria-label="Assessment summary">
           <article className="c3-score-card">
             <div className="c3-card-heading"><div><p className="c3-eyebrow">OVERALL TRUST SCORE</p><h2>{assessment.pharmacyId}</h2></div></div>
-            {assessable ? <div className="c3-score-line"><strong>{Number(assessment.score).toFixed(1)}</strong><span>/ 100</span></div>
+            {assessable ? <div className="c3-score-ring"><ScoreRing score={assessment.score} assessable scoreText={Number(assessment.score).toFixed(1)}/></div>
               : <><div className="c3-score-na">NOT ASSESSABLE</div><p className="c3-not-assessable-explanation">There is insufficient verified evidence to calculate this assessment.</p></>}
             <div className="c3-score-meta"><span className={`c3-status ${assessable ? 'good' : 'muted'}`}>{assessment.status || 'Unknown status'}</span>
-              {assessable && <span>Tier: <strong>{assessment.tier}</strong></span>}</div>
+              {assessable && <span>Tier: <TierPill label={TIER_LABELS[assessment.tier] || assessment.tier}/></span>}</div>
             <p className="c3-chain-note">Blockchain verification: {displayLabel(assessment.blockchainVerification || 'NOT_PERFORMED')}</p>
           </article>
           <article className={`c3-escalation-card ${findings?.required ? 'alert' : ''}`}>
@@ -442,6 +459,5 @@ export default function Dashboard() {
       {mode === 'workspace'
         ? <footer className="c3-footer">Decision support only. Not a regulatory decision. · Weights and tier thresholds are proposed research parameters, not NMRA values · Blockchain verification: not performed.</footer>
         : <footer className="c3-footer">Research prototype · Decision support only · Scores and tier thresholds are not official NMRA ratings or regulatory determinations · Blockchain verification is shown only where the API confirms it.</footer>}
-    </div>
-  </main>;
+  </AppShell>;
 }

@@ -1,24 +1,20 @@
 import { useState } from 'react';
 import { useLiveAction, useLiveResource } from './hooks.js';
-import { ActionStatus, FieldError, ResourceState, Section } from './liveUi.jsx';
+import { ActionStatus, FieldError, ResourceState, Section, SectionUnavailable } from './liveUi.jsx';
 import CalculationPanel from './CalculationPanel.jsx';
-import { canDo, formatTime, regulatorRow, visibleActions } from './liveModel.js';
+import { canDo, formatTime, regulatorRow } from './liveModel.js';
 import { ACTION_TYPES, ITEM_RESULTS, validateComplaintForm, validateInspectionForm, validateRecallForm, validateScreening } from './validators.js';
+import HeroCard from '../ui/HeroCard.jsx';
+import { IndicatorChip } from '../ui/IndicatorChip.js';
+import { Stepper } from '../ui/Stepper.js';
+import { TierPill } from '../ui/TierPill.js';
+import { regulatorHeroStats, sectionAllowed } from '../ui/uiModel.js';
 
-const TABS = [
-  { id: 'overview', label: 'Overview', action: 'overview.read' },
-  { id: 'recalls', label: 'Recalls', action: 'recall.issue' },
-  { id: 'complaints', label: 'Complaints', action: 'complaint.log' },
-  { id: 'inspections', label: 'Inspections', action: 'inspection.record' },
-  { id: 'audit', label: 'Audit log', action: 'auditLog.read' },
-];
 const label = text => text.charAt(0) + text.slice(1).toLowerCase().replace(/_/g, ' ');
 const emptyRecall = () => ({ batchReference: '', reason: '', pharmacyCodes: [], actions: Object.fromEntries(ACTION_TYPES.map(type => [type, { checked: false, dueAt: '' }])) });
 
 /** Regulator: overview of all pharmacies, calculation detail, snapshots, recall/complaint/inspection processes, audit log. */
-export default function RegulatorWorkspace({ client, session, onAuthError }) {
-  const tabs = visibleActions(session, TABS);
-  const [tab, setTab] = useState(tabs[0]?.id || 'overview');
+export default function RegulatorWorkspace({ client, session, onAuthError, section, onNavigate }) {
   const [selected, setSelected] = useState('');
 
   const overview = useLiveResource(async () => {
@@ -27,51 +23,78 @@ export default function RegulatorWorkspace({ client, session, onAuthError }) {
     return summaries.map((item, index) => regulatorRow(item, calculations[index]));
   }, [client], onAuthError);
   const directory = useLiveResource(() => client.getPharmacyDirectory(), [client], onAuthError);
+  const openPharmacy = code => {
+    setSelected(code);
+    if (sectionAllowed(session, 'pharmacies')) onNavigate?.('pharmacies');
+  };
 
+  if (!sectionAllowed(session, section)) return <SectionUnavailable/>;
   return <div className="c3-live-grid">
-    <nav className="c3-live-tabs" aria-label="Regulator workspace sections">
-      {tabs.map(item => <button key={item.id} type="button" className={tab === item.id ? 'selected' : ''} aria-pressed={tab === item.id} onClick={() => setTab(item.id)}>{item.label}</button>)}
-    </nav>
-    {tab === 'overview' && <OverviewTab client={client} session={session} overview={overview} selected={selected} setSelected={setSelected} onAuthError={onAuthError}/>}
-    {tab === 'recalls' && <RecallsTab client={client} directory={directory} overview={overview} onAuthError={onAuthError}/>}
-    {tab === 'complaints' && <ComplaintsTab client={client} session={session} directory={directory} overview={overview} onAuthError={onAuthError}/>}
-    {tab === 'inspections' && <InspectionsTab client={client} session={session} directory={directory} overview={overview} onAuthError={onAuthError}/>}
-    {tab === 'audit' && <AuditTab client={client} onAuthError={onAuthError}/>}
+    {section === 'overview' && <OverviewSection overview={overview} selected={selected} onOpen={openPharmacy}/>}
+    {section === 'pharmacies' && <PharmacyDetailSection client={client} session={session} overview={overview} selected={selected} setSelected={setSelected} onAuthError={onAuthError}/>}
+    {section === 'assessments' && <AssessmentsSection client={client} overview={overview} selected={selected} setSelected={setSelected} onAuthError={onAuthError}/>}
+    {section === 'recalls' && <RecallsTab client={client} directory={directory} overview={overview} onAuthError={onAuthError}/>}
+    {section === 'complaints' && <ComplaintsTab client={client} session={session} directory={directory} overview={overview} onAuthError={onAuthError}/>}
+    {section === 'inspections' && <InspectionsTab client={client} session={session} directory={directory} overview={overview} onAuthError={onAuthError}/>}
+    {section === 'audit' && <AuditTab client={client} onAuthError={onAuthError}/>}
   </div>;
 }
 
-function OverviewTab({ client, session, overview, selected, setSelected, onAuthError }) {
+function OverviewSection({ overview, selected, onOpen }) {
+  return <>
+    <HeroCard badge="Regulator workspace" title="Pharmacy trust" highlight="at a glance"
+      description="Decision support, not a regulatory determination. Not assessable is never shown as 0."
+      stats={overview.data ? regulatorHeroStats(overview.data) : []}/>
+    <Section eyebrow="ALL PHARMACIES" title="Trust overview" actions={<button type="button" className="c3-secondary" onClick={overview.reload} disabled={overview.loading}>Refresh</button>}>
+      <ResourceState resource={overview} emptyText="No pharmacies are available.">
+        {rows => <div className="c3-table-wrap c3-sticky-table"><table className="c3-ha-table c3-live-table">
+          <caption>Indicators show records meeting the rule over eligible records.</caption>
+          <thead><tr><th scope="col">Pharmacy</th><th scope="col">Score</th><th scope="col">Tier</th>
+            <th scope="col">D</th><th scope="col">R</th><th scope="col">C</th><th scope="col">I (points)</th><th scope="col">Critical escalation</th></tr></thead>
+          <tbody>{rows.map(row => <tr key={row.pharmacyId} className={row.pharmacyId === selected ? 'selected' : undefined}>
+            <th scope="row"><button type="button" className="c3-link" onClick={() => onOpen(row.pharmacyId)}>{row.pharmacyId}</button></th>
+            <td className="c3-num">{row.scoreText}</td><td><TierPill label={row.tierText}/></td>
+            {row.indicators.map(item => <td key={item.letter}><IndicatorChip letter={item.letter} text={item.text}/></td>)}
+            <td>{row.criticalEscalationRequired ? <span className="c3-flag-warn">Required</span> : <span className="c3-flag-none">No</span>}</td>
+          </tr>)}</tbody>
+        </table></div>}
+      </ResourceState>
+    </Section>
+  </>;
+}
+
+function PharmacyPicker({ id, overview, selected, setSelected }) {
+  return <div className="c3-field c3-live-picker"><label htmlFor={id}>Pharmacy</label>
+    <select id={id} value={selected} onChange={event => setSelected(event.target.value)}>
+      <option value="">Choose a pharmacy</option>
+      {(overview.data || []).map(row => <option key={row.pharmacyId} value={row.pharmacyId}>{row.pharmacyId} · {row.tierText}</option>)}
+    </select></div>;
+}
+
+function PharmacyDetailSection({ client, overview, selected, setSelected, onAuthError }) {
   const detail = useLiveResource(async () => {
     if (!selected) return null;
     const [calculation, findings] = await Promise.all([client.getCalculation(selected), client.getCriticalFindings(selected)]);
     return { calculation, findings };
   }, [client, selected], onAuthError);
+
+  return <Section eyebrow="PHARMACY DETAIL" title={selected || 'Choose a pharmacy'}
+    actions={selected ? <button type="button" className="c3-secondary" onClick={() => setSelected('')}>Close</button> : null}>
+    <PharmacyPicker id="c3-rg-detail-pharmacy" overview={overview} selected={selected} setSelected={setSelected}/>
+    {selected ? <ResourceState resource={detail} isEmpty={data => !data}>
+      {data => <CalculationPanel data={data.calculation} findings={data.findings}/>}
+    </ResourceState> : <div className="c3-live-empty"><span className="c3-live-empty-mark" aria-hidden="true">○</span><p>Choose a pharmacy to see its score and how it was calculated.</p></div>}
+  </Section>;
+}
+
+function AssessmentsSection({ client, overview, selected, setSelected, onAuthError }) {
   const snapshot = useLiveAction(onAuthError);
   const [stored, setStored] = useState(null);
+  const choose = code => { setSelected(code); setStored(null); snapshot.reset(); };
 
-  return <>
-    <Section eyebrow="ALL PHARMACIES" title="Trust overview" actions={<button type="button" className="c3-secondary" onClick={overview.reload} disabled={overview.loading}>Refresh</button>}>
-      <p className="c3-muted">Decision support, not a regulatory determination. Not assessable is never shown as 0.</p>
-      <ResourceState resource={overview} emptyText="No pharmacies are available.">
-        {rows => <div className="c3-table-wrap"><table className="c3-ha-table c3-live-table">
-          <caption>Indicators show records meeting the rule over eligible records.</caption>
-          <thead><tr><th scope="col">Pharmacy</th><th scope="col">Score</th><th scope="col">Tier</th>
-            <th scope="col">D</th><th scope="col">R</th><th scope="col">C</th><th scope="col">I (points)</th><th scope="col">Critical escalation</th></tr></thead>
-          <tbody>{rows.map(row => <tr key={row.pharmacyId} className={row.pharmacyId === selected ? 'selected' : undefined}>
-            <th scope="row"><button type="button" className="c3-link" onClick={() => { setSelected(row.pharmacyId); setStored(null); snapshot.reset(); }}>{row.pharmacyId}</button></th>
-            <td className="c3-num">{row.scoreText}</td><td>{row.tierText}</td>
-            {row.indicators.map(item => <td key={item.letter} className="c3-num">{item.text}</td>)}
-            <td className={row.criticalEscalationRequired ? 'c3-critical' : undefined}>{row.criticalEscalationRequired ? 'Required' : 'No'}</td>
-          </tr>)}</tbody>
-        </table></div>}
-      </ResourceState>
-    </Section>
-
-    {selected && <Section eyebrow="PHARMACY DETAIL" title={selected} actions={<button type="button" className="c3-secondary" onClick={() => setSelected('')}>Close</button>}>
-      <ResourceState resource={detail} isEmpty={data => !data}>
-        {data => <CalculationPanel data={data.calculation} findings={data.findings}/>}
-      </ResourceState>
-      {canDo(session, 'snapshot.finalize') && <div className="c3-live-snapshot">
+  return <Section eyebrow="ASSESSMENTS" title="Assessment snapshots">
+    <PharmacyPicker id="c3-rg-snapshot-pharmacy" overview={overview} selected={selected} setSelected={choose}/>
+    {selected && <div className="c3-live-snapshot">
         <h3 className="c3-live-subtitle">Assessment snapshot</h3>
         <p className="c3-muted">Stores the assessment as computed now, with its sha256 hash. No blockchain transaction is sent.</p>
         <button type="button" className="c3-primary" disabled={snapshot.pending}
@@ -84,8 +107,7 @@ function OverviewTab({ client, session, overview, selected, setSelected, onAuthE
           <dt>Blockchain verification</dt><dd>NOT PERFORMED</dd>
         </dl>}
       </div>}
-    </Section>}
-  </>;
+  </Section>;
 }
 
 function PharmacySelect({ id, value, onChange, directory, disabled, error }) {
@@ -119,6 +141,11 @@ function RecallsTab({ client, directory, overview, onAuthError }) {
 
   return <>
     <Section eyebrow="RECALLS" title="Issue a recall">
+      <Stepper label="Recall steps" steps={[
+        { label: 'Select batch and pharmacies', done: Boolean(form.batchReference.trim() && form.reason.trim() && form.pharmacyCodes.length) },
+        { label: 'Review actions and due times', done: ACTION_TYPES.some(type => form.actions[type].checked && form.actions[type].dueAt) },
+        { label: 'Submit', done: false },
+      ]}/>
       <form className="c3-live-form" onSubmit={submit} noValidate>
         <div className="c3-field"><label htmlFor="c3-rc-batch">Batch reference</label>
           <input id="c3-rc-batch" value={form.batchReference} onChange={event => setForm({ ...form, batchReference: event.target.value })} disabled={action.pending} aria-describedby="c3-rc-batch-error"/>
@@ -174,6 +201,11 @@ function ComplaintsTab({ client, session, directory, overview, onAuthError }) {
 
   return <>
     <Section eyebrow="COMPLAINTS" title="Log a complaint">
+      <Stepper label="Complaint steps" steps={[
+        { label: 'Select pharmacy', done: Boolean(form.pharmacyCode) },
+        { label: 'Describe the complaint', done: Boolean(form.summary.trim()) },
+        { label: 'Submit', done: false },
+      ]}/>
       <form className="c3-live-form" onSubmit={submit} noValidate>
         <PharmacySelect id="c3-cp-pharmacy" value={form.pharmacyCode} onChange={value => setForm({ ...form, pharmacyCode: value })} directory={directory} disabled={action.pending} error={errors.pharmacyCode}/>
         <div className="c3-field"><label htmlFor="c3-cp-summary">Summary</label>
@@ -226,6 +258,11 @@ function InspectionsTab({ client, session, directory, overview, onAuthError }) {
 
   return <>
     <Section eyebrow="INSPECTIONS" title="Record an inspection">
+      <Stepper label="Inspection steps" steps={[
+        { label: 'Select pharmacy and time', done: Boolean(form.pharmacyCode && form.inspectedAt) },
+        { label: 'Review checklist results', done: Object.values(form.items).some(value => value.result) },
+        { label: 'Submit', done: false },
+      ]}/>
       <form className="c3-live-form" onSubmit={submit} noValidate>
         <PharmacySelect id="c3-in-pharmacy" value={form.pharmacyCode} onChange={value => setForm({ ...form, pharmacyCode: value })} directory={directory} disabled={action.pending} error={errors.pharmacyCode}/>
         <div className="c3-field"><label htmlFor="c3-in-time">Inspection date and time</label>
@@ -270,7 +307,7 @@ function AuditTab({ client, onAuthError }) {
   const audit = useLiveResource(() => client.getAuditLog(100), [client], onAuthError);
   return <Section eyebrow="ACCOUNTABILITY" title="Audit log (latest 100)" actions={<button type="button" className="c3-secondary" onClick={audit.reload} disabled={audit.loading}>Refresh</button>}>
     <ResourceState resource={audit} emptyText="No audit entries yet.">
-      {rows => <div className="c3-table-wrap"><table className="c3-ha-table c3-live-table">
+      {rows => <div className="c3-table-wrap c3-sticky-table"><table className="c3-ha-table c3-live-table">
         <caption>Every write is recorded by the database with the verified actor.</caption>
         <thead><tr><th scope="col">Time</th><th scope="col">Actor role</th><th scope="col">Action</th><th scope="col">Table</th><th scope="col">Record</th></tr></thead>
         <tbody>{rows.map(row => <tr key={row.id}><td>{formatTime(row.occurred_at)}</td><td>{row.actor_role}</td><td>{row.action}</td><td>{row.target_table}</td><td><code>{row.target_id}</code></td></tr>)}</tbody>

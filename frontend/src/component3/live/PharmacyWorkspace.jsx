@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useLiveAction, useLiveResource } from './hooks.js';
-import { ActionStatus, FieldError, ResourceState, Section } from './liveUi.jsx';
+import { ActionStatus, FieldError, ResourceState, Section, SectionUnavailable } from './liveUi.jsx';
 import CalculationPanel from './CalculationPanel.jsx';
-import { canDo, formatTime } from './liveModel.js';
+import { calculationView, canDo, formatTime } from './liveModel.js';
+import HeroCard from '../ui/HeroCard.jsx';
+import { Stepper } from '../ui/Stepper.js';
+import { pharmacyHeroStats, sectionAllowed } from '../ui/uiModel.js';
 import { CONFIRMATION_STATUSES, validateConfirmation, validateRecallCompletion, validateResolution } from './validators.js';
 
 const isTasksEmpty = data => !data || (data.deliveriesToConfirm.length + data.recallActionsDue.length + data.complaintsToResolve.length === 0);
 
 /** Pharmacy user: own score with the calculation panel, task inbox, own record history. Own pharmacy only. */
-export default function PharmacyWorkspace({ client, session, onAuthError }) {
+export default function PharmacyWorkspace({ client, session, onAuthError, section }) {
   const code = session?.pharmacy?.code || '';
   const assessment = useLiveResource(async () => {
     const [calculation, findings] = await Promise.all([client.getCalculation(code), client.getCriticalFindings(code)]);
@@ -31,14 +34,28 @@ export default function PharmacyWorkspace({ client, session, onAuthError }) {
     if (done) setDrafts(current => ({ ...current, [id]: {} }));
   }
 
+  if (!sectionAllowed(session, section)) return <SectionUnavailable/>;
+  const refreshButton = <button type="button" className="c3-secondary" onClick={assessment.reload} disabled={assessment.loading}>Refresh</button>;
   return <div className="c3-live-grid">
-    <Section eyebrow="MY PHARMACY" title={`Trust assessment · ${code}`} actions={<button type="button" className="c3-secondary" onClick={assessment.reload} disabled={assessment.loading}>Refresh</button>}>
-      <ResourceState resource={assessment} isEmpty={data => !data}>
-        {data => <CalculationPanel data={data.calculation} findings={data.findings}/>}
-      </ResourceState>
-    </Section>
+    {section === 'score' && <>
+      <HeroCard badge="Pharmacy workspace" title="My trust" highlight="score"
+        description="Your score, tier and separate escalation signal, calculated from recorded events."
+        stats={pharmacyHeroStats(assessment.data ? calculationView(assessment.data.calculation) : null, tasks.data)}/>
+      <Section eyebrow="MY PHARMACY" title={`Trust assessment · ${code}`} actions={refreshButton}>
+        <ResourceState resource={assessment} isEmpty={data => !data}>
+          {data => <CalculationPanel data={data.calculation} findings={data.findings} part="summary"/>}
+        </ResourceState>
+      </Section>
+      <p className="c3-helper">Your record history is listed under “History &amp; calculation”, under each indicator's “records counted and excluded”.</p>
+    </>}
 
-    <Section eyebrow="TASK INBOX" title="Tasks waiting for you">
+    {section === 'history' && <Section eyebrow="MY PHARMACY" title={`History and calculation · ${code}`} actions={refreshButton}>
+      <ResourceState resource={assessment} isEmpty={data => !data}>
+        {data => <CalculationPanel data={data.calculation} findings={data.findings} part="details"/>}
+      </ResourceState>
+    </Section>}
+
+    {section === 'tasks' && <Section eyebrow="TASK INBOX" title="Tasks waiting for you">
       <ActionStatus action={action}/>
       <ResourceState resource={tasks} isEmpty={isTasksEmpty} emptyText="No tasks are waiting for you.">
         {data => <>
@@ -46,6 +63,11 @@ export default function PharmacyWorkspace({ client, session, onAuthError }) {
             <ul className="c3-live-tasks">{data.deliveriesToConfirm.map(row => <li key={row.id}>
               <form className="c3-live-task" noValidate onSubmit={event => { event.preventDefault(); submit(row.id, validateConfirmation, body => client.confirmDelivery(row.id, body), `Delivery ${row.delivery_ref} confirmed.`); }}>
                 <p><strong>{row.delivery_ref}</strong> from {row.distributor_code} · arrived {formatTime(row.arrived_at)} · confirm by {formatTime(row.confirm_due_at)}</p>
+                <Stepper label={`Confirmation steps for ${row.delivery_ref}`} steps={[
+                  { label: 'Select receipt', done: Boolean(draft(row.id).confirmationStatus) },
+                  { label: 'Review note', done: Boolean(draft(row.id).confirmationStatus && (draft(row.id).confirmationStatus === 'ACCEPTED' || (draft(row.id).note || '').trim())) },
+                  { label: 'Submit', done: false },
+                ]}/>
                 <fieldset><legend>Receipt</legend>
                   {CONFIRMATION_STATUSES.map(status => <label key={status} className="c3-live-radio">
                     <input type="radio" name={`receipt-${row.id}`} value={status} checked={draft(row.id).confirmationStatus === status}
@@ -85,7 +107,6 @@ export default function PharmacyWorkspace({ client, session, onAuthError }) {
             </li>)}</ul></>}
         </>}
       </ResourceState>
-    </Section>
-    <p className="c3-helper">Your record history is listed in the assessment above under each indicator's “records counted and excluded”.</p>
+    </Section>}
   </div>;
 }
