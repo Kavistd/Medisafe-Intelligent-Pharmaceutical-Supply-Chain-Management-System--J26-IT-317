@@ -1,1 +1,29 @@
-{ "$schema": "http://json-schema.org/draft-07/schema#", "title": "medicineBatch.schema.json", "type": "object" }
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MedicineTraceability batch registration data",
+  "description": "Flat BatchData input tuple. Custody, recall and history are contract-derived and must not be supplied as registration input.",
+  "$comment": "Validate manufacturedAt <= chain time < expiresAt and manufacturedAt < expiresAt at submission; draft-07 cannot express these cross-field/time rules. Contract validation remains authoritative. Numbers use the JavaScript safe-integer subset of uint256.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["batchId", "medicineId", "name", "category", "dosageForm", "strength", "manufacturerName", "indication", "classification", "quantity", "manufacturedAt", "expiresAt", "documentReference", "certificateReference"],
+  "properties": {
+    "batchId": { "$ref": "#/definitions/nonblank", "description": "Case-sensitive unique string; do not trim or transform identifiers." },
+    "medicineId": { "$ref": "#/definitions/nonblank" },
+    "name": { "$ref": "#/definitions/nonblank" },
+    "category": { "$ref": "#/definitions/nonblank" },
+    "dosageForm": { "$ref": "#/definitions/nonblank" },
+    "strength": { "$ref": "#/definitions/nonblank" },
+    "manufacturerName": { "$ref": "#/definitions/nonblank" },
+    "indication": { "$ref": "#/definitions/nonblank" },
+    "classification": { "$ref": "#/definitions/nonblank" },
+    "quantity": { "$ref": "#/definitions/positiveInteger" },
+    "manufacturedAt": { "$ref": "#/definitions/positiveInteger", "description": "Unix seconds, not milliseconds; must not be in the future." },
+    "expiresAt": { "$ref": "#/definitions/positiveInteger", "description": "Unix seconds strictly after manufacture and registration block time." },
+    "documentReference": { "$ref": "#/definitions/nonblank", "description": "IPFS CID or ipfs:// reference. CID syntax, availability and document authenticity require separate validation." },
+    "certificateReference": { "$ref": "#/definitions/nonblank", "description": "IPFS CID or ipfs:// reference. Must be validated and pinned by the document service." }
+  },
+  "definitions": {
+    "nonblank": { "type": "string", "minLength": 1, "pattern": "[^\\u0000-\\u0020]" },
+    "positiveInteger": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 }
+  }
+}

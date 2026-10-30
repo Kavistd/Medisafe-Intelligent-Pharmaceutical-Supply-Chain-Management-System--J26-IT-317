@@ -1,0 +1,4 @@
+operation,centralizedLatencyMs_mean,blockchainLatencyMs_mean,gasUsed_mean
+issuePrescription,0.027,2.321,261145
+dispensePrescription,0.014,2.675,N/A
+revokePrescription,0.004,1.878,53952

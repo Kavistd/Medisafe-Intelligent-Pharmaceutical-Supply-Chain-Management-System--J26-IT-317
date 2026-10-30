@@ -1,0 +1,3 @@
+# Server-only local configuration; never commit document operator credentials.
+.env.local
+.env.*.local
