@@ -1,0 +1,49 @@
+{
+  "source": "validation/component3/results/results.json",
+  "banner": [
+    "SYNTHETIC DATA - NOT REAL PHARMACY DATA.",
+    "Proposed weights (D 0.35, R 0.30, C 0.20, I 0.15) and tier thresholds (80 / 60 / 40) are research parameters, not NMRA-prescribed values.",
+    "These results show computational correctness and robustness to weight assumptions only. They do not show real-world accuracy."
+  ],
+  "functional": {
+    "casesPassed": 10,
+    "casesTotal": 10,
+    "checksPassed": 45,
+    "checksTotal": 45
+  },
+  "scenarios": {
+    "profiles": 40,
+    "checksPassed": 7,
+    "checksTotal": 7
+  },
+  "equalWeightBaseline": {
+    "profilesCompared": 35,
+    "excludedNotAssessable": 5,
+    "spearmanRho": 0.9700280112044818,
+    "tierSwitches": 3,
+    "tierSwitchRate": 0.08571428571428572
+  },
+  "oneAtATime": {
+    "runs": 16,
+    "spearmanMin": 0.996078431372549,
+    "spearmanMax": 1,
+    "maxAbsScoreChange": 2.095714574489577,
+    "tierSwitchRateMin": 0,
+    "tierSwitchRateMax": 0.08571428571428572
+  },
+  "globalStressTest": {
+    "draws": 1000,
+    "seed": 20261022,
+    "profilesCompared": 35,
+    "spearmanMean": 0.8599983193277306,
+    "spearmanP05": 0.7086694677871149,
+    "spearmanMin": 0.6294117647058823,
+    "overallTierStability": 0.7345428571428572,
+    "profilesFullyTierStable": 12
+  },
+  "ahp": {
+    "status": "AHP: tooling ready, expert responses not yet collected",
+    "expertCount": 0
+  },
+  "renormalisationNote": "Renormalisation is used here only for weight perturbation; the production rule never renormalises for missing indicators (missing indicator -> NOT_ASSESSABLE)."
+}

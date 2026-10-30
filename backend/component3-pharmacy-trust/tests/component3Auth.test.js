@@ -229,9 +229,13 @@ test('authorization migration encodes lifecycle, uniqueness, and role protection
   assert.match(sql, /approved_by_profile_id <> requested_by_profile_id/);
   assert.match(sql, /approver_profile_id <> grantor_profile_id/);
   assert.match(sql, /hashtextextended\(lower\(NEW\.wallet_address\)/);
-  assert.match(sql, /a\.effective_at <= now\(\)/);
-  assert.match(sql, /a\.expires_at > now\(\)/);
-  assert.match(sql, /A wallet or pharmacy already has another active approved assignment/);
+  assert.match(sql, /hashtextextended\(NEW\.pharmacy_id::text, 1\)/);
+  assert.match(sql, /ORDER BY value LOOP\s+PERFORM pg_advisory_xact_lock\(lock_id\);/);
+  assert.match(sql, /a\.approval_status = 'APPROVED' AND a\.revoked_at IS NULL/);
+  assert.match(sql, /tstzrange\(a\.effective_at, a\.expires_at, '\[\)'\) && tstzrange\(NEW\.effective_at, NEW\.expires_at, '\[\)'\)/);
+  assert.match(sql, /a\.pharmacy_id = NEW\.pharmacy_id OR lower\(a\.wallet_address\) = lower\(NEW\.wallet_address\)/);
+  assert.match(sql, /Approved wallet assignment intervals overlap for this wallet or pharmacy/);
+  assert.match(sql, /CREATE TRIGGER c3_wallet_active_unique BEFORE INSERT OR UPDATE OF[\s\S]*?EXECUTE FUNCTION pharmacy_trust\.component3_guard_wallet_uniqueness\(\)/);
 });
 test('forged principal, unsupported route, and database errors fail closed', async () => {
   const auth = makeAuth();

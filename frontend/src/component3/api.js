@@ -63,18 +63,24 @@ async function getResource(base, pharmacyCode, resource, headers, fetchImpl) {
   return getJson(path, headers, fetchImpl, base === DEMO_API_BASE ? 'demo' : 'live');
 }
 
-export async function fetchAuthorizedPharmacies({ accessToken, walletToken, fetchImpl = globalThis.fetch } = {}) {
-  if (typeof accessToken !== 'string' || !accessToken.trim()) {
+function requestHeaders({ demo, accessToken, walletToken }) {
+  if (!demo && (typeof accessToken !== 'string' || !accessToken.trim())) {
     throw new Error('A verified Supabase access token is required for live API requests.');
   }
   const headers = {
     Accept: 'application/json',
-    Authorization: `Bearer ${accessToken.trim()}`,
+    Authorization: `Bearer ${demo ? DEMO_BEARER_TOKEN : accessToken.trim()}`,
   };
-  if (typeof walletToken === 'string' && walletToken.trim()) {
+  if (!demo && typeof walletToken === 'string' && walletToken.trim()) {
     headers['X-Component4-Wallet-Token'] = walletToken.trim();
   }
-  const access = await getJson(`${LIVE_API_BASE}/api/v1/session/pharmacies`, headers, fetchImpl, 'live');
+  return headers;
+}
+
+export async function fetchAuthorizedPharmacies({ accessToken, walletToken, mode = 'live', fetchImpl = globalThis.fetch } = {}) {
+  const demo = mode === 'demo';
+  const headers = requestHeaders({ demo, accessToken, walletToken });
+  const access = await getJson(`${demo ? DEMO_API_BASE : LIVE_API_BASE}/api/v1/session/pharmacies`, headers, fetchImpl, demo ? 'demo' : 'live');
   if (!Array.isArray(access?.pharmacies) || typeof access.requiresWalletVerification !== 'boolean') {
     throw new Error('The Component 3 API returned an invalid authorized-pharmacy list.');
   }
@@ -101,17 +107,8 @@ export async function fetchComponent3Dashboard({
   if (typeof fetchImpl !== 'function') throw new Error('A browser fetch implementation is required.');
 
   const demo = mode === 'demo';
-  if (!demo && (typeof accessToken !== 'string' || !accessToken.trim())) {
-    throw new Error('A verified Supabase access token is required for live API requests.');
-  }
   const base = demo ? DEMO_API_BASE : LIVE_API_BASE;
-  const headers = {
-    Accept: 'application/json',
-    Authorization: `Bearer ${demo ? DEMO_BEARER_TOKEN : accessToken.trim()}`,
-  };
-  if (!demo && typeof walletToken === 'string' && walletToken.trim()) {
-    headers['X-Component4-Wallet-Token'] = walletToken.trim();
-  }
+  const headers = requestHeaders({ demo, accessToken, walletToken });
 
   if (demo) {
     const [assessment, evidence, criticalFindings] = await Promise.all(
@@ -128,4 +125,31 @@ export async function fetchComponent3Dashboard({
     optionalResource(RESOURCES[2]),
   ]);
   return { assessment, evidence, criticalFindings };
+}
+
+/**
+ * One overview entry from the existing read-only endpoints: the assessment, plus
+ * critical findings when permitted. A denied critical-findings read returns
+ * { accessDenied: true }; any assessment failure is thrown for the caller to report.
+ */
+export async function fetchOverviewEntry({
+  pharmacyCode,
+  mode = 'live',
+  accessToken,
+  walletToken,
+  includeCriticalFindings = false,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const normalizedCode = typeof pharmacyCode === 'string' ? pharmacyCode.trim() : '';
+  if (!normalizedCode) throw new Error('A pharmacy code is required.');
+  if (typeof fetchImpl !== 'function') throw new Error('A browser fetch implementation is required.');
+  const demo = mode === 'demo';
+  const base = demo ? DEMO_API_BASE : LIVE_API_BASE;
+  const headers = requestHeaders({ demo, accessToken, walletToken });
+  const assessment = await getResource(base, normalizedCode, RESOURCES[0], headers, fetchImpl);
+  const criticalFindings = includeCriticalFindings
+    ? await getResource(base, normalizedCode, RESOURCES[2], headers, fetchImpl)
+      .catch(error => (error?.status === 403 ? { accessDenied: true } : Promise.reject(error)))
+    : null;
+  return { assessment, criticalFindings };
 }
