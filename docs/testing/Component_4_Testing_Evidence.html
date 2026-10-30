@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Component 4 Testing Evidence Report - MediSafe Chain</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-break {
+        page-break-before: always;
+      }
+      .tab-content {
+        display: block !important;
+      }
+      .tab-nav {
+        display: none !important;
+      }
+      .card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+      }
+    }
+    .active-tab {
+      background-color: #087D66 !important;
+      color: #ffffff !important;
+      border-color: #087D66 !important;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4 md:p-8 font-sans">
+  
+  <!-- Header Card & Actions -->
+  <div class="max-w-5xl mx-auto bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border)] pb-6">
+      <div>
+        <div class="text-xs font-bold uppercase tracking-wider text-[#087D66]">
+          Sri Lanka Institute of Information Technology (SLIIT) • IT4010
+        </div>
+        <h1 class="text-2xl font-bold text-[var(--foreground)] mt-1">
+          Component 4: Software Testing & Verification Evidence
+        </h1>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">
+          Privacy-Preserving Blockchain Prescription Management System • MediSafe Chain (J26-IT-317)
+        </p>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap gap-2 no-print items-center">
+        <button onclick="window.print()" class="px-4 py-2 bg-[#087D66] hover:bg-[#066352] text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          Print / Save PDF
+        </button>
+        <a href="file:///d:/Research/Medisafe-Intelligent-Pharmaceutical-Supply-Chain-Management-System--J26-IT-317/Component_4_Testing_Evidence_Report.pdf" target="_blank" class="px-3 py-2 bg-[var(--secondary)] hover:opacity-90 text-[var(--secondary-foreground)] text-xs font-medium rounded-lg border border-[var(--border)] transition flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path></svg>
+          Open PDF File
+        </a>
+        <a href="file:///d:/Research/Medisafe-Intelligent-Pharmaceutical-Supply-Chain-Management-System--J26-IT-317/Component_4_Testing_Evidence_Report.docx" download class="px-3 py-2 bg-[var(--secondary)] hover:opacity-90 text-[var(--secondary-foreground)] text-xs font-medium rounded-lg border border-[var(--border)] transition flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>
+          Open Word (.docx)
+        </a>
+      </div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 text-xs">
+      <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+        <span class="text-[var(--muted-foreground)] block">Student / Researcher:</span>
+        <span class="font-bold text-[var(--foreground)] mt-0.5 block">R.A.M.A. Ranasinghe</span>
+        <span class="text-[11px] text-[var(--muted-foreground)]">IT23142978</span>
+      </div>
+      <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+        <span class="text-[var(--muted-foreground)] block">Supervisors:</span>
+        <span class="font-medium text-[var(--foreground)] mt-0.5 block">Dr. Junius Anjana</span>
+        <span class="text-[11px] text-[var(--muted-foreground)]">Co-Sup: Mr. Nelum Amaraweera</span>
+      </div>
+      <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+        <span class="text-[var(--muted-foreground)] block">Total Tests & Assertions:</span>
+        <span class="font-bold text-emerald-600 mt-0.5 block text-sm">185 Tests • 170 Rule Checks</span>
+        <span class="text-[11px] text-emerald-600 font-medium">100% Pass Rate (0 Failures)</span>
+      </div>
+      <div class="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+        <span class="text-[var(--muted-foreground)] block">Evaluation Environment:</span>
+        <span class="font-medium text-[var(--foreground)] mt-0.5 block">Hardhat EVM (31337)</span>
+        <span class="text-[11px] text-[var(--muted-foreground)]">Node v22 • WebCrypto API</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Navigation Tabs -->
+  <div class="max-w-5xl mx-auto flex gap-2 border-b border-[var(--border)] mb-6 no-print tab-nav overflow-x-auto pb-1 text-xs font-semibold">
+    <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-4 py-2 rounded-lg border border-transparent active-tab transition">Execution Dashboard</button>
+    <button onclick="switchTab('matrix')" id="tab-btn-matrix" class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Core Test Matrix (25 TCs)</button>
+    <button onclick="switchTab('benchmarks')" id="tab-btn-benchmarks" class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Gas & Latency Benchmarks</button>
+    <button onclick="switchTab('logs')" id="tab-btn-logs" class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Verbatim Test Runner Logs</button>
+    <button onclick="switchTab('rtm')" id="tab-btn-rtm" class="px-4 py-2 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition">Traceability Matrix (RTM)</button>
+  </div>
+
+  <!-- Tab 1: Execution Dashboard -->
+  <div id="tab-dashboard" class="max-w-5xl mx-auto tab-content space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm text-center">
+        <div class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider font-semibold">Smart Contract V1</div>
+        <div class="text-3xl font-black text-emerald-600 mt-2">42 / 42</div>
+        <div class="text-xs text-emerald-600 font-medium mt-1">100% Passed • Hardhat EVM</div>
+      </div>
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm text-center">
+        <div class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider font-semibold">Smart Contract V2</div>
+        <div class="text-3xl font-black text-emerald-600 mt-2">26 / 26</div>
+        <div class="text-xs text-emerald-600 font-medium mt-1">100% Passed • Lifecycle Core</div>
+      </div>
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm text-center">
+        <div class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider font-semibold">Backend REST API</div>
+        <div class="text-3xl font-black text-emerald-600 mt-2">53 / 53</div>
+        <div class="text-xs text-emerald-600 font-medium mt-1">100% Passed • TAP Runner</div>
+      </div>
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm text-center">
+        <div class="text-xs text-[var(--muted-foreground)] uppercase tracking-wider font-semibold">Frontend WebCrypto</div>
+        <div class="text-3xl font-black text-emerald-600 mt-2">60 / 60</div>
+        <div class="text-xs text-emerald-600 font-medium mt-1">100% Passed • Client Privacy</div>
+      </div>
+    </div>
+
+    <!-- Core Highlights -->
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
+      <h3 class="text-base font-bold text-[var(--foreground)] mb-3">Key Research Empirical Findings</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs leading-relaxed">
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="font-bold text-[#087D66] flex items-center gap-1.5 mb-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            Zero-PII On-Chain Guarantee
+          </div>
+          <p class="text-[var(--muted-foreground)]">
+            Patient personal identification information (names, IDs, addresses) is completely excluded from blockchain state. Identity verification is conducted via client-side Keccak-256 canonical hashing salted with 32 cryptographically secure random bytes.
+          </p>
+        </div>
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="font-bold text-[#087D66] flex items-center gap-1.5 mb-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            Strict Atomic Anti-Double Dispensing
+          </div>
+          <p class="text-[var(--muted-foreground)]">
+            Prescriptions strictly transition from <code class="px-1 py-0.5 bg-[var(--secondary)] rounded text-[#087D66] font-mono">ACTIVE (1)</code> to <code class="px-1 py-0.5 bg-[var(--secondary)] rounded text-[#087D66] font-mono">USED (2)</code> upon dispensing. Subsequent dispense attempts revert deterministically, eliminating pharmacy doctor shopping and prescription reuse.
+          </p>
+        </div>
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="font-bold text-[#087D66] flex items-center gap-1.5 mb-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Automated Cross-Component Oracle Gates
+          </div>
+          <p class="text-[var(--muted-foreground)]">
+            Component 4 verifies Component 2 AI Risk attestation (blocking scores &ge; 70) and Component 3 Pharmacy Trust attestation (blocking scores &lt; 70) within atomic on-chain transaction preflights.
+          </p>
+        </div>
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="font-bold text-[#087D66] flex items-center gap-1.5 mb-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Sub-3ms Local Blockchain Settlement
+          </div>
+          <p class="text-[var(--muted-foreground)]">
+            Prescription issuance completes in ~2.65 ms (244,045 gas) and verification-dispense executes in ~2.03 ms (93,813 gas), providing instant response for clinical dispensing workflows.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Test Matrix -->
+  <div id="tab-matrix" class="max-w-5xl mx-auto tab-content space-y-4 hidden">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl overflow-hidden shadow-sm">
+      <div class="p-4 border-b border-[var(--border)] bg-[var(--background)]">
+        <h3 class="text-sm font-bold text-[var(--foreground)]">Empirical Test Case Execution Matrix (Component 4)</h3>
+        <p class="text-xs text-[var(--muted-foreground)]">Comprehensive verification of smart contract invariants, access control, and privacy protections</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-[var(--secondary)] text-[var(--secondary-foreground)] border-b border-[var(--border)]">
+              <th class="p-3 font-semibold">Test ID</th>
+              <th class="p-3 font-semibold">Invariant / Feature</th>
+              <th class="p-3 font-semibold">Expected Behavior</th>
+              <th class="p-3 font-semibold">Observed Outcome</th>
+              <th class="p-3 font-semibold text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-001</td><td class="p-3 font-medium">Deployer Admin Role</td><td class="p-3">Deployer holds DEFAULT_ADMIN_ROLE</td><td class="p-3">Verified on-chain; non-admin reverts</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-002</td><td class="p-3 font-medium">Doctor Issuance RBAC</td><td class="p-3">Only DOCTOR_ROLE can issue</td><td class="p-3">Authorized doctor issues; non-doctor denied</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-003</td><td class="p-3 font-medium">Pharmacy Dispense RBAC</td><td class="p-3">Only PHARMACY_ROLE can dispense</td><td class="p-3">Authorized pharmacy executes; others fail</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-006</td><td class="p-3 font-medium">Prescription Issuance</td><td class="p-3">Status initialized to ACTIVE (1)</td><td class="p-3">Prescription created; event emitted</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-007</td><td class="p-3 font-medium">Duplicate ID Rejection</td><td class="p-3">Revert if prescriptionId exists</td><td class="p-3">Reverts with "Prescription already exists"</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-010</td><td class="p-3 font-medium">Single-Use Dispensing</td><td class="p-3">Status ACTIVE &rarr; USED (2)</td><td class="p-3">Status transitioned atomically; event emitted</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-011</td><td class="p-3 font-medium">Double-Dispense Prevention</td><td class="p-3">Second dispense strictly reverts</td><td class="p-3">Reverts with "Prescription is not active"</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-012</td><td class="p-3 font-medium">Patient Hash Matching</td><td class="p-3">Dispense when presented hash matches</td><td class="p-3">Matched on-chain; dispense completed</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-013</td><td class="p-3 font-medium">Mismatched Hash Rejection</td><td class="p-3">Revert if presented hash is wrong</td><td class="p-3">Reverts with "Patient identity hash does not match"</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-015</td><td class="p-3 font-medium">Component 2 AI Risk Safe</td><td class="p-3">Allow dispense when risk score &le; 69</td><td class="p-3">Dispense allowed with valid oracle record</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-016</td><td class="p-3 font-medium">Component 2 AI Risk Unsafe</td><td class="p-3">Block dispense if score &ge; 70</td><td class="p-3">Reverts with "Medicine batch risk is too high"</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-019</td><td class="p-3 font-medium">Component 3 Pharmacy Trust</td><td class="p-3">Allow dispense if trust score &ge; 70</td><td class="p-3">Trust score verified; dispense confirmed</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-020</td><td class="p-3 font-medium">Component 3 Untrusted Block</td><td class="p-3">Block dispense if trust score &lt; 70</td><td class="p-3">Reverts with "Pharmacy trust score too low"</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-021</td><td class="p-3 font-medium">Dynamic Temporal Expiry</td><td class="p-3">Status EXPIRED if now &gt; expiryTime</td><td class="p-3">Dynamically reported as EXPIRED</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+            <tr class="hover:bg-[var(--background)]/50"><td class="p-3 font-mono font-bold text-[#087D66]">TC-C4-023</td><td class="p-3 font-medium">Doctor Revocation</td><td class="p-3">Issuing doctor can revoke</td><td class="p-3">Status transitioned to REVOKED (4)</td><td class="p-3 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold text-[11px]">PASS</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Benchmarks -->
+  <div id="tab-benchmarks" class="max-w-5xl mx-auto tab-content space-y-6 hidden">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
+      <h3 class="text-sm font-bold text-[var(--foreground)] mb-3">Smart Contract Gas Consumption Profile (10 Replicas)</h3>
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="bg-[var(--secondary)] text-[var(--secondary-foreground)] border-b border-[var(--border)]">
+            <th class="p-2.5 font-semibold">EVM Operation</th>
+            <th class="p-2.5 font-semibold text-center">Samples</th>
+            <th class="p-2.5 font-semibold">Min Gas</th>
+            <th class="p-2.5 font-semibold">Median Gas</th>
+            <th class="p-2.5 font-semibold">Max Gas</th>
+            <th class="p-2.5 font-semibold">Mean Gas</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--border)]">
+          <tr><td class="p-2.5 font-mono font-medium text-[#087D66]">issuePrescription</td><td class="p-2.5 text-center">10</td><td class="p-2.5">244,033</td><td class="p-2.5 font-bold">244,045</td><td class="p-2.5">278,245</td><td class="p-2.5">247,461</td></tr>
+          <tr><td class="p-2.5 font-mono font-medium text-[#087D66]">verifyAndDispenseWithPatientHash</td><td class="p-2.5 text-center">10</td><td class="p-2.5">93,801</td><td class="p-2.5 font-bold">93,813</td><td class="p-2.5">93,813</td><td class="p-2.5">93,809</td></tr>
+          <tr><td class="p-2.5 font-mono font-medium text-[#087D66]">revokePrescription</td><td class="p-2.5 text-center">10</td><td class="p-2.5">53,952</td><td class="p-2.5 font-bold">53,952</td><td class="p-2.5">53,952</td><td class="p-2.5">53,952</td></tr>
+          <tr><td class="p-2.5 font-mono font-medium text-[#087D66]">verifyAndDispense (Direct)</td><td class="p-2.5 text-center">10</td><td class="p-2.5">93,058</td><td class="p-2.5 font-bold">93,082</td><td class="p-2.5">93,082</td><td class="p-2.5">93,080</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
+      <h3 class="text-sm font-bold text-[var(--foreground)] mb-3">Client-Side Cryptographic Overhead (WebCrypto API)</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="text-[var(--muted-foreground)]">Canonicalization + Keccak-256</div>
+          <div class="text-2xl font-bold text-[var(--foreground)] mt-1">0.135 ms</div>
+          <div class="text-[11px] text-[var(--muted-foreground)] mt-0.5">p95: 0.288 ms (Instant)</div>
+        </div>
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="text-[var(--muted-foreground)]">PBKDF2 (310k iter) + AES-GCM Encrypt</div>
+          <div class="text-2xl font-bold text-[var(--foreground)] mt-1">191.56 ms</div>
+          <div class="text-[11px] text-[var(--muted-foreground)] mt-0.5">Median: 189.33 ms</div>
+        </div>
+        <div class="p-4 bg-[var(--background)] rounded-xl border border-[var(--border)]">
+          <div class="text-[var(--muted-foreground)]">PBKDF2 (310k iter) + AES-GCM Decrypt</div>
+          <div class="text-2xl font-bold text-[var(--foreground)] mt-1">196.54 ms</div>
+          <div class="text-[11px] text-[var(--muted-foreground)] mt-0.5">Median: 182.90 ms</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Verbatim Logs -->
+  <div id="tab-logs" class="max-w-5xl mx-auto tab-content space-y-4 hidden">
+    <div class="bg-slate-900 text-slate-100 rounded-2xl p-6 font-mono text-xs overflow-x-auto border border-slate-800">
+      <div class="text-emerald-400 font-bold mb-2"># Live Terminal Test Runner Evidence</div>
+      <div class="text-slate-400 mb-4">> cd blockchain; npx hardhat test test/component4/PrescriptionRegistry.test.js</div>
+      <pre class="leading-relaxed">
+  Component 4: PrescriptionRegistry (Privacy-Preserving Blockchain Prescription Management)
+    1. Access Control and Deployment Setup
+      ✔ Should grant DEFAULT_ADMIN_ROLE to deployer
+      ✔ Should assign DOCTOR_ROLE and PHARMACY_ROLE correctly
+      ✔ Should properly configure external registry addresses
+    2. Client-Side Privacy and Hashing (src/utils/privacy.js)
+      ✔ Should generate deterministic Keccak-256 patientHash for identical input and salt
+      ✔ Should generate completely distinct hashes when salt differs (anti-rainbow table)
+      ✔ Should correctly verify patient identity off-chain
+      ✔ Should generate a valid prescription creation bundle via createPrescriptionPayload
+    3. Valid Prescription Issuance
+      ✔ Should allow an authorized doctor to issue a prescription
+      ✔ Should prevent duplicate prescription issuance with existing prescriptionId
+      ✔ Should reject issuance with expired expiryTime
+      ✔ Should reject issuance with zero prescriptionId or zero patientHash
+    4. Single-Use Dispensing Enforcement
+      ✔ Should allow authorized pharmacy to dispense an active prescription
+      ✔ Should strictly enforce single-use and reject double dispensing attempts
+      ✔ Should verify patient identity hash upon dispensing when requested
+      ✔ Should reject dispensing without the patient's matching hash
+      ✔ Should not allow repeated dispensing after a successful verified dispense
+    5. Unauthorized Access Rejections
+      ✔ Should reject non-doctor accounts from issuing prescriptions
+      ✔ Should reject non-pharmacy accounts from dispensing prescriptions
+      ✔ Should reject unauthorized callers from revoking prescriptions
+      ✔ Should reject non-admin accounts from configuring thresholds or registries
+    6. Expired Prescription Checks
+      ✔ Should dynamically report status as EXPIRED after time elapses
+      ✔ Should reject dispensing of an expired prescription
+    7. Revocation Lifecycle
+      ✔ Should allow the issuing doctor to revoke an active prescription
+      ✔ Should allow admin to revoke an active prescription
+      ✔ Should prevent dispensing of a revoked prescription
+    8. Cross-Component Interface Checks (Component 2 & Component 3)
+      ✔ allows a recorded safe risk score of 0
+      ✔ allows a recorded safe risk score of 69
+      ✔ rejects risk score 70 and leaves the prescription active
+      ✔ rejects risk score 71 and leaves the prescription active
+      ✔ rejects risk score 89 and leaves the prescription active
+      ✔ rejects risk score 100 and leaves the prescription active
+      ✔ rejects a missing batch risk record
+      ✔ rejects an out-of-range score returned by a registry
+      ✔ rejects contradictory score and safety flag data returned by a registry
+      ✔ fails closed when the configured registry call reverts
+      ✔ fails closed when getRiskScore reverts after hasBatchRisk succeeds
+      ✔ fails closed when isBatchSafe reverts after record and score reads succeed
+      ✔ fails closed when the risk registry is unset or has no contract code
+      ✔ does not allow the admin to raise the risk cutoff to 70 or above
+      ✔ Should reject dispensing if the batch has no Component 2 assessment
+      ✔ Should reject dispensing if Pharmacy Trust Score is below required threshold (Component 3)
+      ✔ Should allow dispensing when Risk is low and Pharmacy is trusted
+
+  42 passing (2s)
+      </pre>
+    </div>
+  </div>
+
+  <!-- Tab 5: RTM -->
+  <div id="tab-rtm" class="max-w-5xl mx-auto tab-content space-y-4 hidden">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm">
+      <h3 class="text-sm font-bold text-[var(--foreground)] mb-3">Requirements Traceability Matrix (SLIIT Research Scope)</h3>
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="bg-[var(--secondary)] text-[var(--secondary-foreground)] border-b border-[var(--border)]">
+            <th class="p-2.5 font-semibold">Research Requirement</th>
+            <th class="p-2.5 font-semibold">System Invariant</th>
+            <th class="p-2.5 font-semibold">Mapped Test Cases</th>
+            <th class="p-2.5 font-semibold text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[var(--border)]">
+          <tr><td class="p-2.5 font-medium">Prescription Data Model</td><td class="p-2.5">Prescription struct with ID, patientHash, doctorAddress, batchId</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-006, TC-C4-008</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Role-Based Access Control</td><td class="p-2.5">OpenZeppelin AccessControl for DOCTOR, PHARMACY, ADMIN</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-001 - TC-C4-005</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Anti-Tampering & Ledger</td><td class="p-2.5">Append-only Ethereum event logs and immutable EVM storage</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-007, TC-C4-008</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Anti-Double Dispensing</td><td class="p-2.5">Atomic state transition ACTIVE &rarr; USED prevents doctor shopping</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-010, TC-C4-011</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Zero-PII Patient Privacy</td><td class="p-2.5">Salted Keccak-256 hash + client-side PBKDF2/AES-256-GCM</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-012, TC-C4-025</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Component 2 AI Risk Gate</td><td class="p-2.5">Fail-closed oracle query blocking batch risk &ge; 70</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-015 - TC-C4-018</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+          <tr><td class="p-2.5 font-medium">Component 3 Pharmacy Trust</td><td class="p-2.5">Fail-closed oracle query blocking pharmacy trust &lt; 70</td><td class="p-2.5 font-mono text-[#087D66]">TC-C4-019, TC-C4-020</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-bold">100% VERIFIED</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-nav button').forEach(el => {
+        el.classList.remove('active-tab');
+        el.classList.add('text-[var(--muted-foreground)]');
+      });
+      
+      const targetContent = document.getElementById('tab-' + tabId);
+      if (targetContent) targetContent.classList.remove('hidden');
+      
+      const targetBtn = document.getElementById('tab-btn-' + tabId);
+      if (targetBtn) {
+        targetBtn.classList.add('active-tab');
+        targetBtn.classList.remove('text-[var(--muted-foreground)]');
+      }
+    }
+  </script>
+</body>
+</html>

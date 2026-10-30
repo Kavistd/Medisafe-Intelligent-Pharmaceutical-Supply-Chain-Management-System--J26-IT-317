@@ -1,15 +1,155 @@
-import { getAddress, isAddress, solidityPackedKeccak256 } from "ethers";
+import { getAddress, isAddress, randomBytes, solidityPackedKeccak256 } from "ethers";
+import * as aesjs from "aes-js";
+import { pbkdf2Async } from "@noble/hashes/pbkdf2";
+import { sha256 } from "@noble/hashes/sha256";
 
 const ENVELOPE_VERSION = 1;
 const KDF_ITERATIONS = 310000;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-function webCrypto() {
-  if (!globalThis.crypto?.subtle || !globalThis.crypto?.getRandomValues) {
-    throw new Error("Secure browser encryption is unavailable. Use a current browser over HTTPS or localhost.");
+function hasWebCryptoSubtle() {
+  return typeof globalThis !== "undefined" && !!globalThis.crypto?.subtle;
+}
+
+function getRandomBytes(length) {
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.getRandomValues) {
+    return globalThis.crypto.getRandomValues(new Uint8Array(length));
   }
-  return globalThis.crypto;
+  return randomBytes(length);
+}
+
+function createAesInstance(keyBytes) {
+  const AESClass =
+    aesjs.AES ||
+    aesjs.default?.AES ||
+    aesjs.default?.default?.AES ||
+    (typeof aesjs.default === "function" ? aesjs.default : null) ||
+    (typeof aesjs === "function" ? aesjs : null);
+  if (!AESClass) {
+    throw new Error("AES cipher implementation could not be resolved.");
+  }
+  return new AESClass(keyBytes);
+}
+
+function gfMult(xBuf, yBuf) {
+  let x = BigInt("0x" + Array.from(xBuf, (b) => b.toString(16).padStart(2, "0")).join(""));
+  let y = BigInt("0x" + Array.from(yBuf, (b) => b.toString(16).padStart(2, "0")).join(""));
+  const R = 0xe1n << 120n;
+  let z = 0n;
+  let v = y;
+  for (let i = 0n; i < 128n; i++) {
+    if ((x >> (127n - i)) & 1n) z ^= v;
+    if (v & 1n) v = (v >> 1n) ^ R;
+    else v = v >> 1n;
+  }
+  const hex = z.toString(16).padStart(32, "0");
+  const res = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) res[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return res;
+}
+
+function ghash(H, data) {
+  let y = new Uint8Array(16);
+  for (let offset = 0; offset < data.length; offset += 16) {
+    const block = data.subarray(offset, offset + 16);
+    for (let j = 0; j < 16; j++) y[j] ^= block[j];
+    y = gfMult(y, H);
+  }
+  return y;
+}
+
+function fallbackAesGcmEncrypt(keyBytes, iv, plaintext) {
+  const aes = createAesInstance(keyBytes);
+  const H = aes.encrypt(new Uint8Array(16));
+
+  const J0 = new Uint8Array(16);
+  J0.set(iv);
+  J0[15] = 1;
+
+  const ciphertext = new Uint8Array(plaintext.length);
+  const cb = new Uint8Array(16);
+  cb.set(iv, 0);
+  const view = new DataView(cb.buffer, cb.byteOffset, cb.byteLength);
+
+  let counter = 2;
+  for (let offset = 0; offset < plaintext.length; offset += 16) {
+    view.setUint32(12, counter >>> 0);
+    counter++;
+    const keystream = aes.encrypt(cb);
+    const blockSize = Math.min(16, plaintext.length - offset);
+    for (let j = 0; j < blockSize; j++) {
+      ciphertext[offset + j] = plaintext[offset + j] ^ keystream[j];
+    }
+  }
+
+  const padLen = (16 - (ciphertext.length % 16)) % 16;
+  const lenBuf = new Uint8Array(16);
+  const lenView = new DataView(lenBuf.buffer, lenBuf.byteOffset, lenBuf.byteLength);
+  lenView.setUint32(12, ciphertext.length * 8);
+
+  const ghashData = new Uint8Array(ciphertext.length + padLen + 16);
+  ghashData.set(ciphertext, 0);
+  ghashData.set(lenBuf, ciphertext.length + padLen);
+
+  const S = ghash(H, ghashData);
+  const tagMask = aes.encrypt(J0);
+  const tag = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) tag[i] = S[i] ^ tagMask[i];
+
+  const result = new Uint8Array(ciphertext.length + 16);
+  result.set(ciphertext, 0);
+  result.set(tag, ciphertext.length);
+  return result;
+}
+
+function fallbackAesGcmDecrypt(keyBytes, iv, ciphertextAndTag) {
+  if (ciphertextAndTag.length < 16) throw new Error("Invalid ciphertext");
+  const ciphertext = ciphertextAndTag.subarray(0, ciphertextAndTag.length - 16);
+  const tag = ciphertextAndTag.subarray(ciphertextAndTag.length - 16);
+
+  const aes = createAesInstance(keyBytes);
+  const H = aes.encrypt(new Uint8Array(16));
+
+  const J0 = new Uint8Array(16);
+  J0.set(iv);
+  J0[15] = 1;
+
+  const padLen = (16 - (ciphertext.length % 16)) % 16;
+  const lenBuf = new Uint8Array(16);
+  const lenView = new DataView(lenBuf.buffer, lenBuf.byteOffset, lenBuf.byteLength);
+  lenView.setUint32(12, ciphertext.length * 8);
+
+  const ghashData = new Uint8Array(ciphertext.length + padLen + 16);
+  ghashData.set(ciphertext, 0);
+  ghashData.set(lenBuf, ciphertext.length + padLen);
+
+  const S = ghash(H, ghashData);
+  const tagMask = aes.encrypt(J0);
+  let tagMismatch = 0;
+  for (let i = 0; i < 16; i++) {
+    tagMismatch |= tag[i] ^ (S[i] ^ tagMask[i]);
+  }
+  if (tagMismatch !== 0) {
+    throw new Error("Could not decrypt the credential. Check the passphrase and file.");
+  }
+
+  const plaintext = new Uint8Array(ciphertext.length);
+  const cb = new Uint8Array(16);
+  cb.set(iv, 0);
+  const view = new DataView(cb.buffer, cb.byteOffset, cb.byteLength);
+
+  let counter = 2;
+  for (let offset = 0; offset < ciphertext.length; offset += 16) {
+    view.setUint32(12, counter >>> 0);
+    counter++;
+    const keystream = aes.encrypt(cb);
+    const blockSize = Math.min(16, ciphertext.length - offset);
+    for (let j = 0; j < blockSize; j++) {
+      plaintext[offset + j] = ciphertext[offset + j] ^ keystream[j];
+    }
+  }
+  return plaintext;
 }
 
 function bytesToBase64(bytes) {
@@ -39,7 +179,8 @@ function canonicalIdentity(identity) {
 }
 
 export function generatePatientSalt() {
-  return `0x${Array.from(webCrypto().getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
+  const bytes = getRandomBytes(32);
+  return `0x${Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("")}`;
 }
 
 export function hashPatientCredential(identity, salt) {
@@ -49,8 +190,8 @@ export function hashPatientCredential(identity, salt) {
 
 async function deriveKey(passphrase, salt) {
   if (typeof passphrase !== "string" || passphrase.length < 12) throw new Error("Use a passphrase with at least 12 characters.");
-  const material = await webCrypto().subtle.importKey("raw", encoder.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
-  return webCrypto().subtle.deriveKey(
+  const material = await globalThis.crypto.subtle.importKey("raw", encoder.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+  return globalThis.crypto.subtle.deriveKey(
     { name: "PBKDF2", salt, iterations: KDF_ITERATIONS, hash: "SHA-256" },
     material,
     { name: "AES-GCM", length: 256 },
@@ -60,18 +201,35 @@ async function deriveKey(passphrase, salt) {
 }
 
 export async function encryptPatientCredential(payload, passphrase) {
-  const crypto = webCrypto();
-  const kdfSalt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(passphrase, kdfSalt);
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoder.encode(JSON.stringify(payload)));
+  if (typeof passphrase !== "string" || passphrase.length < 12) {
+    throw new Error("Use a passphrase with at least 12 characters.");
+  }
+  const kdfSalt = getRandomBytes(16);
+  const iv = getRandomBytes(12);
+  const plaintext = encoder.encode(JSON.stringify(payload));
+  let ciphertext;
+
+  if (hasWebCryptoSubtle()) {
+    try {
+      const key = await deriveKey(passphrase, kdfSalt);
+      const enc = await globalThis.crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
+      ciphertext = new Uint8Array(enc);
+    } catch {
+      const keyBytes = await pbkdf2Async(sha256, passphrase, kdfSalt, { c: KDF_ITERATIONS, dkLen: 32 });
+      ciphertext = fallbackAesGcmEncrypt(keyBytes, iv, plaintext);
+    }
+  } else {
+    const keyBytes = await pbkdf2Async(sha256, passphrase, kdfSalt, { c: KDF_ITERATIONS, dkLen: 32 });
+    ciphertext = fallbackAesGcmEncrypt(keyBytes, iv, plaintext);
+  }
+
   return JSON.stringify({
     version: ENVELOPE_VERSION,
     kdf: "PBKDF2-SHA256",
     iterations: KDF_ITERATIONS,
     salt: bytesToBase64(kdfSalt),
     iv: bytesToBase64(iv),
-    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+    ciphertext: bytesToBase64(ciphertext),
   });
 }
 
@@ -87,8 +245,25 @@ export async function decryptPatientCredential(serialized, passphrase) {
     const iv = base64ToBytes(envelope.iv);
     const ciphertext = base64ToBytes(envelope.ciphertext);
     if (kdfSalt.length !== 16 || iv.length !== 12 || ciphertext.length < 17) throw new Error("Invalid encrypted envelope.");
-    const key = await deriveKey(passphrase, kdfSalt);
-    const plaintext = await webCrypto().subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+
+    let plaintext;
+    if (hasWebCryptoSubtle()) {
+      try {
+        const key = await deriveKey(passphrase, kdfSalt);
+        plaintext = await globalThis.crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+      } catch (subtleErr) {
+        try {
+          const keyBytes = await pbkdf2Async(sha256, passphrase, kdfSalt, { c: KDF_ITERATIONS, dkLen: 32 });
+          plaintext = fallbackAesGcmDecrypt(keyBytes, iv, ciphertext);
+        } catch {
+          throw subtleErr;
+        }
+      }
+    } else {
+      const keyBytes = await pbkdf2Async(sha256, passphrase, kdfSalt, { c: KDF_ITERATIONS, dkLen: 32 });
+      plaintext = fallbackAesGcmDecrypt(keyBytes, iv, ciphertext);
+    }
+
     return JSON.parse(decoder.decode(plaintext));
   } catch {
     throw new Error("Could not decrypt the credential. Check the passphrase and file.");

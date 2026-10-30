@@ -1,0 +1,3276 @@
+{
+  "banner": [
+    "SYNTHETIC DATA - NOT REAL PHARMACY DATA.",
+    "Proposed weights (D 0.35, R 0.30, C 0.20, I 0.15) and tier thresholds (80 / 60 / 40) are research parameters, not NMRA-prescribed values.",
+    "These results show computational correctness and robustness to weight assumptions only. They do not show real-world accuracy."
+  ],
+  "parameters": {
+    "scenarioSeed": 20261021,
+    "globalSeed": 20261022,
+    "globalDraws": 1000,
+    "functionalTolerance": 1e-9,
+    "proposedWeights": {
+      "delivery": 0.35,
+      "recall": 0.3,
+      "complaint": 0.2,
+      "inspection": 0.15
+    }
+  },
+  "functional": [
+    {
+      "id": "T01",
+      "title": "Delivery reliability: 7 on-time of 10 eligible -> D = 70",
+      "checks": [
+        {
+          "label": "delivery status",
+          "expected": "ASSESSABLE",
+          "observed": "ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "D",
+          "expected": 70,
+          "observed": 70,
+          "absDiff": 0,
+          "pass": true
+        }
+      ],
+      "checksPassed": 2,
+      "checksTotal": 2,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T02",
+      "title": "Recall response: 9 of 12 applicable recall actions -> R = 75",
+      "checks": [
+        {
+          "label": "recall status",
+          "expected": "ASSESSABLE",
+          "observed": "ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "R",
+          "expected": 75,
+          "observed": 75,
+          "absDiff": 0,
+          "pass": true
+        }
+      ],
+      "checksPassed": 2,
+      "checksTotal": 2,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T03",
+      "title": "Complaint handling: 4 of 6 eligible complaints -> C = 66.666...",
+      "checks": [
+        {
+          "label": "complaint status",
+          "expected": "ASSESSABLE",
+          "observed": "ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "C (= 200/3)",
+          "expected": 66.66666666666667,
+          "observed": 66.66666666666667,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "C rounded to 2 dp",
+          "expected": "66.67",
+          "observed": "66.67",
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 3,
+      "checksTotal": 3,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T04",
+      "title": "Inspection: 16 points of 20 applicable -> I = 80",
+      "checks": [
+        {
+          "label": "inspection status",
+          "expected": "ASSESSABLE",
+          "observed": "ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "I",
+          "expected": 80,
+          "observed": 80,
+          "absDiff": 0,
+          "pass": true
+        }
+      ],
+      "checksPassed": 2,
+      "checksTotal": 2,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T05",
+      "title": "Weighted trust score: (80,80,70,80) -> 78; (70,75,66.67,80) -> 72.334",
+      "checks": [
+        {
+          "label": "TS (80,80,70,80)",
+          "expected": 78,
+          "observed": 78,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "tier at 78",
+          "expected": "TRUSTED",
+          "observed": "TRUSTED",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "TS (70,75,66.67,80)",
+          "expected": 72.334,
+          "observed": 72.334,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "TS (70,75,200/3,80) = 217/3",
+          "expected": 72.33333333333333,
+          "observed": 72.33333333333334,
+          "absDiff": 1.4210854715202004e-14,
+          "pass": true
+        }
+      ],
+      "checksPassed": 4,
+      "checksTotal": 4,
+      "maxAbsDiff": 1.4210854715202004e-14,
+      "pass": true
+    },
+    {
+      "id": "T06",
+      "title": "No eligible recall records -> R NOT_ASSESSABLE; overall NOT_ASSESSABLE, score null, no renormalisation",
+      "checks": [
+        {
+          "label": "recall status",
+          "expected": "NOT_ASSESSABLE",
+          "observed": "NOT_ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "recall value (not 100, not 0)",
+          "expected": null,
+          "observed": null,
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "overall status",
+          "expected": "NOT_ASSESSABLE",
+          "observed": "NOT_ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "overall score",
+          "expected": null,
+          "observed": null,
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "tier",
+          "expected": "NOT_ASSESSABLE",
+          "observed": "NOT_ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "missing indicators",
+          "expected": [
+            "recall"
+          ],
+          "observed": [
+            "recall"
+          ],
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "no renormalised score produced",
+          "expected": false,
+          "observed": false,
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 7,
+      "checksTotal": 7,
+      "maxAbsDiff": null,
+      "pass": true
+    },
+    {
+      "id": "T07",
+      "title": "Duplicate evidence submitted twice -> counted once; numerator and denominator unchanged",
+      "checks": [
+        {
+          "label": "raw delivery records submitted",
+          "expected": 11,
+          "observed": 11,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "duplicates detected",
+          "expected": 1,
+          "observed": 1,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "numerator (on-time)",
+          "expected": 7,
+          "observed": 7,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "denominator (eligible)",
+          "expected": 10,
+          "observed": 10,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "D",
+          "expected": 70,
+          "observed": 70,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "service duplicateCount",
+          "expected": 1,
+          "observed": 1,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "calculator rejects duplicate IDs",
+          "expected": true,
+          "observed": true,
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 7,
+      "checksTotal": 7,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T08",
+      "title": "Critical finding with high score (>= 80) -> escalation required, score unchanged",
+      "checks": [
+        {
+          "label": "score with finding",
+          "expected": 93.5,
+          "observed": 93.5,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "score >= 80",
+          "expected": true,
+          "observed": true,
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "escalation required",
+          "expected": true,
+          "observed": true,
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "score identical without finding",
+          "expected": 93.5,
+          "observed": 93.5,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "tier unchanged by finding",
+          "expected": "HIGHLY_TRUSTED",
+          "observed": "HIGHLY_TRUSTED",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "no escalation without finding",
+          "expected": false,
+          "observed": false,
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 6,
+      "checksTotal": 6,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T09",
+      "title": "Supplementary: indicator value 0 is ASSESSABLE and distinct from NOT_ASSESSABLE",
+      "checks": [
+        {
+          "label": "zero delivery status",
+          "expected": "ASSESSABLE",
+          "observed": "ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "zero delivery value",
+          "expected": 0,
+          "observed": 0,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "overall score with D = 0",
+          "expected": 50,
+          "observed": 50,
+          "absDiff": 0,
+          "pass": true
+        },
+        {
+          "label": "missing delivery status",
+          "expected": "NOT_ASSESSABLE",
+          "observed": "NOT_ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "missing delivery overall score",
+          "expected": null,
+          "observed": null,
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 5,
+      "checksTotal": 5,
+      "maxAbsDiff": 0,
+      "pass": true
+    },
+    {
+      "id": "T10",
+      "title": "Supplementary: tier boundaries 80 / 79.99 / 60 / 59.99 / 40 / 39.99",
+      "checks": [
+        {
+          "label": "80",
+          "expected": "HIGHLY_TRUSTED",
+          "observed": "HIGHLY_TRUSTED",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "79.99",
+          "expected": "TRUSTED",
+          "observed": "TRUSTED",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "60",
+          "expected": "TRUSTED",
+          "observed": "TRUSTED",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "59.99",
+          "expected": "UNDER_REVIEW",
+          "observed": "UNDER_REVIEW",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "40",
+          "expected": "UNDER_REVIEW",
+          "observed": "UNDER_REVIEW",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "39.99",
+          "expected": "ESCALATION_ALERT",
+          "observed": "ESCALATION_ALERT",
+          "absDiff": null,
+          "pass": true
+        },
+        {
+          "label": "null",
+          "expected": "NOT_ASSESSABLE",
+          "observed": "NOT_ASSESSABLE",
+          "absDiff": null,
+          "pass": true
+        }
+      ],
+      "checksPassed": 7,
+      "checksTotal": 7,
+      "maxAbsDiff": null,
+      "pass": true
+    }
+  ],
+  "scenarios": {
+    "profiles": [
+      {
+        "pharmacyId": "SYN-EXCELLENT-01",
+        "archetype": "excellent",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 16,
+            "denominator": 18
+          },
+          "recall": {
+            "numerator": 8,
+            "denominator": 8
+          },
+          "complaint": {
+            "numerator": 8,
+            "denominator": 8
+          },
+          "inspection": {
+            "numerator": 14,
+            "denominator": 15
+          }
+        },
+        "values": {
+          "delivery": 88.88888888888889,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 93.33333333333333
+        },
+        "status": "ASSESSABLE",
+        "score": 95.11111111111111,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-02",
+        "archetype": "excellent",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 14,
+            "denominator": 16
+          },
+          "recall": {
+            "numerator": 11,
+            "denominator": 12
+          },
+          "complaint": {
+            "numerator": 7,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 34,
+            "denominator": 35
+          }
+        },
+        "values": {
+          "delivery": 87.5,
+          "recall": 91.66666666666667,
+          "complaint": 100,
+          "inspection": 97.14285714285714
+        },
+        "status": "ASSESSABLE",
+        "score": 92.69642857142857,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 37
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-03",
+        "archetype": "excellent",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 19,
+            "denominator": 20
+          },
+          "recall": {
+            "numerator": 11,
+            "denominator": 12
+          },
+          "complaint": {
+            "numerator": 10,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 12,
+            "denominator": 13
+          }
+        },
+        "values": {
+          "delivery": 95,
+          "recall": 91.66666666666667,
+          "complaint": 100,
+          "inspection": 92.3076923076923
+        },
+        "status": "ASSESSABLE",
+        "score": 94.59615384615384,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 43
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-04",
+        "archetype": "excellent",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 15,
+            "denominator": 16
+          },
+          "recall": {
+            "numerator": 12,
+            "denominator": 12
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "inspection": {
+            "numerator": 26,
+            "denominator": 27
+          }
+        },
+        "values": {
+          "delivery": 93.75,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 96.29629629629629
+        },
+        "status": "ASSESSABLE",
+        "score": 97.25694444444444,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 33
+      },
+      {
+        "pharmacyId": "SYN-GOOD-01",
+        "archetype": "good",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 19,
+            "denominator": 22
+          },
+          "recall": {
+            "numerator": 6,
+            "denominator": 8
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 22,
+            "denominator": 27
+          }
+        },
+        "values": {
+          "delivery": 86.36363636363636,
+          "recall": 75,
+          "complaint": 71.42857142857143,
+          "inspection": 81.48148148148148
+        },
+        "status": "ASSESSABLE",
+        "score": 79.23520923520923,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 38
+      },
+      {
+        "pharmacyId": "SYN-GOOD-02",
+        "archetype": "good",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 12,
+            "denominator": 14
+          },
+          "recall": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 41,
+            "denominator": 51
+          }
+        },
+        "values": {
+          "delivery": 85.71428571428571,
+          "recall": 83.33333333333333,
+          "complaint": 80,
+          "inspection": 80.3921568627451
+        },
+        "status": "ASSESSABLE",
+        "score": 83.05882352941177,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 27
+      },
+      {
+        "pharmacyId": "SYN-GOOD-03",
+        "archetype": "good",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 17,
+            "denominator": 21
+          },
+          "recall": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "inspection": {
+            "numerator": 19,
+            "denominator": 24
+          }
+        },
+        "values": {
+          "delivery": 80.95238095238095,
+          "recall": 75,
+          "complaint": 83.33333333333333,
+          "inspection": 79.16666666666667
+        },
+        "status": "ASSESSABLE",
+        "score": 79.375,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 32
+      },
+      {
+        "pharmacyId": "SYN-GOOD-04",
+        "archetype": "good",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 13,
+            "denominator": 17
+          },
+          "recall": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "complaint": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "inspection": {
+            "numerator": 17,
+            "denominator": 22
+          }
+        },
+        "values": {
+          "delivery": 76.47058823529412,
+          "recall": 75,
+          "complaint": 75,
+          "inspection": 77.27272727272727
+        },
+        "status": "ASSESSABLE",
+        "score": 75.85561497326204,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 26
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-01",
+        "archetype": "average",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 9,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 8
+          },
+          "complaint": {
+            "numerator": 7,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 26,
+            "denominator": 40
+          }
+        },
+        "values": {
+          "delivery": 60,
+          "recall": 50,
+          "complaint": 70,
+          "inspection": 65
+        },
+        "status": "ASSESSABLE",
+        "score": 59.75,
+        "tier": "UNDER_REVIEW",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-02",
+        "archetype": "average",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 15,
+            "denominator": 20
+          },
+          "recall": {
+            "numerator": 5,
+            "denominator": 9
+          },
+          "complaint": {
+            "numerator": 6,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 38,
+            "denominator": 55
+          }
+        },
+        "values": {
+          "delivery": 75,
+          "recall": 55.55555555555556,
+          "complaint": 60,
+          "inspection": 69.0909090909091
+        },
+        "status": "ASSESSABLE",
+        "score": 65.28030303030303,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 41
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-03",
+        "archetype": "average",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 16,
+            "denominator": 23
+          },
+          "recall": {
+            "numerator": 8,
+            "denominator": 12
+          },
+          "complaint": {
+            "numerator": 9,
+            "denominator": 12
+          },
+          "inspection": {
+            "numerator": 33,
+            "denominator": 47
+          }
+        },
+        "values": {
+          "delivery": 69.56521739130434,
+          "recall": 66.66666666666667,
+          "complaint": 75,
+          "inspection": 70.2127659574468
+        },
+        "status": "ASSESSABLE",
+        "score": 69.87974098057353,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 49
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-04",
+        "archetype": "average",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 10,
+            "denominator": 17
+          },
+          "recall": {
+            "numerator": 6,
+            "denominator": 10
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 11,
+            "denominator": 15
+          }
+        },
+        "values": {
+          "delivery": 58.8235294117647,
+          "recall": 60,
+          "complaint": 71.42857142857143,
+          "inspection": 73.33333333333333
+        },
+        "status": "ASSESSABLE",
+        "score": 63.87394957983193,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-POOR-01",
+        "archetype": "poor",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 5,
+            "denominator": 24
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 8
+          },
+          "complaint": {
+            "numerator": 3,
+            "denominator": 6
+          },
+          "inspection": {
+            "numerator": 10,
+            "denominator": 29
+          }
+        },
+        "values": {
+          "delivery": 20.833333333333332,
+          "recall": 50,
+          "complaint": 50,
+          "inspection": 34.48275862068966
+        },
+        "status": "ASSESSABLE",
+        "score": 37.464080459770116,
+        "tier": "ESCALATION_ALERT",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 39
+      },
+      {
+        "pharmacyId": "SYN-POOR-02",
+        "archetype": "poor",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 5,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 2,
+            "denominator": 9
+          },
+          "complaint": {
+            "numerator": 3,
+            "denominator": 11
+          },
+          "inspection": {
+            "numerator": 9,
+            "denominator": 32
+          }
+        },
+        "values": {
+          "delivery": 33.333333333333336,
+          "recall": 22.22222222222222,
+          "complaint": 27.272727272727273,
+          "inspection": 28.125
+        },
+        "status": "ASSESSABLE",
+        "score": 28.00662878787879,
+        "tier": "ESCALATION_ALERT",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 37
+      },
+      {
+        "pharmacyId": "SYN-POOR-03",
+        "archetype": "poor",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 3,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 2,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 3,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 17,
+            "denominator": 44
+          }
+        },
+        "values": {
+          "delivery": 20,
+          "recall": 40,
+          "complaint": 42.857142857142854,
+          "inspection": 38.63636363636363
+        },
+        "status": "ASSESSABLE",
+        "score": 33.366883116883116,
+        "tier": "ESCALATION_ALERT",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 29
+      },
+      {
+        "pharmacyId": "SYN-POOR-04",
+        "archetype": "poor",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 5,
+            "denominator": 21
+          },
+          "recall": {
+            "numerator": 2,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 2,
+            "denominator": 6
+          },
+          "inspection": {
+            "numerator": 7,
+            "denominator": 21
+          }
+        },
+        "values": {
+          "delivery": 23.80952380952381,
+          "recall": 33.333333333333336,
+          "complaint": 33.333333333333336,
+          "inspection": 33.333333333333336
+        },
+        "status": "ASSESSABLE",
+        "score": 30.000000000000004,
+        "tier": "ESCALATION_ALERT",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 34
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-01",
+        "archetype": "recall-failure",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 15,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 2,
+            "denominator": 11
+          },
+          "complaint": {
+            "numerator": 6,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 33,
+            "denominator": 37
+          }
+        },
+        "values": {
+          "delivery": 100,
+          "recall": 18.181818181818183,
+          "complaint": 85.71428571428571,
+          "inspection": 89.1891891891892
+        },
+        "status": "ASSESSABLE",
+        "score": 70.97578097578096,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-02",
+        "archetype": "recall-failure",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 17,
+            "denominator": 18
+          },
+          "recall": {
+            "numerator": 0,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 50,
+            "denominator": 51
+          }
+        },
+        "values": {
+          "delivery": 94.44444444444444,
+          "recall": 0,
+          "complaint": 100,
+          "inspection": 98.03921568627452
+        },
+        "status": "ASSESSABLE",
+        "score": 67.76143790849673,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 31
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-03",
+        "archetype": "recall-failure",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 13,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 3,
+            "denominator": 12
+          },
+          "complaint": {
+            "numerator": 6,
+            "denominator": 6
+          },
+          "inspection": {
+            "numerator": 28,
+            "denominator": 30
+          }
+        },
+        "values": {
+          "delivery": 86.66666666666667,
+          "recall": 25,
+          "complaint": 100,
+          "inspection": 93.33333333333333
+        },
+        "status": "ASSESSABLE",
+        "score": 71.83333333333333,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-01",
+        "archetype": "delivery-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 5,
+            "denominator": 19
+          },
+          "recall": {
+            "numerator": 8,
+            "denominator": 9
+          },
+          "complaint": {
+            "numerator": 11,
+            "denominator": 11
+          },
+          "inspection": {
+            "numerator": 9,
+            "denominator": 10
+          }
+        },
+        "values": {
+          "delivery": 26.31578947368421,
+          "recall": 88.88888888888889,
+          "complaint": 100,
+          "inspection": 90
+        },
+        "status": "ASSESSABLE",
+        "score": 69.37719298245614,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 40
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-02",
+        "archetype": "delivery-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 4,
+            "denominator": 15
+          },
+          "recall": {
+            "numerator": 6,
+            "denominator": 7
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "inspection": {
+            "numerator": 39,
+            "denominator": 44
+          }
+        },
+        "values": {
+          "delivery": 26.666666666666668,
+          "recall": 85.71428571428571,
+          "complaint": 100,
+          "inspection": 88.63636363636364
+        },
+        "status": "ASSESSABLE",
+        "score": 68.34307359307358,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 28
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-03",
+        "archetype": "delivery-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 9,
+            "denominator": 21
+          },
+          "recall": {
+            "numerator": 6,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 45,
+            "denominator": 46
+          }
+        },
+        "values": {
+          "delivery": 42.857142857142854,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 97.82608695652173
+        },
+        "status": "ASSESSABLE",
+        "score": 79.67391304347827,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 34
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-01",
+        "archetype": "complaint-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 23,
+            "denominator": 23
+          },
+          "recall": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 1,
+            "denominator": 4
+          },
+          "inspection": {
+            "numerator": 10,
+            "denominator": 11
+          }
+        },
+        "values": {
+          "delivery": 100,
+          "recall": 83.33333333333333,
+          "complaint": 25,
+          "inspection": 90.9090909090909
+        },
+        "status": "ASSESSABLE",
+        "score": 78.63636363636364,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 34
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-02",
+        "archetype": "complaint-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 12,
+            "denominator": 12
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "complaint": {
+            "numerator": 2,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 30,
+            "denominator": 34
+          }
+        },
+        "values": {
+          "delivery": 100,
+          "recall": 100,
+          "complaint": 40,
+          "inspection": 88.23529411764706
+        },
+        "status": "ASSESSABLE",
+        "score": 86.23529411764706,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 23
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-03",
+        "archetype": "complaint-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 14,
+            "denominator": 16
+          },
+          "recall": {
+            "numerator": 9,
+            "denominator": 11
+          },
+          "complaint": {
+            "numerator": 1,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 22,
+            "denominator": 25
+          }
+        },
+        "values": {
+          "delivery": 87.5,
+          "recall": 81.81818181818181,
+          "complaint": 20,
+          "inspection": 88
+        },
+        "status": "ASSESSABLE",
+        "score": 72.37045454545454,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 33
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-01",
+        "archetype": "inspection-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 9,
+            "denominator": 10
+          },
+          "recall": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 10,
+            "denominator": 25
+          }
+        },
+        "values": {
+          "delivery": 90,
+          "recall": 83.33333333333333,
+          "complaint": 80,
+          "inspection": 40
+        },
+        "status": "ASSESSABLE",
+        "score": 78.5,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 22
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-02",
+        "archetype": "inspection-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 19,
+            "denominator": 22
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "complaint": {
+            "numerator": 11,
+            "denominator": 11
+          },
+          "inspection": {
+            "numerator": 18,
+            "denominator": 53
+          }
+        },
+        "values": {
+          "delivery": 86.36363636363636,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 33.9622641509434
+        },
+        "status": "ASSESSABLE",
+        "score": 85.32161234991423,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 39
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-03",
+        "archetype": "inspection-weak",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 23,
+            "denominator": 24
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 16,
+            "denominator": 57
+          }
+        },
+        "values": {
+          "delivery": 95.83333333333333,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 28.07017543859649
+        },
+        "status": "ASSESSABLE",
+        "score": 87.75219298245614,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 35
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-01",
+        "archetype": "critical-finding-with-high-score",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": true,
+        "counts": {
+          "delivery": {
+            "numerator": 24,
+            "denominator": 24
+          },
+          "recall": {
+            "numerator": 6,
+            "denominator": 7
+          },
+          "complaint": {
+            "numerator": 6,
+            "denominator": 7
+          },
+          "inspection": {
+            "numerator": 22,
+            "denominator": 24
+          }
+        },
+        "values": {
+          "delivery": 100,
+          "recall": 85.71428571428571,
+          "complaint": 85.71428571428571,
+          "inspection": 91.66666666666667
+        },
+        "status": "ASSESSABLE",
+        "score": 91.60714285714285,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": true,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 39
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-02",
+        "archetype": "critical-finding-with-high-score",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": true,
+        "counts": {
+          "delivery": {
+            "numerator": 20,
+            "denominator": 21
+          },
+          "recall": {
+            "numerator": 7,
+            "denominator": 7
+          },
+          "complaint": {
+            "numerator": 10,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 13,
+            "denominator": 13
+          }
+        },
+        "values": {
+          "delivery": 95.23809523809524,
+          "recall": 100,
+          "complaint": 100,
+          "inspection": 100
+        },
+        "status": "ASSESSABLE",
+        "score": 98.33333333333334,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": true,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 39
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-03",
+        "archetype": "critical-finding-with-high-score",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": true,
+        "counts": {
+          "delivery": {
+            "numerator": 23,
+            "denominator": 24
+          },
+          "recall": {
+            "numerator": 5,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 9,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 41,
+            "denominator": 42
+          }
+        },
+        "values": {
+          "delivery": 95.83333333333333,
+          "recall": 100,
+          "complaint": 90,
+          "inspection": 97.61904761904762
+        },
+        "status": "ASSESSABLE",
+        "score": 96.1845238095238,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": true,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 41
+      },
+      {
+        "pharmacyId": "SYN-MISSING-D-01",
+        "archetype": "missing-delivery",
+        "expectedMissing": [
+          "delivery"
+        ],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "recall": {
+            "numerator": 9,
+            "denominator": 11
+          },
+          "complaint": {
+            "numerator": 8,
+            "denominator": 11
+          },
+          "inspection": {
+            "numerator": 19,
+            "denominator": 24
+          }
+        },
+        "values": {
+          "delivery": null,
+          "recall": 81.81818181818181,
+          "complaint": 72.72727272727273,
+          "inspection": 79.16666666666667
+        },
+        "status": "NOT_ASSESSABLE",
+        "score": null,
+        "tier": "NOT_ASSESSABLE",
+        "missingIndicators": [
+          "delivery"
+        ],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 23
+      },
+      {
+        "pharmacyId": "SYN-MISSING-R-01",
+        "archetype": "missing-recall",
+        "expectedMissing": [
+          "recall"
+        ],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 13,
+            "denominator": 17
+          },
+          "recall": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "inspection": {
+            "numerator": 37,
+            "denominator": 43
+          }
+        },
+        "values": {
+          "delivery": 76.47058823529412,
+          "recall": null,
+          "complaint": 80,
+          "inspection": 86.04651162790698
+        },
+        "status": "NOT_ASSESSABLE",
+        "score": null,
+        "tier": "NOT_ASSESSABLE",
+        "missingIndicators": [
+          "recall"
+        ],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 24
+      },
+      {
+        "pharmacyId": "SYN-MISSING-C-01",
+        "archetype": "missing-complaint",
+        "expectedMissing": [
+          "complaint"
+        ],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 11,
+            "denominator": 14
+          },
+          "recall": {
+            "numerator": 9,
+            "denominator": 11
+          },
+          "complaint": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "inspection": {
+            "numerator": 16,
+            "denominator": 18
+          }
+        },
+        "values": {
+          "delivery": 78.57142857142857,
+          "recall": 81.81818181818181,
+          "complaint": null,
+          "inspection": 88.88888888888889
+        },
+        "status": "NOT_ASSESSABLE",
+        "score": null,
+        "tier": "NOT_ASSESSABLE",
+        "missingIndicators": [
+          "complaint"
+        ],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 26
+      },
+      {
+        "pharmacyId": "SYN-MISSING-I-01",
+        "archetype": "missing-inspection",
+        "expectedMissing": [
+          "inspection"
+        ],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 12,
+            "denominator": 14
+          },
+          "recall": {
+            "numerator": 9,
+            "denominator": 11
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 4
+          },
+          "inspection": {
+            "numerator": 0,
+            "denominator": 0
+          }
+        },
+        "values": {
+          "delivery": 85.71428571428571,
+          "recall": 81.81818181818181,
+          "complaint": 100,
+          "inspection": null
+        },
+        "status": "NOT_ASSESSABLE",
+        "score": null,
+        "tier": "NOT_ASSESSABLE",
+        "missingIndicators": [
+          "inspection"
+        ],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 29
+      },
+      {
+        "pharmacyId": "SYN-MISSING-ALL-01",
+        "archetype": "all-missing",
+        "expectedMissing": [
+          "delivery",
+          "recall",
+          "complaint",
+          "inspection"
+        ],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "recall": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "complaint": {
+            "numerator": 0,
+            "denominator": 0
+          },
+          "inspection": {
+            "numerator": 0,
+            "denominator": 0
+          }
+        },
+        "values": {
+          "delivery": null,
+          "recall": null,
+          "complaint": null,
+          "inspection": null
+        },
+        "status": "NOT_ASSESSABLE",
+        "score": null,
+        "tier": "NOT_ASSESSABLE",
+        "missingIndicators": [
+          "delivery",
+          "recall",
+          "complaint",
+          "inspection"
+        ],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 0
+      },
+      {
+        "pharmacyId": "SYN-ZERO-D-01",
+        "archetype": "zero-delivery",
+        "expectedMissing": [],
+        "boundary": null,
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 0,
+            "denominator": 20
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 5,
+            "denominator": 6
+          },
+          "inspection": {
+            "numerator": 33,
+            "denominator": 37
+          }
+        },
+        "values": {
+          "delivery": 0,
+          "recall": 80,
+          "complaint": 83.33333333333333,
+          "inspection": 89.1891891891892
+        },
+        "status": "ASSESSABLE",
+        "score": 54.04504504504505,
+        "tier": "UNDER_REVIEW",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 33
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-80",
+        "archetype": "boundary-80",
+        "expectedMissing": [],
+        "boundary": {
+          "target": 80,
+          "tier": "HIGHLY_TRUSTED"
+        },
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 8,
+            "denominator": 10
+          },
+          "recall": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 8,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 16,
+            "denominator": 20
+          }
+        },
+        "values": {
+          "delivery": 80,
+          "recall": 80,
+          "complaint": 80,
+          "inspection": 80
+        },
+        "status": "ASSESSABLE",
+        "score": 80,
+        "tier": "HIGHLY_TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 26
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-60",
+        "archetype": "boundary-60",
+        "expectedMissing": [],
+        "boundary": {
+          "target": 60,
+          "tier": "TRUSTED"
+        },
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 6,
+            "denominator": 10
+          },
+          "recall": {
+            "numerator": 3,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 6,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 12,
+            "denominator": 20
+          }
+        },
+        "values": {
+          "delivery": 60,
+          "recall": 60,
+          "complaint": 60,
+          "inspection": 60
+        },
+        "status": "ASSESSABLE",
+        "score": 60,
+        "tier": "TRUSTED",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 26
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-40",
+        "archetype": "boundary-40",
+        "expectedMissing": [],
+        "boundary": {
+          "target": 40,
+          "tier": "UNDER_REVIEW"
+        },
+        "hasCriticalFinding": false,
+        "counts": {
+          "delivery": {
+            "numerator": 4,
+            "denominator": 10
+          },
+          "recall": {
+            "numerator": 2,
+            "denominator": 5
+          },
+          "complaint": {
+            "numerator": 4,
+            "denominator": 10
+          },
+          "inspection": {
+            "numerator": 8,
+            "denominator": 20
+          }
+        },
+        "values": {
+          "delivery": 40,
+          "recall": 40,
+          "complaint": 40,
+          "inspection": 40
+        },
+        "status": "ASSESSABLE",
+        "score": 40,
+        "tier": "UNDER_REVIEW",
+        "missingIndicators": [],
+        "criticalEscalationRequired": false,
+        "evidenceSource": "SYNTHETIC",
+        "allEvidenceSynthetic": true,
+        "evidenceCount": 26
+      }
+    ],
+    "checks": [
+      {
+        "id": "S1",
+        "description": "Missing indicator -> NOT_ASSESSABLE, score null, no renormalisation",
+        "profilesChecked": 5,
+        "passed": 5,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S2",
+        "description": "Critical finding -> escalation required regardless of score; score unchanged",
+        "profilesChecked": 3,
+        "passed": 3,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S3",
+        "description": "No critical finding -> escalation not required",
+        "profilesChecked": 37,
+        "passed": 37,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S4",
+        "description": "Boundary profiles (80/60/40) -> exact score and tier",
+        "profilesChecked": 3,
+        "passed": 3,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S5",
+        "description": "Zero-value indicator is ASSESSABLE and distinct from NOT_ASSESSABLE",
+        "profilesChecked": 1,
+        "passed": 1,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S6",
+        "description": "All evidence SYNTHETIC; assessable scores labelled SYNTHETIC",
+        "profilesChecked": 40,
+        "passed": 40,
+        "failures": [],
+        "pass": true
+      },
+      {
+        "id": "S7",
+        "description": "Determinism: same seed -> identical results; different seed -> different profiles",
+        "profilesChecked": 2,
+        "passed": 2,
+        "failures": [],
+        "pass": true
+      }
+    ]
+  },
+  "baseline": {
+    "weights": {
+      "proposed": {
+        "delivery": 0.35,
+        "recall": 0.3,
+        "complaint": 0.2,
+        "inspection": 0.15
+      },
+      "equal": {
+        "delivery": 0.25,
+        "recall": 0.25,
+        "complaint": 0.25,
+        "inspection": 0.25
+      }
+    },
+    "consistency": {
+      "profilesCompared": 35,
+      "maxAbsDiff": 0
+    },
+    "perProfile": [
+      {
+        "pharmacyId": "SYN-EXCELLENT-01",
+        "archetype": "excellent",
+        "proposedScore": 95.11111111111111,
+        "alternativeScore": 95.55555555555556,
+        "difference": 0.44444444444444287,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-02",
+        "archetype": "excellent",
+        "proposedScore": 92.69642857142857,
+        "alternativeScore": 94.07738095238096,
+        "difference": 1.3809523809523938,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-03",
+        "archetype": "excellent",
+        "proposedScore": 94.59615384615384,
+        "alternativeScore": 94.74358974358975,
+        "difference": 0.147435897435912,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-EXCELLENT-04",
+        "archetype": "excellent",
+        "proposedScore": 97.25694444444444,
+        "alternativeScore": 97.51157407407408,
+        "difference": 0.2546296296296333,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-GOOD-01",
+        "archetype": "good",
+        "proposedScore": 79.23520923520923,
+        "alternativeScore": 78.56842231842232,
+        "difference": -0.6667869167869043,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-GOOD-02",
+        "archetype": "good",
+        "proposedScore": 83.05882352941177,
+        "alternativeScore": 82.35994397759103,
+        "difference": -0.6988795518207382,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-GOOD-03",
+        "archetype": "good",
+        "proposedScore": 79.375,
+        "alternativeScore": 79.61309523809524,
+        "difference": 0.2380952380952408,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-GOOD-04",
+        "archetype": "good",
+        "proposedScore": 75.85561497326204,
+        "alternativeScore": 75.93582887700535,
+        "difference": 0.08021390374331361,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-01",
+        "archetype": "average",
+        "proposedScore": 59.75,
+        "alternativeScore": 61.25,
+        "difference": 1.5,
+        "proposedTier": "UNDER_REVIEW",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": true
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-02",
+        "archetype": "average",
+        "proposedScore": 65.28030303030303,
+        "alternativeScore": 64.91161616161617,
+        "difference": -0.36868686868686495,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-03",
+        "archetype": "average",
+        "proposedScore": 69.87974098057353,
+        "alternativeScore": 70.36116250385444,
+        "difference": 0.4814215232809147,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-AVERAGE-04",
+        "archetype": "average",
+        "proposedScore": 63.87394957983193,
+        "alternativeScore": 65.89635854341736,
+        "difference": 2.022408963585434,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-POOR-01",
+        "archetype": "poor",
+        "proposedScore": 37.464080459770116,
+        "alternativeScore": 38.82902298850575,
+        "difference": 1.3649425287356323,
+        "proposedTier": "ESCALATION_ALERT",
+        "alternativeTier": "ESCALATION_ALERT",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-POOR-02",
+        "archetype": "poor",
+        "proposedScore": 28.00662878787879,
+        "alternativeScore": 27.738320707070706,
+        "difference": -0.2683080808080831,
+        "proposedTier": "ESCALATION_ALERT",
+        "alternativeTier": "ESCALATION_ALERT",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-POOR-03",
+        "archetype": "poor",
+        "proposedScore": 33.366883116883116,
+        "alternativeScore": 35.37337662337662,
+        "difference": 2.0064935064935057,
+        "proposedTier": "ESCALATION_ALERT",
+        "alternativeTier": "ESCALATION_ALERT",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-POOR-04",
+        "archetype": "poor",
+        "proposedScore": 30.000000000000004,
+        "alternativeScore": 30.952380952380956,
+        "difference": 0.9523809523809526,
+        "proposedTier": "ESCALATION_ALERT",
+        "alternativeTier": "ESCALATION_ALERT",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-01",
+        "archetype": "recall-failure",
+        "proposedScore": 70.97578097578096,
+        "alternativeScore": 73.27132327132327,
+        "difference": 2.2955422955423046,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-02",
+        "archetype": "recall-failure",
+        "proposedScore": 67.76143790849673,
+        "alternativeScore": 73.12091503267975,
+        "difference": 5.359477124183016,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-RECALL-FAIL-03",
+        "archetype": "recall-failure",
+        "proposedScore": 71.83333333333333,
+        "alternativeScore": 76.25,
+        "difference": 4.416666666666671,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-01",
+        "archetype": "delivery-weak",
+        "proposedScore": 69.37719298245614,
+        "alternativeScore": 76.30116959064327,
+        "difference": 6.923976608187132,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-02",
+        "archetype": "delivery-weak",
+        "proposedScore": 68.34307359307358,
+        "alternativeScore": 75.25432900432901,
+        "difference": 6.911255411255425,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-DELIVERY-WEAK-03",
+        "archetype": "delivery-weak",
+        "proposedScore": 79.67391304347827,
+        "alternativeScore": 85.17080745341615,
+        "difference": 5.49689440993788,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": true
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-01",
+        "archetype": "complaint-weak",
+        "proposedScore": 78.63636363636364,
+        "alternativeScore": 74.81060606060606,
+        "difference": -3.825757575757578,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-02",
+        "archetype": "complaint-weak",
+        "proposedScore": 86.23529411764706,
+        "alternativeScore": 82.05882352941177,
+        "difference": -4.17647058823529,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-COMPLAINT-WEAK-03",
+        "archetype": "complaint-weak",
+        "proposedScore": 72.37045454545454,
+        "alternativeScore": 69.32954545454545,
+        "difference": -3.040909090909082,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-01",
+        "archetype": "inspection-weak",
+        "proposedScore": 78.5,
+        "alternativeScore": 73.33333333333333,
+        "difference": -5.166666666666671,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-02",
+        "archetype": "inspection-weak",
+        "proposedScore": 85.32161234991423,
+        "alternativeScore": 80.08147512864494,
+        "difference": -5.240137221269293,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-INSPECTION-WEAK-03",
+        "archetype": "inspection-weak",
+        "proposedScore": 87.75219298245614,
+        "alternativeScore": 80.97587719298245,
+        "difference": -6.776315789473685,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-01",
+        "archetype": "critical-finding-with-high-score",
+        "proposedScore": 91.60714285714285,
+        "alternativeScore": 90.77380952380953,
+        "difference": -0.8333333333333144,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-02",
+        "archetype": "critical-finding-with-high-score",
+        "proposedScore": 98.33333333333334,
+        "alternativeScore": 98.80952380952381,
+        "difference": 0.4761904761904674,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-CRITICAL-HIGH-03",
+        "archetype": "critical-finding-with-high-score",
+        "proposedScore": 96.1845238095238,
+        "alternativeScore": 95.86309523809524,
+        "difference": -0.3214285714285552,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-ZERO-D-01",
+        "archetype": "zero-delivery",
+        "proposedScore": 54.04504504504505,
+        "alternativeScore": 63.13063063063063,
+        "difference": 9.085585585585576,
+        "proposedTier": "UNDER_REVIEW",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": true
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-80",
+        "archetype": "boundary-80",
+        "proposedScore": 80,
+        "alternativeScore": 80,
+        "difference": 0,
+        "proposedTier": "HIGHLY_TRUSTED",
+        "alternativeTier": "HIGHLY_TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-60",
+        "archetype": "boundary-60",
+        "proposedScore": 60,
+        "alternativeScore": 60,
+        "difference": 0,
+        "proposedTier": "TRUSTED",
+        "alternativeTier": "TRUSTED",
+        "tierSwitched": false
+      },
+      {
+        "pharmacyId": "SYN-BOUNDARY-40",
+        "archetype": "boundary-40",
+        "proposedScore": 40,
+        "alternativeScore": 40,
+        "difference": 0,
+        "proposedTier": "UNDER_REVIEW",
+        "alternativeTier": "UNDER_REVIEW",
+        "tierSwitched": false
+      }
+    ],
+    "summary": {
+      "profilesCompared": 35,
+      "excludedNotAssessable": 5,
+      "meanAbsDiff": 2.3777910800429116,
+      "maxAbsDiff": 9.085585585585576,
+      "spearmanRho": 0.9700280112044818,
+      "tierSwitches": 3,
+      "tierSwitchRate": 0.08571428571428572
+    }
+  },
+  "sensitivity": {
+    "note": "Renormalisation is used here only for weight perturbation; the production rule never renormalises for missing indicators (missing indicator -> NOT_ASSESSABLE).",
+    "oneAtATime": {
+      "factors": [
+        0.9,
+        0.95,
+        1.05,
+        1.1
+      ],
+      "runs": [
+        {
+          "indicator": "delivery",
+          "change": "-10%",
+          "factor": 0.9,
+          "weights": {
+            "delivery": 0.32642487046632124,
+            "recall": 0.31088082901554404,
+            "complaint": 0.2072538860103627,
+            "inspection": 0.15544041450777202
+          },
+          "meanAbsScoreChange": 0.42799550151856797,
+          "maxAbsScoreChange": 1.960182980908364,
+          "spearmanRho": 0.9985994397759104,
+          "tierSwitches": 2,
+          "tierSwitchRate": 0.05714285714285714,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "delivery",
+          "change": "-5%",
+          "factor": 0.95,
+          "weights": {
+            "delivery": 0.33842239185750633,
+            "recall": 0.30534351145038163,
+            "complaint": 0.20356234096692113,
+            "inspection": 0.15267175572519082
+          },
+          "meanAbsScoreChange": 0.2101860859874908,
+          "maxAbsScoreChange": 0.9626343901153049,
+          "spearmanRho": 0.9991596638655462,
+          "tierSwitches": 1,
+          "tierSwitchRate": 0.02857142857142857,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "delivery",
+          "change": "+5%",
+          "factor": 1.05,
+          "weights": {
+            "delivery": 0.3611793611793612,
+            "recall": 0.2948402948402949,
+            "complaint": 0.1965601965601966,
+            "inspection": 0.14742014742014745
+          },
+          "meanAbsScoreChange": 0.20295609777170742,
+          "maxAbsScoreChange": 0.9295216592513853,
+          "spearmanRho": 0.9988795518207283,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "delivery",
+          "change": "+10%",
+          "factor": 1.1,
+          "weights": {
+            "delivery": 0.37198067632850246,
+            "recall": 0.2898550724637681,
+            "complaint": 0.19323671497584544,
+            "inspection": 0.14492753623188406
+          },
+          "meanAbsScoreChange": 0.39904894586030937,
+          "maxAbsScoreChange": 1.8276102189145647,
+          "spearmanRho": 0.996078431372549,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "recall",
+          "change": "-10%",
+          "factor": 0.9,
+          "weights": {
+            "delivery": 0.3608247422680412,
+            "recall": 0.27835051546391754,
+            "complaint": 0.20618556701030927,
+            "inspection": 0.15463917525773194
+          },
+          "meanAbsScoreChange": 0.35149633878630937,
+          "maxAbsScoreChange": 2.095714574489577,
+          "spearmanRho": 0.9971988795518207,
+          "tierSwitches": 3,
+          "tierSwitchRate": 0.08571428571428572,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "recall",
+          "change": "-5%",
+          "factor": 0.95,
+          "weights": {
+            "delivery": 0.35532994923857864,
+            "recall": 0.2893401015228426,
+            "complaint": 0.20304568527918784,
+            "inspection": 0.15228426395939085
+          },
+          "meanAbsScoreChange": 0.1730718013313297,
+          "maxAbsScoreChange": 1.0319000696725311,
+          "spearmanRho": 0.9991596638655462,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "recall",
+          "change": "+5%",
+          "factor": 1.05,
+          "weights": {
+            "delivery": 0.3448275862068966,
+            "recall": 0.3103448275862069,
+            "complaint": 0.1970443349753695,
+            "inspection": 0.1477832512315271
+          },
+          "meanAbsScoreChange": 0.1679563786318796,
+          "maxAbsScoreChange": 1.0014005602240843,
+          "spearmanRho": 1,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "recall",
+          "change": "+10%",
+          "factor": 1.1,
+          "weights": {
+            "delivery": 0.33980582524271846,
+            "recall": 0.3203883495145632,
+            "complaint": 0.19417475728155345,
+            "inspection": 0.14563106796116507
+          },
+          "meanAbsScoreChange": 0.33102082390555043,
+          "maxAbsScoreChange": 1.973634113839708,
+          "spearmanRho": 0.9985994397759104,
+          "tierSwitches": 1,
+          "tierSwitchRate": 0.02857142857142857,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "complaint",
+          "change": "-10%",
+          "factor": 0.9,
+          "weights": {
+            "delivery": 0.35714285714285715,
+            "recall": 0.30612244897959184,
+            "complaint": 0.18367346938775514,
+            "inspection": 0.15306122448979592
+          },
+          "meanAbsScoreChange": 0.27508312912480926,
+          "maxAbsScoreChange": 1.0946196660482315,
+          "spearmanRho": 0.9971988795518207,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "complaint",
+          "change": "-5%",
+          "factor": 0.95,
+          "weights": {
+            "delivery": 0.35353535353535354,
+            "recall": 0.30303030303030304,
+            "complaint": 0.19191919191919193,
+            "inspection": 0.15151515151515152
+          },
+          "meanAbsScoreChange": 0.13615225582944857,
+          "maxAbsScoreChange": 0.5417814508723495,
+          "spearmanRho": 1,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "complaint",
+          "change": "+5%",
+          "factor": 1.05,
+          "weights": {
+            "delivery": 0.34653465346534656,
+            "recall": 0.29702970297029707,
+            "complaint": 0.207920792079208,
+            "inspection": 0.14851485148514854
+          },
+          "meanAbsScoreChange": 0.13345617155560682,
+          "maxAbsScoreChange": 0.5310531053105336,
+          "spearmanRho": 0.9994397759103641,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "complaint",
+          "change": "+10%",
+          "factor": 1.1,
+          "weights": {
+            "delivery": 0.34313725490196084,
+            "recall": 0.2941176470588236,
+            "complaint": 0.215686274509804,
+            "inspection": 0.1470588235294118
+          },
+          "meanAbsScoreChange": 0.26429555543364713,
+          "maxAbsScoreChange": 1.0516934046345625,
+          "spearmanRho": 0.9988795518207283,
+          "tierSwitches": 1,
+          "tierSwitchRate": 0.02857142857142857,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "inspection",
+          "change": "-10%",
+          "factor": 0.9,
+          "weights": {
+            "delivery": 0.3553299492385787,
+            "recall": 0.30456852791878175,
+            "complaint": 0.20304568527918784,
+            "inspection": 0.1370558375634518
+          },
+          "meanAbsScoreChange": 0.17115671188175413,
+          "maxAbsScoreChange": 0.9088632113278265,
+          "spearmanRho": 0.9997198879551821,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "inspection",
+          "change": "-5%",
+          "factor": 0.95,
+          "weights": {
+            "delivery": 0.35264483627204035,
+            "recall": 0.3022670025188917,
+            "complaint": 0.2015113350125945,
+            "inspection": 0.14357682619647358
+          },
+          "meanAbsScoreChange": 0.08493166811260723,
+          "maxAbsScoreChange": 0.4509976136815652,
+          "spearmanRho": 0.9997198879551821,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "inspection",
+          "change": "+5%",
+          "factor": 1.05,
+          "weights": {
+            "delivery": 0.3473945409429281,
+            "recall": 0.29776674937965264,
+            "complaint": 0.19851116625310178,
+            "inspection": 0.15632754342431765
+          },
+          "meanAbsScoreChange": 0.08366717677595464,
+          "maxAbsScoreChange": 0.4442830090113432,
+          "spearmanRho": 1,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        },
+        {
+          "indicator": "inspection",
+          "change": "+10%",
+          "factor": 1.1,
+          "weights": {
+            "delivery": 0.3448275862068966,
+            "recall": 0.2955665024630542,
+            "complaint": 0.1970443349753695,
+            "inspection": 0.16256157635467983
+          },
+          "meanAbsScoreChange": 0.16609789281136592,
+          "maxAbsScoreChange": 0.8820002592688496,
+          "spearmanRho": 1,
+          "tierSwitches": 0,
+          "tierSwitchRate": 0,
+          "profilesCompared": 35
+        }
+      ]
+    },
+    "global": {
+      "seed": 20261022,
+      "draws": 1000,
+      "distribution": "Dirichlet(1,1,1,1): uniform over all weight vectors summing to 1",
+      "profilesCompared": 35,
+      "excludedNotAssessable": 5,
+      "summary": {
+        "spearmanMean": 0.8599983193277306,
+        "spearmanMin": 0.6294117647058823,
+        "spearmanP05": 0.7086694677871149,
+        "spearmanMedian": 0.8658263305322129,
+        "overallTierStability": 0.7345428571428572,
+        "profilesFullyTierStable": 12,
+        "medianScoreRange": 13.70390175290602,
+        "maxScoreRange": 84.54939532345776
+      },
+      "perProfile": [
+        {
+          "pharmacyId": "SYN-EXCELLENT-01",
+          "archetype": "excellent",
+          "proposedScore": 95.11111111111111,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 4,
+          "minScore": 89.51225198026366,
+          "maxScore": 99.7453799273148,
+          "minRank": 3,
+          "maxRank": 11,
+          "sameTierDraws": 1000,
+          "scoreRange": 10.233127947051145,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-EXCELLENT-02",
+          "archetype": "excellent",
+          "proposedScore": 92.69642857142857,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 6,
+          "minScore": 88.16216431086045,
+          "maxScore": 99.55988497841832,
+          "minRank": 2,
+          "maxRank": 12,
+          "sameTierDraws": 1000,
+          "scoreRange": 11.397720667557877,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-EXCELLENT-03",
+          "archetype": "excellent",
+          "proposedScore": 94.59615384615384,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 5,
+          "minScore": 91.91821431212028,
+          "maxScore": 99.33545069257086,
+          "minRank": 2,
+          "maxRank": 9,
+          "sameTierDraws": 1000,
+          "scoreRange": 7.417236380450575,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-EXCELLENT-04",
+          "archetype": "excellent",
+          "proposedScore": 97.25694444444444,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 2,
+          "minScore": 94.1030879674274,
+          "maxScore": 99.85703251534233,
+          "minRank": 2,
+          "maxRank": 9,
+          "sameTierDraws": 1000,
+          "scoreRange": 5.7539445479149265,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-GOOD-01",
+          "archetype": "good",
+          "proposedScore": 79.23520923520923,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 15,
+          "minScore": 72.00143359965062,
+          "maxScore": 85.70533535255665,
+          "minRank": 11,
+          "maxRank": 23,
+          "sameTierDraws": 703,
+          "scoreRange": 13.70390175290602,
+          "tierStability": 0.703
+        },
+        {
+          "pharmacyId": "SYN-GOOD-02",
+          "archetype": "good",
+          "proposedScore": 83.05882352941177,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 11,
+          "minScore": 80.11690848352926,
+          "maxScore": 85.3470356574507,
+          "minRank": 8,
+          "maxRank": 19,
+          "sameTierDraws": 1000,
+          "scoreRange": 5.230127173921446,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-GOOD-03",
+          "archetype": "good",
+          "proposedScore": 79.375,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 14,
+          "minScore": 75.86405061504794,
+          "maxScore": 82.80109899091752,
+          "minRank": 12,
+          "maxRank": 21,
+          "sameTierDraws": 598,
+          "scoreRange": 6.93704837586958,
+          "tierStability": 0.598
+        },
+        {
+          "pharmacyId": "SYN-GOOD-04",
+          "archetype": "good",
+          "proposedScore": 75.85561497326204,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 18,
+          "minScore": 75.04139712606424,
+          "maxScore": 77.20004057764973,
+          "minRank": 16,
+          "maxRank": 22,
+          "sameTierDraws": 1000,
+          "scoreRange": 2.1586434515854904,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-AVERAGE-01",
+          "archetype": "average",
+          "proposedScore": 59.75,
+          "proposedTier": "UNDER_REVIEW",
+          "proposedRank": 29,
+          "minScore": 51.83481943071995,
+          "maxScore": 69.11710695142352,
+          "minRank": 23,
+          "maxRank": 30,
+          "sameTierDraws": 353,
+          "scoreRange": 17.28228752070357,
+          "tierStability": 0.353
+        },
+        {
+          "pharmacyId": "SYN-AVERAGE-02",
+          "archetype": "average",
+          "proposedScore": 65.28030303030303,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 26,
+          "minScore": 57.04072531699211,
+          "maxScore": 74.14287855177109,
+          "minRank": 19,
+          "maxRank": 29,
+          "sameTierDraws": 934,
+          "scoreRange": 17.10215323477898,
+          "tierStability": 0.934
+        },
+        {
+          "pharmacyId": "SYN-AVERAGE-03",
+          "archetype": "average",
+          "proposedScore": 69.87974098057353,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 22,
+          "minScore": 67.21428186546524,
+          "maxScore": 74.41434510212129,
+          "minRank": 20,
+          "maxRank": 25,
+          "sameTierDraws": 1000,
+          "scoreRange": 7.2000632366560495,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-AVERAGE-04",
+          "archetype": "average",
+          "proposedScore": 63.87394957983193,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 27,
+          "minScore": 59.61650746175113,
+          "maxScore": 72.48510186351058,
+          "minRank": 21,
+          "maxRank": 27,
+          "sameTierDraws": 995,
+          "scoreRange": 12.868594401759452,
+          "tierStability": 0.995
+        },
+        {
+          "pharmacyId": "SYN-POOR-01",
+          "archetype": "poor",
+          "proposedScore": 37.464080459770116,
+          "proposedTier": "ESCALATION_ALERT",
+          "proposedRank": 32,
+          "minScore": 22.574427511403655,
+          "maxScore": 49.36065027148005,
+          "minRank": 28,
+          "maxRank": 35,
+          "sameTierDraws": 566,
+          "scoreRange": 26.78622276007639,
+          "tierStability": 0.566
+        },
+        {
+          "pharmacyId": "SYN-POOR-02",
+          "archetype": "poor",
+          "proposedScore": 28.00662878787879,
+          "proposedTier": "ESCALATION_ALERT",
+          "proposedRank": 35,
+          "minScore": 23.334842239109776,
+          "maxScore": 32.730955505582315,
+          "minRank": 29,
+          "maxRank": 35,
+          "sameTierDraws": 1000,
+          "scoreRange": 9.39611326647254,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-POOR-03",
+          "archetype": "poor",
+          "proposedScore": 33.366883116883116,
+          "proposedTier": "ESCALATION_ALERT",
+          "proposedRank": 33,
+          "minScore": 21.686447308837472,
+          "maxScore": 42.42397205804652,
+          "minRank": 30,
+          "maxRank": 35,
+          "sameTierDraws": 920,
+          "scoreRange": 20.73752474920905,
+          "tierStability": 0.92
+        },
+        {
+          "pharmacyId": "SYN-POOR-04",
+          "archetype": "poor",
+          "proposedScore": 30.000000000000004,
+          "proposedTier": "ESCALATION_ALERT",
+          "proposedRank": 34,
+          "minScore": 24.645769523436027,
+          "maxScore": 33.33303535717591,
+          "minRank": 32,
+          "maxRank": 35,
+          "sameTierDraws": 1000,
+          "scoreRange": 8.687265833739882,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-RECALL-FAIL-01",
+          "archetype": "recall-failure",
+          "proposedScore": 70.97578097578096,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 21,
+          "minScore": 29.5873132834197,
+          "maxScore": 98.42860954483741,
+          "minRank": 2,
+          "maxRank": 33,
+          "sameTierDraws": 417,
+          "scoreRange": 68.84129626141771,
+          "tierStability": 0.417
+        },
+        {
+          "pharmacyId": "SYN-RECALL-FAIL-02",
+          "archetype": "recall-failure",
+          "proposedScore": 67.76143790849673,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 25,
+          "minScore": 14.268944645407778,
+          "maxScore": 98.81833996886554,
+          "minRank": 2,
+          "maxRank": 35,
+          "sameTierDraws": 329,
+          "scoreRange": 84.54939532345776,
+          "tierStability": 0.329
+        },
+        {
+          "pharmacyId": "SYN-RECALL-FAIL-03",
+          "archetype": "recall-failure",
+          "proposedScore": 71.83333333333333,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 20,
+          "minScore": 34.63537057540469,
+          "maxScore": 97.68540856629821,
+          "minRank": 7,
+          "maxRank": 31,
+          "sameTierDraws": 398,
+          "scoreRange": 63.050037990893514,
+          "tierStability": 0.398
+        },
+        {
+          "pharmacyId": "SYN-DELIVERY-WEAK-01",
+          "archetype": "delivery-weak",
+          "proposedScore": 69.37719298245614,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 23,
+          "minScore": 31.87805057143202,
+          "maxScore": 98.84724262176714,
+          "minRank": 7,
+          "maxRank": 31,
+          "sameTierDraws": 453,
+          "scoreRange": 66.96919205033512,
+          "tierStability": 0.453
+        },
+        {
+          "pharmacyId": "SYN-DELIVERY-WEAK-02",
+          "archetype": "delivery-weak",
+          "proposedScore": 68.34307359307358,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 24,
+          "minScore": 32.017707708191445,
+          "maxScore": 98.66393619830475,
+          "minRank": 8,
+          "maxRank": 30,
+          "sameTierDraws": 474,
+          "scoreRange": 66.64622849011332,
+          "tierStability": 0.474
+        },
+        {
+          "pharmacyId": "SYN-DELIVERY-WEAK-03",
+          "archetype": "delivery-weak",
+          "proposedScore": 79.67391304347827,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 13,
+          "minScore": 47.7597507575109,
+          "maxScore": 99.7916957244966,
+          "minRank": 2,
+          "maxRank": 27,
+          "sameTierDraws": 259,
+          "scoreRange": 52.031944966985705,
+          "tierStability": 0.259
+        },
+        {
+          "pharmacyId": "SYN-COMPLAINT-WEAK-01",
+          "archetype": "complaint-weak",
+          "proposedScore": 78.63636363636364,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 16,
+          "minScore": 30.50239127251894,
+          "maxScore": 98.88819148670044,
+          "minRank": 2,
+          "maxRank": 33,
+          "sameTierDraws": 430,
+          "scoreRange": 68.3858002141815,
+          "tierStability": 0.43
+        },
+        {
+          "pharmacyId": "SYN-COMPLAINT-WEAK-02",
+          "archetype": "complaint-weak",
+          "proposedScore": 86.23529411764706,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 9,
+          "minScore": 45.21543270520739,
+          "maxScore": 99.3283091225102,
+          "minRank": 1,
+          "maxRank": 29,
+          "sameTierDraws": 642,
+          "scoreRange": 54.112876417302815,
+          "tierStability": 0.642
+        },
+        {
+          "pharmacyId": "SYN-COMPLAINT-WEAK-03",
+          "archetype": "complaint-weak",
+          "proposedScore": 72.37045454545454,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 19,
+          "minScore": 25.586135610300673,
+          "maxScore": 87.71068905223574,
+          "minRank": 10,
+          "maxRank": 35,
+          "sameTierDraws": 568,
+          "scoreRange": 62.12455344193506,
+          "tierStability": 0.568
+        },
+        {
+          "pharmacyId": "SYN-INSPECTION-WEAK-01",
+          "archetype": "inspection-weak",
+          "proposedScore": 78.5,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 17,
+          "minScore": 43.14338433581391,
+          "maxScore": 88.61834493353449,
+          "minRank": 10,
+          "maxRank": 30,
+          "sameTierDraws": 652,
+          "scoreRange": 45.474960597720575,
+          "tierStability": 0.652
+        },
+        {
+          "pharmacyId": "SYN-INSPECTION-WEAK-02",
+          "archetype": "inspection-weak",
+          "proposedScore": 85.32161234991423,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 10,
+          "minScore": 37.555608743438356,
+          "maxScore": 99.36720895755195,
+          "minRank": 5,
+          "maxRank": 31,
+          "sameTierDraws": 580,
+          "scoreRange": 61.8116002141136,
+          "tierStability": 0.58
+        },
+        {
+          "pharmacyId": "SYN-INSPECTION-WEAK-03",
+          "archetype": "inspection-weak",
+          "proposedScore": 87.75219298245614,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 8,
+          "minScore": 32.52822539802234,
+          "maxScore": 99.52013906992353,
+          "minRank": 1,
+          "maxRank": 34,
+          "sameTierDraws": 607,
+          "scoreRange": 66.99191367190119,
+          "tierStability": 0.607
+        },
+        {
+          "pharmacyId": "SYN-CRITICAL-HIGH-01",
+          "archetype": "critical-finding-with-high-score",
+          "proposedScore": 91.60714285714285,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 7,
+          "minScore": 85.96647056366399,
+          "maxScore": 99.06014652572942,
+          "minRank": 1,
+          "maxRank": 14,
+          "sameTierDraws": 1000,
+          "scoreRange": 13.093675962065433,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-CRITICAL-HIGH-02",
+          "archetype": "critical-finding-with-high-score",
+          "proposedScore": 98.33333333333334,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 1,
+          "minScore": 95.65621809505134,
+          "maxScore": 99.9998510119213,
+          "minRank": 1,
+          "maxRank": 6,
+          "sameTierDraws": 1000,
+          "scoreRange": 4.34363291686995,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-CRITICAL-HIGH-03",
+          "archetype": "critical-finding-with-high-score",
+          "proposedScore": 96.1845238095238,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 3,
+          "minScore": 90.78527065268851,
+          "maxScore": 99.34192536930317,
+          "minRank": 2,
+          "maxRank": 13,
+          "sameTierDraws": 1000,
+          "scoreRange": 8.55665471661466,
+          "tierStability": 1
+        },
+        {
+          "pharmacyId": "SYN-ZERO-D-01",
+          "archetype": "zero-delivery",
+          "proposedScore": 54.04504504504505,
+          "proposedTier": "UNDER_REVIEW",
+          "proposedRank": 30,
+          "minScore": 7.512788471607003,
+          "maxScore": 86.51802075185651,
+          "minRank": 11,
+          "maxRank": 35,
+          "sameTierDraws": 289,
+          "scoreRange": 79.00523228024952,
+          "tierStability": 0.289
+        },
+        {
+          "pharmacyId": "SYN-BOUNDARY-80",
+          "archetype": "boundary-80",
+          "proposedScore": 80,
+          "proposedTier": "HIGHLY_TRUSTED",
+          "proposedRank": 12,
+          "minScore": 79.99999999999997,
+          "maxScore": 80.00000000000003,
+          "minRank": 11,
+          "maxRank": 20,
+          "sameTierDraws": 873,
+          "scoreRange": 5.684341886080802e-14,
+          "tierStability": 0.873
+        },
+        {
+          "pharmacyId": "SYN-BOUNDARY-60",
+          "archetype": "boundary-60",
+          "proposedScore": 60,
+          "proposedTier": "TRUSTED",
+          "proposedRank": 28,
+          "minScore": 59.99999999999998,
+          "maxScore": 60.000000000000014,
+          "minRank": 24,
+          "maxRank": 30,
+          "sameTierDraws": 796,
+          "scoreRange": 3.552713678800501e-14,
+          "tierStability": 0.796
+        },
+        {
+          "pharmacyId": "SYN-BOUNDARY-40",
+          "archetype": "boundary-40",
+          "proposedScore": 40,
+          "proposedTier": "UNDER_REVIEW",
+          "proposedRank": 31,
+          "minScore": 39.999999999999986,
+          "maxScore": 40.000000000000014,
+          "minRank": 28,
+          "maxRank": 33,
+          "sameTierDraws": 873,
+          "scoreRange": 2.842170943040401e-14,
+          "tierStability": 0.873
+        }
+      ]
+    }
+  },
+  "ahp": {
+    "status": "AHP: tooling ready, expert responses not yet collected",
+    "expertCount": 0
+  }
+}

@@ -39,7 +39,7 @@ function validatePharmacyId(pharmacyId) {
     !WALLET_ADDRESS.test(pharmacyId);
 }
 
-function createComponent3Server({ assessmentService, authenticate, authorizePharmacy } = {}) {
+function createComponent3Server({ assessmentService, authenticate, authorizePharmacy, listAuthorizedPharmacies } = {}) {
   return http.createServer(async (req, res) => {
     if (req.url.length > 2048) return fail(res, 414, 'URI_TOO_LONG', 'Request URL exceeds the allowed length.');
     if (req.method !== 'GET') {
@@ -56,6 +56,40 @@ function createComponent3Server({ assessmentService, authenticate, authorizePhar
       return fail(res, 400, 'INVALID_REQUEST', 'Request URL is malformed.');
     }
     if (parsedUrl.searchParams.size > 0) return fail(res, 400, 'UNSUPPORTED_QUERY_FIELDS', 'Query parameters are not supported.');
+    if (parsedUrl.pathname === '/api/v1/session/pharmacies') {
+      if (typeof authenticate !== 'function' || typeof listAuthorizedPharmacies !== 'function') {
+        return fail(res, 503, 'AUTH_CONFIGURATION_ERROR', 'Authenticated pharmacy discovery is not configured.');
+      }
+      let principal;
+      try { principal = await authenticate(req); } catch {
+        return fail(res, 503, 'AUTHENTICATION_UNAVAILABLE', 'Authentication could not be completed.');
+      }
+      if (!principal) return fail(res, 401, 'UNAUTHORIZED', 'Authentication is required.');
+      let access;
+      try { access = await listAuthorizedPharmacies({ principal, request: req }); } catch (error) {
+        if (['42P01', '3F000', '42703'].includes(error?.code)) {
+          return fail(res, 503, 'AUTHORIZATION_SCHEMA_NOT_READY', 'Component 3 authorization tables are missing or out of date. Review and apply migrations/001_component3_authorization.sql, then restart the runtime.');
+        }
+        if (error?.code === '42501') {
+          return fail(res, 503, 'AUTHORIZATION_DATABASE_PRIVILEGES_MISSING', 'The Component 3 runtime database role lacks required read privileges. Review its least-privilege grants and row-level security policies.');
+        }
+        return fail(res, 503, 'AUTHORIZATION_UNAVAILABLE', 'Component 3 access could not be retrieved. Confirm its authorization schema and runtime configuration.');
+      }
+      if (!access || !Array.isArray(access.pharmacies) || typeof access.requiresWalletVerification !== 'boolean') {
+        return fail(res, 503, 'AUTHORIZATION_UNAVAILABLE', 'Component 3 access returned an invalid response.');
+      }
+      const pharmacies = access.pharmacies.filter(item => item && typeof item.pharmacyCode === 'string' &&
+        Array.isArray(item.accessTypes) && Array.isArray(item.permissions)).map(item => ({
+        pharmacyCode: item.pharmacyCode,
+        accessTypes: item.accessTypes.filter(value => value === 'PHARMACY' || value === 'REGULATORY'),
+        permissions: item.permissions.filter(value => ['ASSESSMENT_READ', 'EVIDENCE_READ', 'CRITICAL_FINDINGS_READ'].includes(value)),
+      }));
+      return sendJson(res, 200, {
+        success: true,
+        data: { pharmacies, requiresWalletVerification: access.requiresWalletVerification },
+      });
+    }
+
     const route = parseRoute(parsedUrl.pathname);
     if (!route) return fail(res, 404, 'NOT_FOUND', 'Route not found.');
     if (route.invalidId || !validatePharmacyId(route.pharmacyId)) {

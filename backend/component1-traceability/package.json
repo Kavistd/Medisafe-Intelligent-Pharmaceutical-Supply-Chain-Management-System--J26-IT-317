@@ -5,7 +5,7 @@
   "description": "Read-only RPC and wallet transaction preparation API for MedicineTraceability",
   "main": "server.js",
   "scripts": {
-    "start": "node --env-file=.env server.js",
+    "start": "node init && node --env-file=.env server.js",
     "test": "node --test --test-concurrency=1 tests/*.test.js"
   },
   "dependencies": {

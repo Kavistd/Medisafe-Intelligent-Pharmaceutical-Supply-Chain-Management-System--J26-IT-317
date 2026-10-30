@@ -253,3 +253,68 @@ test('returns consistent safe errors when assessment services fail', async () =>
     assert.doesNotMatch(JSON.stringify(body), /private database detail/);
   });
 });
+
+test('authenticated session directory returns only backend-authorized pharmacy codes and permissions', async () => {
+  await withApi({
+    authenticate: async request => request.headers.authorization === 'Bearer verified'
+      ? { userId: 'verified-user' } : null,
+    listAuthorizedPharmacies: async ({ principal }) => {
+      assert.equal(principal.userId, 'verified-user');
+      return {
+        pharmacies: [{ pharmacyCode: 'PH-OWNED', accessTypes: ['PHARMACY'],
+          permissions: ['ASSESSMENT_READ', 'EVIDENCE_READ', 'CRITICAL_FINDINGS_READ'],
+          pharmacyName: 'must-not-leak', internalId: 'must-not-leak' }],
+        requiresWalletVerification: false,
+      };
+    },
+  }, async base => {
+    const response = await fetch(`${base}/api/v1/session/pharmacies`, { headers: { Authorization: 'Bearer verified' } });
+    const body = await response.json();
+    assert.equal(response.status, 200);
+    assert.deepEqual(body.data, {
+      pharmacies: [{ pharmacyCode: 'PH-OWNED', accessTypes: ['PHARMACY'],
+        permissions: ['ASSESSMENT_READ', 'EVIDENCE_READ', 'CRITICAL_FINDINGS_READ'] }],
+      requiresWalletVerification: false,
+    });
+    assert.doesNotMatch(JSON.stringify(body), /must-not-leak/);
+  });
+  await withApi({
+    authenticate: async () => null,
+    listAuthorizedPharmacies: async () => ({ pharmacies: [], requiresWalletVerification: false }),
+  }, async base => {
+    assert.equal((await fetch(`${base}/api/v1/session/pharmacies`)).status, 401);
+  });
+  await withApi({ authenticate: async () => ({ userId: 'user' }) }, async base => {
+    assert.equal((await fetch(`${base}/api/v1/session/pharmacies`)).status, 503);
+  });
+});
+
+test('session directory identifies missing authorization schema without exposing database errors', async () => {
+  const missingTable = Object.assign(new Error('private relation pharmacy_trust.component3_regulatory_access_grants is missing'), { code: '42P01' });
+  await withApi({
+    authenticate: async () => ({ userId: 'verified-user' }),
+    listAuthorizedPharmacies: async () => { throw missingTable; },
+  }, async base => {
+    const response = await fetch(`${base}/api/v1/session/pharmacies`);
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(body.error, 'AUTHORIZATION_SCHEMA_NOT_READY');
+    assert.match(body.message, /001_component3_authorization\.sql/);
+    assert.doesNotMatch(JSON.stringify(body), /private relation|pharmacy_trust\.component3_regulatory_access_grants/);
+  });
+});
+
+test('session directory reports missing runtime table privileges safely', async () => {
+  const denied = Object.assign(new Error('private permission detail'), { code: '42501' });
+  await withApi({
+    authenticate: async () => ({ userId: 'verified-user' }),
+    listAuthorizedPharmacies: async () => { throw denied; },
+  }, async base => {
+    const response = await fetch(`${base}/api/v1/session/pharmacies`);
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(body.error, 'AUTHORIZATION_DATABASE_PRIVILEGES_MISSING');
+    assert.match(body.message, /read privileges/);
+    assert.doesNotMatch(JSON.stringify(body), /private permission detail/);
+  });
+});

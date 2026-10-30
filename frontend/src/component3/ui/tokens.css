@@ -1,0 +1,93 @@
+/* Component 3 design tokens. Light theme only: the UI never follows the OS dark mode. */
+:root { color-scheme: light; }
+html, body { margin: 0; background: #f6f7fb; color: #111827; }
+
+.c3-shell {
+  /* type */
+  --c3-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --c3-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --c3-text-xs: 12px;
+  --c3-text-sm: 13px;
+  --c3-text-md: 14.5px;
+  --c3-text-lg: 17px;
+  --c3-text-xl: 21px;
+  --c3-text-2xl: 30px;
+  --c3-text-3xl: 40px;
+
+  /* surfaces and text (AA contrast: --c3-text and --c3-muted on white; --c3-subtle is decorative only) */
+  --c3-bg: #f6f7fb;
+  --c3-surface: #ffffff;
+  --c3-surface-2: #f9fafd;
+  --c3-hover: #f3f4f8;
+  --c3-row-hover: #f9fafd;
+  --c3-table-head: #f6f7fb;
+  --c3-track: #eef0f4;
+  --c3-border: #e8eaf2;
+  --c3-border-strong: #d9dce8;
+  --c3-input-border: #d9dce8;
+  --c3-ink: #111827;
+  --c3-text: #1f2937;
+  --c3-muted: #6b7280;
+  --c3-subtle: #9ca3af;
+
+  /* brand */
+  --c3-accent: #4f46e5;
+  --c3-accent-2: #7c3aed;
+  --c3-accent-ink: #4338ca;
+  --c3-accent-soft: #eef0ff;
+  --c3-accent-soft-2: #f5f3ff;
+  --c3-accent-disabled: #c7c9f5;
+  --c3-on-accent: #ffffff;
+  --c3-gradient: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+  --c3-focus: #4f46e5;
+  --c3-focus-ring: 0 0 0 2px rgba(79, 70, 229, .35);
+  --c3-button-shadow: 0 4px 12px rgba(79, 70, 229, .22);
+  --c3-scrim: rgba(17, 24, 39, .35);
+
+  /* connection status dots (always paired with a text label) */
+  --c3-dot-ok: #16a34a;
+  --c3-dot-warn: #d97706;
+  --c3-dot-error: #dc2626;
+
+  /* status tones (text colour meets AA on its soft background) */
+  --c3-ok: #15803d;
+  --c3-ok-soft: #e8f7ee;
+  --c3-info: #4338ca;
+  --c3-info-soft: #eef0ff;
+  --c3-warn: #b45309;
+  --c3-warn-soft: #fff4e0;
+  --c3-danger: #b91c1c;
+  --c3-danger-soft: #fdecec;
+  --c3-neutral: #4b5563;
+  --c3-neutral-soft: #eef0f4;
+
+  /* shape and depth */
+  --c3-radius-sm: 10px;
+  --c3-radius: 12px;
+  --c3-radius-lg: 16px;
+  --c3-radius-pill: 999px;
+  --c3-shadow-sm: 0 1px 2px rgba(16, 24, 40, .04);
+  --c3-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 8px 24px rgba(16, 24, 40, .06);
+  --c3-shadow-lg: 0 12px 32px rgba(16, 24, 40, .12);
+  --c3-transition: .15s ease;
+
+  /* spacing and layout */
+  --c3-space-1: 4px;
+  --c3-space-2: 8px;
+  --c3-space-3: 12px;
+  --c3-space-4: 16px;
+  --c3-space-5: 20px;
+  --c3-space-6: 24px;
+  --c3-space-7: 28px;
+  --c3-space-8: 32px;
+  --c3-sidebar-w: 250px;
+  --c3-topbar-h: 64px;
+  --c3-content-max: 1240px;
+
+  /* aliases used by existing component rules */
+  --c3-line: var(--c3-border);
+  --c3-green: var(--c3-accent);
+  --c3-pale: var(--c3-surface-2);
+
+  color-scheme: light;
+}

@@ -6,7 +6,7 @@ const { CLASSIFICATION, validateEvidenceSet } = require('./evidenceValidation');
 const { adaptComponent1Evidence } = require('./component1EvidenceAdapter');
 
 const INDICATORS = ['delivery', 'recall', 'complaint', 'inspection'];
-const RECORD_FIELDS = new Set(['pharmacyId', 'assessments', 'criticalFindings', 'evidence', 'component1Snapshot', 'demoLabel']);
+const RECORD_FIELDS = new Set(['pharmacyId', 'assessments', 'criticalFindings', 'criticalEscalationRequired', 'evidence', 'component1Snapshot', 'demoLabel']);
 
 function isPlainObject(value) {
   if (value === null || typeof value !== 'object') return false;
@@ -84,6 +84,9 @@ function createAssessmentService({ readPharmacyAssessment } = {}) {
     if (record.demoLabel !== undefined && record.demoLabel !== 'LOCAL_SYNTHETIC_DEMO') {
       throw new Error('Assessment provider demoLabel is unsupported.');
     }
+    if (record.criticalEscalationRequired !== undefined && typeof record.criticalEscalationRequired !== 'boolean') {
+      throw new Error('Assessment provider criticalEscalationRequired must be a boolean when supplied.');
+    }
     if (!isPlainObject(record.assessments)) throw new Error('Assessment provider must return indicator assessments.');
 
     const evidence = validateEvidenceSet(record.evidence === undefined ? [] : record.evidence);
@@ -112,11 +115,17 @@ function createAssessmentService({ readPharmacyAssessment } = {}) {
         invalidCount: evidence.invalid.length,
       },
       component1,
-      criticalEscalation: trustScore.criticalEscalation,
+      criticalEscalation: {
+        required: trustScore.criticalEscalation.required || record.criticalEscalationRequired === true,
+        findings: trustScore.criticalEscalation.findings,
+      },
       limitations: [
         'This is a read-only off-chain research assessment; it does not update or mirror blockchain trust state.',
         'REAL is a declared source label and does not establish evidence authenticity.',
         'Synthetic values are prototype fixtures and are not real pharmacy performance.',
+        ...(record.criticalEscalationRequired === true && trustScore.criticalEscalation.findings.length === 0
+          ? ['The source records an escalation flag but provides no critical-finding details; no finding has been created.']
+          : []),
       ],
     };
   }
