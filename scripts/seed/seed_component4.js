@@ -57,6 +57,9 @@ async function main() {
   await (await riskRegistry.setBatchRisk("BATCH-SAFE-001", 15, true)).wait();
   console.log("✓ Seeded BATCH-SAFE-001: Risk Score = 15, isSafe = true (Safe for dispensing)");
 
+  await (await riskRegistry.setBatchRisk("BATCH-2026-01", 12, true)).wait();
+  console.log("✓ Seeded BATCH-2026-01: Risk Score = 12, isSafe = true (Safe for dispensing)");
+
   await (await riskRegistry.setBatchRisk("BATCH-RISK-002", 88, false)).wait();
   console.log("✓ Seeded BATCH-RISK-002: Risk Score = 88, isSafe = false (Counterfeit / High Risk)");
 

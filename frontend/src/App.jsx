@@ -51,8 +51,43 @@ function Icon({ name, size = 18 }) {
     lock: <><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
     ban: <><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></>,
     arrow: <><path d="M7 17 17 7M7 7h10v10"/></>,
+    arrowLeft: <><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>,
+    check: <><path d="M20 6 9 17l-5-5"/></>,
+    eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+    eyeOff: <><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></>,
+    download: <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>,
+    key: <><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 3-9.5 9.5"/><path d="m15.5 7.5 3 3"/><path d="m18 5 2 2"/></>,
+    user: <><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    idCard: <><rect width="20" height="14" x="2" y="5" rx="2"/><circle cx="7" cy="12" r="2"/><path d="M13 10h5M13 14h3"/></>,
+    calendar: <><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></>,
+    file: <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><polyline points="14 2 14 8 20 8"/></>,
+    sparkles: <><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></>,
   };
-  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name] || null}</svg>;
+}
+
+function copyToClipboard(text) {
+  if (typeof navigator !== "undefined" && navigator?.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+  }
+  return Promise.resolve(legacyCopy(text));
+}
+
+function legacyCopy(text) {
+  try {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.setAttribute("readonly", "");
+    el.style.position = "absolute";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    const successful = document.execCommand("copy");
+    document.body.removeChild(el);
+    return successful;
+  } catch (e) {
+    return false;
+  }
 }
 
 function Notice({ notice, onClose }) {
@@ -146,7 +181,7 @@ function AuthScreen({ onLogin, onPrepare, message }) {
         <div className="role-picker" aria-label="Choose dashboard">
           {[{ id: "doctor", label: "Doctor" }, { id: "pharmacy", label: "Pharmacy" }, { id: "patient", label: "Patient" }].map((item) => <button key={item.id} className={role === item.id ? "role-option selected" : "role-option"} onClick={() => { setRole(item.id); setError(""); }} type="button">{item.label}</button>)}
         </div>
-        {role === "patient" && <div className="field-block patient-scope-field"><label htmlFor="patient-scope-id">Prescription ID for verification</label><input id="patient-scope-id" className="mono-input" spellCheck="false" autoComplete="off" placeholder="0x followed by 64 hexadecimal characters" value={patientPrescriptionId} onChange={(event) => setPatientPrescriptionId(event.target.value)} pattern="0x[0-9a-fA-F]{64}" required/><span className="field-help">The signed session will be limited to this prescription only.</span></div>}
+        {role === "patient" && <div className="field-block patient-scope-field"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><label htmlFor="patient-scope-id">Prescription ID for verification</label>{typeof window !== "undefined" && window.sessionStorage?.getItem("lastIssuedPrescriptionId") && <button type="button" style={{ fontSize: "12px", color: "#087D66", fontWeight: "bold", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }} onClick={() => { setPatientPrescriptionId(window.sessionStorage.getItem("lastIssuedPrescriptionId")); setError(""); }}>⚡ Auto-fill last issued Rx</button>}</div><input id="patient-scope-id" className="mono-input" spellCheck="false" autoComplete="off" placeholder="0x followed by 64 hexadecimal characters" value={patientPrescriptionId} onChange={(event) => setPatientPrescriptionId(event.target.value)} pattern="0x[0-9a-fA-F]{64}" required/><span className="field-help">The signed session will be limited to this prescription only.</span></div>}
         <div className="role-hint"><Icon name="lock" size={15}/><span>{role === "patient" ? "Patient access is signed and scoped to one prescription." : "Access is confirmed against your wallet’s on-chain role."}</span></div>
         <p className="field-help">Connect your wallet to sign a fresh, single-use login challenge.</p>
         <button className="button button-primary full-width" disabled={busy || !walletAvailable} onClick={signIn}>{busy ? <><span className="spinner"/> {challenge ? "Verifying wallet…" : "Connecting wallet…"}</> : <>Connect &amp; sign with MetaMask <Icon name="arrow" size={16}/></>}</button>
@@ -155,7 +190,15 @@ function AuthScreen({ onLogin, onPrepare, message }) {
         {challenge && <details className="challenge-details"><summary>Challenge details</summary><pre>{challenge}</pre></details>}
         {error && <div className="inline-error" role="alert">{error}</div>}
         <div className="privacy-callout"><Icon name="lock" size={17}/><span>Your session token stays in memory and is cleared when you sign out or close this page.</span></div>
-        <button className="text-button" type="button" onClick={onPrepare}>Prepare a patient credential</button>
+        <div className="patient-prep-link-box">
+          <div className="prep-link-text">
+            <strong>Need a patient credential?</strong>
+            <span>Generate your local private key file &amp; hash</span>
+          </div>
+          <button className="button button-secondary prep-btn" type="button" onClick={onPrepare}>
+            Prepare credential <Icon name="arrow" size={14}/>
+          </button>
+        </div>
         <div className="api-foot">API <code>{API_BASE || "same-origin /api (Vite proxy → localhost:5004)"}</code></div>
       </div>
     </section>
@@ -235,6 +278,10 @@ function Dashboard({ session, onLogout, onSessionExpired }) {
         contractFactory: createWalletRegistry,
         onPending: (hash) => setNotice({ type: "pending", message: `Transaction ${hash} submitted. Waiting for confirmation…` }),
       });
+      try {
+        sessionStorage.setItem("lastIssuedPrescriptionId", args[0]);
+        sessionStorage.setItem("lastIssuedPatientHash", (issueForm.patientHash || "").trim());
+      } catch (_) {}
       setIssueForm(EMPTY_FORM);
       setNotice({ type: "success", message: `Prescription issued by ${session.address}. ID: ${args[0]}. Confirmed in block ${result.blockNumber}.` });
     } catch (err) { setNotice({ type: "error", message: transactionErrorMessage(err) }); }
@@ -272,8 +319,16 @@ function Dashboard({ session, onLogout, onSessionExpired }) {
   async function submitDispense(event) {
     event.preventDefault(); setBusy(true); setNotice(null);
     try {
+      if (dispenseForm.credentialFile?.name?.toLowerCase()?.includes("patient-preparation")) {
+        throw new Error("Wrong file selected! You uploaded '" + dispenseForm.credentialFile.name + "' (the preparation file from Step 1). Please upload 'medisafe-pharmacy-presentation.json' (the pharmacy file from Step 3).");
+      }
       const serialized = await readCredentialFile(dispenseForm.credentialFile);
-      const credential = await decryptPatientCredential(serialized, dispenseForm.passphrase);
+      let credential;
+      try {
+        credential = await decryptPatientCredential(serialized, dispenseForm.passphrase);
+      } catch (decErr) {
+        throw new Error("Could not decrypt with passphrase '" + dispenseForm.passphrase + "'. Make sure you selected 'medisafe-pharmacy-presentation.json' (from Step 3) and used the Pharmacy presentation passphrase (PharmacyPass123!).");
+      }
       const patientHash = assertPresentationScope(credential, {
         prescriptionId: credential.prescriptionId,
         chainId: 31337,
@@ -293,7 +348,7 @@ function Dashboard({ session, onLogout, onSessionExpired }) {
       });
       setDispenseForm(EMPTY_DISPENSE_FORM);
       if (dispenseFileInput.current) dispenseFileInput.current.value = "";
-      setNotice({ type: "success", message: `Prescription dispensed by ${session.address}. Confirmed in block ${result.blockNumber}.` });
+      setNotice({ type: "success", message: `Prescription dispensed by ${session.address}. Status updated: ACTIVE → USED (Confirmed in block ${result.blockNumber}, Tx: ${result.transactionHash?.slice(0, 10)}…).` });
     } catch (err) { setNotice({ type: "error", message: transactionErrorMessage(err) }); }
     finally { setBusy(false); }
   }
@@ -320,6 +375,11 @@ function Dashboard({ session, onLogout, onSessionExpired }) {
           <div className="content-grid">
             <section className="panel issue-panel"><div className="panel-head"><div><h2>Prescription details</h2><p>Fields marked <span className="required-star">*</span> are required</p></div><span className="panel-index">01</span></div>
               <form onSubmit={submitIssue} className="form-stack dashboard-form">
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+                  <button type="button" className="button button-secondary" style={{ fontSize: "12px", padding: "4px 10px" }} onClick={() => setIssueForm(prev => ({ ...prev, medicineId: "MED-AUGMENTIN-625", batchId: "BATCH-VIVA-001", expiryDays: 30 }))}>
+                    ⚡ Auto-fill medicine &amp; safe batch
+                  </button>
+                </div>
                 <div className="field-block"><label htmlFor="patient-hash">Patient privacy hash <span className="required-star">*</span></label><input id="patient-hash" className="mono-input" spellCheck="false" autoComplete="off" placeholder="0x followed by 64 hexadecimal characters" value={issueForm.patientHash} onChange={(e) => setIssueForm({ ...issueForm, patientHash: e.target.value })} pattern="0x[0-9a-fA-F]{64}" title="Enter a 0x-prefixed 32-byte hash" required/><span className="field-help">Use the hash provided by the patient. Never ask them to provide identity data or salt. The hash is public once issued on this registry.</span></div>
                 <div className="field-row"><div className="field-block"><label htmlFor="medicine-id">Medicine ID <span className="required-star">*</span></label><input id="medicine-id" placeholder="e.g. MED-AMOX-500" pattern="[A-Za-z0-9_-]{2,50}" value={issueForm.medicineId} onChange={(e) => setIssueForm({ ...issueForm, medicineId: e.target.value })} required/><span className="field-help">Letters, numbers, hyphens, underscores.</span></div><div className="field-block"><label htmlFor="batch-id">Batch ID <span className="required-star">*</span></label><input id="batch-id" placeholder="e.g. BATCH-2026-01" pattern="[A-Za-z0-9_-]{2,50}" value={issueForm.batchId} onChange={(e) => setIssueForm({ ...issueForm, batchId: e.target.value })} required/><span className="field-help">Use the exact registered batch ID.</span></div></div>
                 <div className="field-block expiry-field"><label htmlFor="expiry-days">Valid for</label><div className="input-suffix"><input id="expiry-days" type="number" min="1" max="365" value={issueForm.expiryDays} onChange={(e) => setIssueForm({ ...issueForm, expiryDays: e.target.value })} required/><span>days</span></div></div>
@@ -347,7 +407,15 @@ function Dashboard({ session, onLogout, onSessionExpired }) {
         </>}
         {session.role === "pharmacy" && <>
           <section className="page-heading"><div><span className="eyebrow">PHARMACY WORKSPACE</span><h1>Pharmacy desk</h1><p>Check the patient hash and submit the single-use dispensing transaction from your pharmacy wallet.</p></div><div className="heading-icon"><Icon name="shield" size={22}/></div></section>
-          <section className="panel pharmacy-panel"><div className="panel-head"><div><h2>Verify and dispense</h2><p>Unlock the patient’s prescription-bound presentation credential locally. Only its hash and prescription ID are used for the wallet transaction.</p></div></div><form onSubmit={submitDispense} className="form-stack" autoComplete="off"><div className="field-block"><label htmlFor="dispense-credential">Encrypted patient presentation file</label><input ref={dispenseFileInput} id="dispense-credential" type="file" accept="application/json,.json" onChange={(e) => setDispenseForm({ ...dispenseForm, credentialFile: e.target.files?.[0] || null })} required/><span className="field-help">The file is decrypted in this browser and is not uploaded to the API.</span></div><div className="field-block"><label htmlFor="dispense-passphrase">Credential passphrase</label><input id="dispense-passphrase" type="password" autoComplete="off" value={dispenseForm.passphrase} onChange={(e) => setDispenseForm({ ...dispenseForm, passphrase: e.target.value })} required/></div><button className="button button-primary" disabled={busy}>{busy ? <><span className="spinner"/> {notice?.type === "pending" ? "Waiting for confirmation…" : "Checking wallet…"}</> : <>Verify &amp; dispense <Icon name="arrow" size={16}/></>}</button></form></section><div className="subtle-note"><Icon name="lock" size={16}/><span>No identity fields or salt are shared with the pharmacy. The current registry still exposes its patient hash publicly and includes it in contract events.</span></div>
+          <section className="panel pharmacy-panel"><div className="panel-head"><div><h2>Verify and dispense</h2><p>Unlock the patient’s prescription-bound presentation credential locally. Only its hash and prescription ID are used for the wallet transaction.</p></div></div><form onSubmit={submitDispense} className="form-stack" autoComplete="off"><div className="field-block"><label htmlFor="dispense-credential">Encrypted patient presentation file</label><input ref={dispenseFileInput} id="dispense-credential" type="file" accept="application/json,.json" onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  if (file && file.name.toLowerCase().includes("patient-preparation")) {
+                    setNotice({ type: "error", message: "⚠️ WRONG FILE SELECTED: You selected '" + file.name + "'. In the Pharmacy Desk, you must upload 'medisafe-pharmacy-presentation.json' (downloaded in Step 3)." });
+                  } else {
+                    setNotice(null);
+                  }
+                  setDispenseForm({ ...dispenseForm, credentialFile: file });
+                }} required/><span className="field-help">The file is decrypted in this browser and is not uploaded to the API.</span></div><div className="field-block"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}><label htmlFor="dispense-passphrase">Credential passphrase</label><button type="button" style={{ fontSize: "11px", color: "#087D66", fontWeight: "bold", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }} onClick={() => setDispenseForm(f => ({ ...f, passphrase: "PharmacyPass123!" }))}>⚡ Auto-fill demo passphrase</button></div><input id="dispense-passphrase" type="password" autoComplete="off" value={dispenseForm.passphrase} onChange={(e) => setDispenseForm({ ...dispenseForm, passphrase: e.target.value })} required/></div><button className="button button-primary" disabled={busy}>{busy ? <><span className="spinner"/> {notice?.type === "pending" ? "Waiting for confirmation…" : "Checking wallet…"}</> : <>Verify &amp; dispense <Icon name="arrow" size={16}/></>}</button></form></section><div className="subtle-note"><Icon name="lock" size={16}/><span>No identity fields or salt are shared with the pharmacy. The current registry still exposes its patient hash publicly and includes it in contract events.</span></div>
         </>}
         <footer className="page-footer"><span>MEDISAFE CHAIN <i>·</i> Component 4</span><span>Privacy-preserving prescription management</span></footer>
       </div>
@@ -359,7 +427,7 @@ function PatientDashboard({ session, onLogout }) {
   const [credentialFile, setCredentialFile] = useState(null);
   const [passphrase, setPassphrase] = useState("");
   const [presentationPassphrase, setPresentationPassphrase] = useState("");
-  const [pharmacyAddress, setPharmacyAddress] = useState("");
+  const [pharmacyAddress, setPharmacyAddress] = useState("0x7465C8b4C7a9068c440044222539f993bf4537A7");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState(null);
   const credentialInput = useRef(null);
@@ -416,7 +484,20 @@ function PatientDashboard({ session, onLogout }) {
         <section className="page-heading"><div><span className="eyebrow">PATIENT WORKSPACE</span><h1>Verify your identity</h1><p>This signed session can verify only prescription <code>{session.prescriptionId}</code>.</p></div><div className="heading-icon"><Icon name="lock" size={22}/></div></section>
         <section className="panel patient-verification-panel"><div className="panel-head"><div><h2>Verify patient credential</h2><p>Your encrypted preparation file is decrypted in this browser. The API receives only the 32-byte hash, not your identity or salt.</p></div></div>
           <form onSubmit={verifyCredential} className="form-stack" autoComplete="off">
-            <div className="field-block"><label htmlFor="patient-credential-file">Encrypted preparation credential</label><input ref={credentialInput} id="patient-credential-file" type="file" accept="application/json,.json" onChange={(event) => setCredentialFile(event.target.files?.[0] || null)} required/><span className="field-help">Select the file downloaded when your patient hash was prepared.</span></div>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+              <button type="button" className="button button-secondary" style={{ fontSize: "12px", padding: "4px 10px" }} onClick={() => { setPassphrase("MedisafeSecret2026!"); setPresentationPassphrase("PharmacyPass123!"); setPharmacyAddress("0x7465C8b4C7a9068c440044222539f993bf4537A7"); }}>
+                ⚡ Auto-fill demo passphrases &amp; pharmacy
+              </button>
+            </div>
+            <div className="field-block"><label htmlFor="patient-credential-file">Encrypted preparation credential</label><input ref={credentialInput} id="patient-credential-file" type="file" accept="application/json,.json" onChange={(event) => {
+                const file = event.target.files?.[0] || null;
+                if (file && file.name.toLowerCase().includes("pharmacy-presentation")) {
+                  setNotice({ type: "error", message: "⚠️ WRONG FILE SELECTED: You selected '" + file.name + "'. Here you must upload 'medisafe-patient-preparation.json' (from Step 1)." });
+                } else {
+                  setNotice(null);
+                }
+                setCredentialFile(file);
+              }} required/><span className="field-help">Select the file downloaded when your patient hash was prepared.</span></div>
             <div className="field-block"><label htmlFor="patient-credential-passphrase">Credential passphrase</label><input id="patient-credential-passphrase" type="password" autoComplete="off" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required/></div>
             <div className="field-block"><label htmlFor="presentation-passphrase">New pharmacy presentation passphrase</label><input id="presentation-passphrase" type="password" autoComplete="off" minLength="12" value={presentationPassphrase} onChange={(event) => setPresentationPassphrase(event.target.value)} required/><span className="field-help">Choose a different passphrase from your private preparation file. Share it with the intended pharmacy separately.</span></div>
             <div className="field-block"><label htmlFor="intended-pharmacy">Intended pharmacy wallet</label><input id="intended-pharmacy" className="mono-input" spellCheck="false" autoComplete="off" value={pharmacyAddress} onChange={(event) => setPharmacyAddress(event.target.value)} placeholder="0x followed by 40 hexadecimal characters" required/><span className="field-help">The presentation credential will be scoped to this public pharmacy address.</span></div>
@@ -433,39 +514,306 @@ function PatientDashboard({ session, onLogout }) {
 function PatientPreparation({ onBack }) {
   const [details, setDetails] = useState({ nationalId: "", fullName: "", dateOfBirth: "" });
   const [passphrase, setPassphrase] = useState("");
+  const [showPassphrase, setShowPassphrase] = useState(false);
   const [hash, setHash] = useState("");
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function prepare(event) {
-    event.preventDefault(); setBusy(true); setError(""); setHash("");
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    setHash("");
+    setCopied(false);
     try {
-      const identity = { nationalId: details.nationalId, fullName: details.fullName, dateOfBirth: details.dateOfBirth };
+      const identity = {
+        nationalId: details.nationalId.trim(),
+        fullName: details.fullName.trim(),
+        dateOfBirth: details.dateOfBirth.trim(),
+      };
       const salt = generatePatientSalt();
       const patientHash = hashPatientCredential(identity, salt);
-      const encrypted = await encryptPatientCredential({ kind: "medisafe-patient-preparation-v1", identity, salt }, passphrase);
+      const encrypted = await encryptPatientCredential(
+        { kind: "medisafe-patient-preparation-v1", identity, salt },
+        passphrase
+      );
       downloadCredential(encrypted, "medisafe-patient-preparation.json");
       setHash(patientHash);
       setDetails({ nationalId: "", fullName: "", dateOfBirth: "" });
       setPassphrase("");
-    } catch (failure) { setError(failure.message); }
-    finally { setBusy(false); }
+    } catch (failure) {
+      setError(failure.message || "Failed to generate patient credential.");
+    } finally {
+      setBusy(false);
+    }
   }
 
-  return <main className="login-shell"><section className="login-main"><div className="login-card">
-    <span className="eyebrow">PATIENT CONTROLLED</span><h2>Prepare patient credential</h2>
-    <p className="muted login-description">Identity and salt are processed in this browser. A fresh random salt is generated and retained only inside the encrypted file.</p>
-    <form onSubmit={prepare} className="form-stack" autoComplete="off">
-      <div className="field-block"><label htmlFor="prepare-national-id">National ID</label><input id="prepare-national-id" autoComplete="off" value={details.nationalId} onChange={(event) => setDetails({ ...details, nationalId: event.target.value })} minLength="5" maxLength="30" required/></div>
-      <div className="field-block"><label htmlFor="prepare-full-name">Full name</label><input id="prepare-full-name" autoComplete="off" value={details.fullName} onChange={(event) => setDetails({ ...details, fullName: event.target.value })} minLength="2" maxLength="100" required/></div>
-      <div className="field-block"><label htmlFor="prepare-dob">Date of birth</label><input id="prepare-dob" type="date" autoComplete="off" value={details.dateOfBirth} onChange={(event) => setDetails({ ...details, dateOfBirth: event.target.value })} required/></div>
-      <div className="field-block"><label htmlFor="prepare-passphrase">Credential passphrase</label><input id="prepare-passphrase" type="password" autoComplete="off" minLength="12" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required/><span className="field-help">Use a strong passphrase and keep it separate from the downloaded file.</span></div>
-      <button className="button button-primary full-width" disabled={busy}>{busy ? "Encrypting locally…" : "Create encrypted credential"}</button>
-    </form>
-    {hash && <div className="privacy-callout"><span>Give this hash to the doctor through your approved channel. The registry will make it public.</span><code className="mono-input">{hash}</code><span>Keep the downloaded preparation file and passphrase. Never send identity data or salt to the doctor or pharmacy.</span></div>}
-    {error && <div className="inline-error" role="alert">{error}</div>}
-    <button className="text-button" type="button" onClick={onBack}>Return to sign in</button>
-  </div></section></main>;
+  async function handleCopyHash() {
+    if (!hash) return;
+    await copyToClipboard(hash);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  }
+
+  function handleFillSampleData() {
+    setDetails({
+      nationalId: "200112345678",
+      fullName: "John Doe",
+      dateOfBirth: "2001-07-21",
+    });
+    setPassphrase("MedisafeSecret2026!");
+    setError("");
+  }
+
+  return (
+    <main className="login-shell">
+      <aside className="login-aside patient-aside">
+        <a className="brand brand-light" href="#home">
+          <span className="brand-mark"><Icon name="shield" size={21} /></span>
+          <span>MEDISAFE<span className="brand-chain">CHAIN</span></span>
+        </a>
+        <div className="aside-message">
+          <span className="eyebrow eyebrow-light">PATIENT SECURITY VAULT</span>
+          <h1>Zero-knowledge<br />patient identity.</h1>
+          <p>
+            Generate your anonymous cryptographic credential completely offline.
+            Retain 100% ownership of your medical confidentiality.
+          </p>
+          <div className="aside-features">
+            <div className="aside-feature-item">
+              <span className="feature-icon"><Icon name="shield" size={16} /></span>
+              <div>
+                <strong>100% Client-Side Privacy</strong>
+                <p>Identity details and salt are processed in your browser memory and never leave this device.</p>
+              </div>
+            </div>
+            <div className="aside-feature-item">
+              <span className="feature-icon"><Icon name="key" size={16} /></span>
+              <div>
+                <strong>AES-256-GCM Encryption</strong>
+                <p>Your credential file is safeguarded with authenticated encryption using your secret passphrase.</p>
+              </div>
+            </div>
+            <div className="aside-feature-item">
+              <span className="feature-icon"><Icon name="lock" size={16} /></span>
+              <div>
+                <strong>Irreversible Pseudonym</strong>
+                <p>Only the cryptographic SHA-256 hash is published on-chain, keeping your real identity concealed.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="aside-foot">
+          <span className="status-dot" /> Client cryptographic sandbox active <span>·</span> Zero server retention
+        </div>
+        <div className="aside-grid" aria-hidden="true" />
+      </aside>
+
+      <section className="login-main">
+        <div className="login-card patient-prep-card">
+          <div className="mobile-brand brand">
+            <span className="brand-mark"><Icon name="shield" size={20} /></span>
+            <span>MEDISAFE<span className="brand-chain">CHAIN</span></span>
+          </div>
+
+          <div className="prep-top-nav">
+            <button className="nav-back-button" type="button" onClick={onBack}>
+              <Icon name="arrowLeft" size={14} />
+              <span>Return to sign in</span>
+            </button>
+            {!hash && (
+              <button
+                type="button"
+                className="sample-data-btn"
+                onClick={handleFillSampleData}
+                title="Fill form with sample test data"
+              >
+                <Icon name="sparkles" size={14} />
+                <span>Auto-fill test data</span>
+              </button>
+            )}
+          </div>
+
+          {!hash ? (
+            <>
+              <div className="page-title-group">
+                <span className="eyebrow">PATIENT CONTROLLED</span>
+                <h2>Prepare patient credential</h2>
+                <p className="muted login-description">
+                  Identity and salt are processed in this browser. A fresh random salt is generated and retained only inside the encrypted file.
+                </p>
+              </div>
+
+              <form onSubmit={prepare} className="form-stack" autoComplete="off">
+                <div className="field-block">
+                  <label htmlFor="prepare-national-id">
+                    <span className="label-with-icon"><Icon name="idCard" size={14} /> National ID / Passport</span>
+                  </label>
+                  <input
+                    id="prepare-national-id"
+                    autoComplete="off"
+                    placeholder="e.g. 199423405678 or NIC"
+                    value={details.nationalId}
+                    onChange={(event) => setDetails({ ...details, nationalId: event.target.value })}
+                    minLength="5"
+                    maxLength="30"
+                    required
+                  />
+                </div>
+
+                <div className="field-block">
+                  <label htmlFor="prepare-full-name">
+                    <span className="label-with-icon"><Icon name="user" size={14} /> Full legal name</span>
+                  </label>
+                  <input
+                    id="prepare-full-name"
+                    autoComplete="off"
+                    placeholder="e.g. Jane Alice Doe"
+                    value={details.fullName}
+                    onChange={(event) => setDetails({ ...details, fullName: event.target.value })}
+                    minLength="2"
+                    maxLength="100"
+                    required
+                  />
+                </div>
+
+                <div className="field-block">
+                  <label htmlFor="prepare-dob">
+                    <span className="label-with-icon"><Icon name="calendar" size={14} /> Date of birth</span>
+                  </label>
+                  <input
+                    id="prepare-dob"
+                    type="date"
+                    autoComplete="off"
+                    value={details.dateOfBirth}
+                    onChange={(event) => setDetails({ ...details, dateOfBirth: event.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="field-block">
+                  <label htmlFor="prepare-passphrase">
+                    <span className="label-with-icon"><Icon name="key" size={14} /> Credential passphrase</span>
+                  </label>
+                  <div className="input-with-action">
+                    <input
+                      id="prepare-passphrase"
+                      type={showPassphrase ? "text" : "password"}
+                      autoComplete="off"
+                      placeholder="At least 12 characters"
+                      minLength="12"
+                      value={passphrase}
+                      onChange={(event) => setPassphrase(event.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="input-action-btn"
+                      onClick={() => setShowPassphrase(!showPassphrase)}
+                      aria-label={showPassphrase ? "Hide passphrase" : "Show passphrase"}
+                      tabIndex="-1"
+                    >
+                      <Icon name={showPassphrase ? "eyeOff" : "eye"} size={16} />
+                    </button>
+                  </div>
+                  <div className="passphrase-meta">
+                    <span className={`passphrase-req ${passphrase.length >= 12 ? "valid" : ""}`}>
+                      <Icon name={passphrase.length >= 12 ? "check" : "lock"} size={12} />
+                      {passphrase.length >= 12 ? "Passphrase length valid" : "Minimum 12 characters required"} ({passphrase.length}/12)
+                    </span>
+                    <span className="field-help">Use a strong passphrase and keep it separate from the downloaded file.</span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="button button-primary full-width"
+                  disabled={busy || passphrase.length < 12}
+                >
+                  {busy ? (
+                    <>
+                      <span className="spinner" /> Encrypting locally…
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="download" size={16} /> Create &amp; download credential
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="privacy-badge-banner">
+                <span className="badge-banner-icon"><Icon name="shield" size={18} /></span>
+                <div>
+                  <strong>Zero-Leakage Assurance</strong>
+                  <p>All encryption occurs directly in this browser session. Raw identity data and cryptographic salts are never sent to any server or doctor.</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="prep-success-view">
+              <div className="success-banner">
+                <div className="success-icon-badge"><Icon name="check" size={24} /></div>
+                <div>
+                  <h3>Credential created successfully!</h3>
+                  <p className="file-saved-note">
+                    <Icon name="file" size={15} /> <span><strong>medisafe-patient-preparation.json</strong> downloaded.</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="hash-result-card">
+                <div className="hash-card-header">
+                  <span className="hash-tag">PUBLIC PATIENT HASH</span>
+                  <button type="button" className={`copy-btn ${copied ? "copied" : ""}`} onClick={handleCopyHash}>
+                    <Icon name={copied ? "check" : "copy"} size={14} />
+                    <span>{copied ? "Copied!" : "Copy hash"}</span>
+                  </button>
+                </div>
+                <code className="hash-code-display">{hash}</code>
+                <div className="hash-caption">
+                  <Icon name="lock" size={13} />
+                  <span>Give only this public hash to your prescribing doctor. The registry will record it.</span>
+                </div>
+              </div>
+
+              <div className="prep-steps-card">
+                <div className="steps-card-title">Important next steps:</div>
+                <div className="step-row">
+                  <span className="step-badge">1</span>
+                  <p><strong>Share this hash with your doctor:</strong> The doctor anchors your prescription to this hash on-chain.</p>
+                </div>
+                <div className="step-row">
+                  <span className="step-badge">2</span>
+                  <p><strong>Store your JSON file safely:</strong> Keep <code>medisafe-patient-preparation.json</code>. You need it to verify and prepare pharmacy handoff.</p>
+                </div>
+                <div className="step-row">
+                  <span className="step-badge">3</span>
+                  <p><strong>Keep your passphrase secret:</strong> Never send your passphrase or raw identity to doctors or pharmacies.</p>
+                </div>
+              </div>
+
+              <div className="success-actions">
+                <button type="button" className="button button-primary full-width" onClick={onBack}>
+                  <Icon name="arrowLeft" size={14} /> Return to sign in
+                </button>
+                <button
+                  type="button"
+                  className="button button-secondary full-width"
+                  onClick={() => { setHash(""); setError(""); }}
+                >
+                  <Icon name="plus" size={14} /> Prepare another credential
+                </button>
+              </div>
+            </div>
+          )}
+
+          {error && <div className="inline-error" role="alert">{error}</div>}
+        </div>
+      </section>
+    </main>
+  );
 }
 
 function App() {
