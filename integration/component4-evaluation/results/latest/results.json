@@ -1,0 +1,1666 @@
+{
+  "evaluatedAt": "2026-10-20T10:56:11.822Z",
+  "baseCommit": "3e521a339839d75b4459b08175a4a1f3fb5d496c",
+  "component": 4,
+  "student": "R.A.M.A. Ranasinghe (IT23142978)",
+  "samples": 10,
+  "environment": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpus": 8,
+    "nodeVersion": "v22.13.0",
+    "solidityVersion": "0.8.20",
+    "chainId": 31337
+  },
+  "summary": {
+    "operations": {
+      "issuePrescription": {
+        "gasUsed": {
+          "n": 10,
+          "min": 244033,
+          "max": 278245,
+          "mean": 247461.4,
+          "median": 244045,
+          "p95": 278245,
+          "sampleStdDev": 10816.255988094958
+        },
+        "prepareMs": {
+          "n": 10,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 10,
+          "min": 1.1836000000002969,
+          "max": 5.529700000000048,
+          "mean": 2.4824100000000273,
+          "median": 2.1451499999998305,
+          "p95": 5.529700000000048,
+          "sampleStdDev": 1.3810103543339884
+        },
+        "endToEndMs": {
+          "n": 10,
+          "min": 1.6836000000002969,
+          "max": 6.029700000000048,
+          "mean": 2.9824100000000273,
+          "median": 2.6451499999998305,
+          "p95": 6.029700000000048,
+          "sampleStdDev": 1.3810103543339884
+        }
+      },
+      "verifyAndDispenseWithPatientHash": {
+        "gasUsed": {
+          "n": 10,
+          "min": 93801,
+          "max": 93813,
+          "mean": 93809.4,
+          "median": 93813,
+          "p95": 93813,
+          "sampleStdDev": 5.796550698475776
+        },
+        "prepareMs": {
+          "n": 10,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 10,
+          "min": 1.1943999999998596,
+          "max": 6.214399999999841,
+          "mean": 2.3431499999999232,
+          "median": 1.5345500000000811,
+          "p95": 6.214399999999841,
+          "sampleStdDev": 1.552703929172129
+        },
+        "endToEndMs": {
+          "n": 10,
+          "min": 1.6943999999998596,
+          "max": 6.714399999999841,
+          "mean": 2.8431499999999232,
+          "median": 2.034550000000081,
+          "p95": 6.714399999999841,
+          "sampleStdDev": 1.552703929172129
+        }
+      },
+      "revokePrescription": {
+        "gasUsed": {
+          "n": 10,
+          "min": 53952,
+          "max": 53952,
+          "mean": 53952,
+          "median": 53952,
+          "p95": 53952,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 10,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 10,
+          "min": 1.002400000000307,
+          "max": 3.80600000000004,
+          "mean": 2.2007900000000062,
+          "median": 1.8640500000001339,
+          "p95": 3.80600000000004,
+          "sampleStdDev": 0.9547374932409078
+        },
+        "endToEndMs": {
+          "n": 10,
+          "min": 1.502400000000307,
+          "max": 4.30600000000004,
+          "mean": 2.7007900000000062,
+          "median": 2.364050000000134,
+          "p95": 4.30600000000004,
+          "sampleStdDev": 0.9547374932409078
+        }
+      },
+      "verifyAndDispense": {
+        "gasUsed": {
+          "n": 10,
+          "min": 93058,
+          "max": 93082,
+          "mean": 93079.6,
+          "median": 93082,
+          "p95": 93082,
+          "sampleStdDev": 7.589466384404111
+        },
+        "prepareMs": {
+          "n": 10,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 10,
+          "min": 1.1942999999996573,
+          "max": 5.300699999999779,
+          "mean": 2.4480699999999613,
+          "median": 1.7856500000000324,
+          "p95": 5.300699999999779,
+          "sampleStdDev": 1.422133524790575
+        },
+        "endToEndMs": {
+          "n": 10,
+          "min": 1.6942999999996573,
+          "max": 5.800699999999779,
+          "mean": 2.9480699999999613,
+          "median": 2.2856500000000324,
+          "p95": 5.800699999999779,
+          "sampleStdDev": 1.422133524790575
+        }
+      }
+    },
+    "crypto": {
+      "canonicalizeAndHashMs": {
+        "n": 10,
+        "min": 0.07339999999976499,
+        "max": 0.2881000000002132,
+        "mean": 0.13464999999987412,
+        "median": 0.11114999999995234,
+        "p95": 0.2881000000002132,
+        "sampleStdDev": 0.07031072701474654
+      },
+      "encryptionWithKdfMs": {
+        "n": 10,
+        "min": 150.73520000000008,
+        "max": 302.22630000000026,
+        "mean": 191.56506000000005,
+        "median": 189.3321000000003,
+        "p95": 302.22630000000026,
+        "sampleStdDev": 43.87263323194642
+      },
+      "decryptionWithKdfMs": {
+        "n": 10,
+        "min": 148.8436999999999,
+        "max": 264.9920000000002,
+        "mean": 196.5397300000001,
+        "median": 182.90695000000005,
+        "p95": 264.9920000000002,
+        "sampleStdDev": 42.236708497231625
+      }
+    },
+    "baseline": {
+      "issuePrescription": {
+        "centralizedLatencyMs": {
+          "n": 10,
+          "min": 0.006799999999657302,
+          "max": 0.08550000000013824,
+          "mean": 0.025950000000102592,
+          "median": 0.015850000000227737,
+          "p95": 0.08550000000013824,
+          "sampleStdDev": 0.026337183262943455
+        },
+        "blockchainLatencyMs": {
+          "n": 10,
+          "min": 1.6836000000002969,
+          "max": 6.029700000000048,
+          "mean": 2.9824100000000273,
+          "median": 2.6451499999998305,
+          "p95": 6.029700000000048,
+          "sampleStdDev": 1.3810103543339884
+        }
+      },
+      "dispensePrescription": {
+        "centralizedLatencyMs": {
+          "n": 10,
+          "min": 0.009700000000066211,
+          "max": 0.03150000000005093,
+          "mean": 0.01812000000002172,
+          "median": 0.0153499999998985,
+          "p95": 0.03150000000005093,
+          "sampleStdDev": 0.007970194476885984
+        },
+        "blockchainLatencyMs": {
+          "n": 10,
+          "min": 1.6943999999998596,
+          "max": 6.714399999999841,
+          "mean": 2.8431499999999232,
+          "median": 2.034550000000081,
+          "p95": 6.714399999999841,
+          "sampleStdDev": 1.552703929172129
+        }
+      },
+      "revokePrescription": {
+        "centralizedLatencyMs": {
+          "n": 10,
+          "min": 0.0039999999999054126,
+          "max": 0.015300000000024738,
+          "mean": 0.008670000000074651,
+          "median": 0.00895000000014079,
+          "p95": 0.015300000000024738,
+          "sampleStdDev": 0.0035826898647541364
+        },
+        "blockchainLatencyMs": {
+          "n": 10,
+          "min": 1.502400000000307,
+          "max": 4.30600000000004,
+          "mean": 2.7007900000000062,
+          "median": 2.364050000000134,
+          "p95": 4.30600000000004,
+          "sampleStdDev": 0.9547374932409078
+        }
+      }
+    },
+    "rules": {
+      "all": {
+        "n": 170,
+        "passed": 170,
+        "accuracy": 1
+      },
+      "allowed": {
+        "n": 40,
+        "passed": 40,
+        "accuracy": 1
+      },
+      "denied": {
+        "n": 130,
+        "passed": 130,
+        "accuracy": 1
+      }
+    },
+    "concurrencyVulnerability": {
+      "doubleDispenseVulnerabilityOccurred": false
+    }
+  },
+  "transactions": [
+    {
+      "replica": 1,
+      "method": "issuePrescription",
+      "txHash": "0x09ea63371c49ca3c234d734cad911d25c0ab0afbe3f9362ca27aa3b24a26ac3a",
+      "gasUsed": "278245",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 5.529700000000048,
+      "endToEndMs": 6.029700000000048
+    },
+    {
+      "replica": 1,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0xeb5be4e60465017d1513ee4d77d39a2bcd7d44dcf7ee9519691acc11030c65e0",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 6.214399999999841,
+      "endToEndMs": 6.714399999999841
+    },
+    {
+      "replica": 1,
+      "method": "revokePrescription",
+      "txHash": "0x6e6f088a41376f42ea837c36393280a35b5e4dc4e4bd80084091e405a2e486e2",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.9495999999999185,
+      "endToEndMs": 3.4495999999999185
+    },
+    {
+      "replica": 1,
+      "method": "verifyAndDispense",
+      "txHash": "0x4910edd2c2a4c7310a538f6800f149e42e57de48447528afacd03b85be35fdf5",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 5.300699999999779,
+      "endToEndMs": 5.800699999999779
+    },
+    {
+      "replica": 2,
+      "method": "issuePrescription",
+      "txHash": "0x7fe316de3301670e43ed8ef88fe26d75aced11877b40c43d15bccf8503442baf",
+      "gasUsed": "244033",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.2291000000000167,
+      "endToEndMs": 1.7291000000000167
+    },
+    {
+      "replica": 2,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x76aeb8c1e96acb52a774a49a0d0f16329edb72a39631c99c1fe802a3b9a4e444",
+      "gasUsed": "93801",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.4898000000002867,
+      "endToEndMs": 1.9898000000002867
+    },
+    {
+      "replica": 2,
+      "method": "revokePrescription",
+      "txHash": "0x0e2d9cb48b621dc43e0211b753df8ca7ca97ddd4ca4a531ba1a1b9b5142c436e",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.672399999999925,
+      "endToEndMs": 2.172399999999925
+    },
+    {
+      "replica": 2,
+      "method": "verifyAndDispense",
+      "txHash": "0x53a7c2db4b2c90f6a8d563c9ba5608327b92b298dfdf3af5d4ca8ec817840805",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.4009000000000924,
+      "endToEndMs": 1.9009000000000924
+    },
+    {
+      "replica": 3,
+      "method": "issuePrescription",
+      "txHash": "0xa372237bda44d276dde8980d1bb7b8fe221a27e60b0764da418719b8f7c84652",
+      "gasUsed": "244033",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.1836000000002969,
+      "endToEndMs": 1.6836000000002969
+    },
+    {
+      "replica": 3,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x58469bd31c8cd5ef226e9e29a183ecad32cd233cbff845187b7c36de5e75b133",
+      "gasUsed": "93801",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.1943999999998596,
+      "endToEndMs": 1.6943999999998596
+    },
+    {
+      "replica": 3,
+      "method": "revokePrescription",
+      "txHash": "0x1aef5a1450a4f31c163e09e4670a06aa17cadcafb2601ef52e173b2dfacae272",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.9234999999998763,
+      "endToEndMs": 2.4234999999998763
+    },
+    {
+      "replica": 3,
+      "method": "verifyAndDispense",
+      "txHash": "0x0259f7ab5b2c9949383b89f3dd38bf2619175275776079b11a6a858348130628",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.2460000000000946,
+      "endToEndMs": 2.7460000000000946
+    },
+    {
+      "replica": 4,
+      "method": "issuePrescription",
+      "txHash": "0xc887d87d53e0f96bb417fbd2078fe222b5ba70712bee8fc3203903e99893621f",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.803099999999631,
+      "endToEndMs": 2.303099999999631
+    },
+    {
+      "replica": 4,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x08d1927cf609fb7a6d3f0b846b31b7661562228cddc97b241ad0b85b389663b8",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.4654999999997926,
+      "endToEndMs": 1.9654999999997926
+    },
+    {
+      "replica": 4,
+      "method": "revokePrescription",
+      "txHash": "0x58ccb847582860933e78c68bc33b42bfe2cc9dab3423203deb924e7c378fef3e",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.8046000000003914,
+      "endToEndMs": 2.3046000000003914
+    },
+    {
+      "replica": 4,
+      "method": "verifyAndDispense",
+      "txHash": "0x161e1f0a71ccdd9ef37bb24184a8568374212770485c13e08d68105a41227ad4",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 4.203100000000177,
+      "endToEndMs": 4.703100000000177
+    },
+    {
+      "replica": 5,
+      "method": "issuePrescription",
+      "txHash": "0x660678f0c8517642bf5be860d1b97dda5770388d55b4a414ac4b71284a1409e8",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.48720000000003,
+      "endToEndMs": 2.98720000000003
+    },
+    {
+      "replica": 5,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x97cfeb62e04b0cb7fc39443f8766689067975cd5592816e2e5e95dcab2b2e375",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.0601000000001477,
+      "endToEndMs": 3.5601000000001477
+    },
+    {
+      "replica": 5,
+      "method": "revokePrescription",
+      "txHash": "0xff52b94c3e6440f756736c2a8f2ce0490ecbe3bba4ead76a49a3553314999c5c",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.002400000000307,
+      "endToEndMs": 1.502400000000307
+    },
+    {
+      "replica": 5,
+      "method": "verifyAndDispense",
+      "txHash": "0x333bafc8765f998cd585721a44aea3df1281326dba952e3bac939cd1602cf024",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.6440999999999804,
+      "endToEndMs": 2.1440999999999804
+    },
+    {
+      "replica": 6,
+      "method": "issuePrescription",
+      "txHash": "0x957448b322fa9b1f1b6f33f95091a671b67818abb61595a1d091d2fdcec271c6",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.773200000000088,
+      "endToEndMs": 3.273200000000088
+    },
+    {
+      "replica": 6,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x4b91cb8f1f0a71a268a72b52a3ff220b7ddf3d07a3967f5f6669ba7fd8e20b54",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.1094999999995707,
+      "endToEndMs": 3.6094999999995707
+    },
+    {
+      "replica": 6,
+      "method": "revokePrescription",
+      "txHash": "0xd05081f5d62acbe3fbaec3ae45b132d2e359ce98105d2770a265b16f79115295",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.6711999999997715,
+      "endToEndMs": 2.1711999999997715
+    },
+    {
+      "replica": 6,
+      "method": "verifyAndDispense",
+      "txHash": "0x37201d0f9c141d7bbecc528f3133ec89d071e2d478550d2b41f0470807a73b51",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.634099999999762,
+      "endToEndMs": 4.134099999999762
+    },
+    {
+      "replica": 7,
+      "method": "issuePrescription",
+      "txHash": "0x897f8c29ae1ae367bd083371b2fecdde00ed6835db83dd3cb486910ba5f31e64",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.5028000000002066,
+      "endToEndMs": 2.0028000000002066
+    },
+    {
+      "replica": 7,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x01e3ce908ac05de0e26ac71c62e4c8c7ba03a1c57c4e1af19e9bbd07d07b070b",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.2352999999998246,
+      "endToEndMs": 1.7352999999998246
+    },
+    {
+      "replica": 7,
+      "method": "revokePrescription",
+      "txHash": "0x871d06a72f4ac6098f6e1e01ebb85adfa7d8c43ef5b020a2776320ebad002cf9",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.0471999999999753,
+      "endToEndMs": 2.5471999999999753
+    },
+    {
+      "replica": 7,
+      "method": "verifyAndDispense",
+      "txHash": "0x462bba6a076265fe328ee1bcfabfeb99b1727b104d4a0ab610d1161283ac6b43",
+      "gasUsed": "93058",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.3686999999999898,
+      "endToEndMs": 1.8686999999999898
+    },
+    {
+      "replica": 8,
+      "method": "issuePrescription",
+      "txHash": "0x920fb5c23f2ff4953be98fcbd0c081d0b3c33275d06fe891acc2c64243e1e8e9",
+      "gasUsed": "244033",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.8186000000000604,
+      "endToEndMs": 3.3186000000000604
+    },
+    {
+      "replica": 8,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0xa646963b9ae4e27a8fd3ee523587c82b9c3459c3aaae9701b3b06977071fbc74",
+      "gasUsed": "93801",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.5792999999998756,
+      "endToEndMs": 2.0792999999998756
+    },
+    {
+      "replica": 8,
+      "method": "revokePrescription",
+      "txHash": "0x60ca9d3b930bc31032a8d36ea5a1e0c3832a93dfb8f49651eca5c7faa5f334b1",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.69399999999996,
+      "endToEndMs": 4.19399999999996
+    },
+    {
+      "replica": 8,
+      "method": "verifyAndDispense",
+      "txHash": "0x0329e7db52390408d1fec0d5e0a3b4532b3b0305183cca87a37155cca1b884b2",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.5615999999999985,
+      "endToEndMs": 2.0615999999999985
+    },
+    {
+      "replica": 9,
+      "method": "issuePrescription",
+      "txHash": "0x6f4837e9445ac495bdaff75e646d26d8048b6e01a6d96f5583470f5889aa1ea4",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.5524000000000342,
+      "endToEndMs": 2.052400000000034
+    },
+    {
+      "replica": 9,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x9f19f1ea31a2e268c491a07ade70d09503d06f51906e4207b4b8abe4aefd94a5",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.409400000000005,
+      "endToEndMs": 1.909400000000005
+    },
+    {
+      "replica": 9,
+      "method": "revokePrescription",
+      "txHash": "0x572ba24746610c3e8cd4ae79a539c8109ad40c71676f9a1dafa68a616fe462d6",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.80600000000004,
+      "endToEndMs": 4.30600000000004
+    },
+    {
+      "replica": 9,
+      "method": "verifyAndDispense",
+      "txHash": "0xd4e915fa43a5275d81beca5cc80fbe0c10a1dab9fa5631e485e2539de70ac7ca",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.1942999999996573,
+      "endToEndMs": 1.6942999999996573
+    },
+    {
+      "replica": 10,
+      "method": "issuePrescription",
+      "txHash": "0x70849697a0da3bb360a79a45ceb8b2c9cd0701c4939b85d678d8dd561625e923",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 3.9443999999998596,
+      "endToEndMs": 4.44439999999986
+    },
+    {
+      "replica": 10,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x40981e098e6439804e6a4dd20d86c903a6c3ed6267e7de3c2861538e302197e3",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.6738000000000284,
+      "endToEndMs": 3.1738000000000284
+    },
+    {
+      "replica": 10,
+      "method": "revokePrescription",
+      "txHash": "0xfeba66128b084e5ad3b446e05e05621f82fdedd3094d99974541221c79a7901c",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.4369999999998981,
+      "endToEndMs": 1.9369999999998981
+    },
+    {
+      "replica": 10,
+      "method": "verifyAndDispense",
+      "txHash": "0xb2b8187c7a9e418c7f322ecfa1a839eb3a2043e3ab63fe51910898aeab6dfdc4",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.9272000000000844,
+      "endToEndMs": 2.4272000000000844
+    }
+  ],
+  "rules": [
+    {
+      "replica": 1,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 3,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 4,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 5,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 6,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 7,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 8,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 9,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 10,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    }
+  ]
+}

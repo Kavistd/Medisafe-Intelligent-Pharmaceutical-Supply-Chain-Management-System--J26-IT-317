@@ -1,0 +1,3 @@
+# Separate real-provider configuration; never commit credentials.
+.env.pinata.local
+.env.sepolia.local

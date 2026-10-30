@@ -1,0 +1,216 @@
+[
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "DOCTOR_ROLE",
+        "outputs":  [
+                        {
+                            "internalType":  "bytes32",
+                            "name":  "",
+                            "type":  "bytes32"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+
+                   ],
+        "name":  "PHARMACY_ROLE",
+        "outputs":  [
+                        {
+                            "internalType":  "bytes32",
+                            "name":  "",
+                            "type":  "bytes32"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "prescriptionId",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "getPrescription",
+        "outputs":  [
+                        {
+                            "components":  [
+                                               {
+                                                   "internalType":  "bytes32",
+                                                   "name":  "prescriptionId",
+                                                   "type":  "bytes32"
+                                               },
+                                               {
+                                                   "internalType":  "bytes32",
+                                                   "name":  "patientHash",
+                                                   "type":  "bytes32"
+                                               },
+                                               {
+                                                   "internalType":  "string",
+                                                   "name":  "medicineId",
+                                                   "type":  "string"
+                                               },
+                                               {
+                                                   "internalType":  "string",
+                                                   "name":  "batchId",
+                                                   "type":  "string"
+                                               },
+                                               {
+                                                   "internalType":  "address",
+                                                   "name":  "doctorAddress",
+                                                   "type":  "address"
+                                               },
+                                               {
+                                                   "internalType":  "uint256",
+                                                   "name":  "issuedAt",
+                                                   "type":  "uint256"
+                                               },
+                                               {
+                                                   "internalType":  "uint256",
+                                                   "name":  "expiryTime",
+                                                   "type":  "uint256"
+                                               },
+                                               {
+                                                   "internalType":  "enum PrescriptionRegistry.PrescriptionStatus",
+                                                   "name":  "status",
+                                                   "type":  "uint8"
+                                               }
+                                           ],
+                            "internalType":  "struct PrescriptionRegistry.Prescription",
+                            "name":  "",
+                            "type":  "tuple"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "role",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "address",
+                           "name":  "account",
+                           "type":  "address"
+                       }
+                   ],
+        "name":  "hasRole",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "prescriptionId",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "patientHash",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "medicineId",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "batchId",
+                           "type":  "string"
+                       },
+                       {
+                           "internalType":  "uint256",
+                           "name":  "expiryTime",
+                           "type":  "uint256"
+                       }
+                   ],
+        "name":  "issuePrescription",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "prescriptionId",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "string",
+                           "name":  "reason",
+                           "type":  "string"
+                       }
+                   ],
+        "name":  "revokePrescription",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "prescriptionId",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "presentedPatientHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "verifyAndDispenseWithPatientHash",
+        "outputs":  [
+
+                    ],
+        "stateMutability":  "nonpayable",
+        "type":  "function"
+    },
+    {
+        "inputs":  [
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "prescriptionId",
+                           "type":  "bytes32"
+                       },
+                       {
+                           "internalType":  "bytes32",
+                           "name":  "patientHash",
+                           "type":  "bytes32"
+                       }
+                   ],
+        "name":  "verifyPatientHash",
+        "outputs":  [
+                        {
+                            "internalType":  "bool",
+                            "name":  "",
+                            "type":  "bool"
+                        }
+                    ],
+        "stateMutability":  "view",
+        "type":  "function"
+    }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "blockchain",
+  "version": "1.0.0",
+  "main": "hardhat.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "export:risk:abi": "hardhat run scripts/deploy/export_risk_registry_abi.js",
+    "export:prescription:abi": "hardhat run scripts/deploy/export_prescription_abi.js",
+    "deploy:risk:local": "hardhat run scripts/deploy/deploy_risk_registry.js --network localhost --config hardhat.risk.config.js",
+    "deploy:risk:sepolia": "hardhat run scripts/deploy/deploy_risk_registry.js --network sepolia --config hardhat.risk.config.js"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.6.1",
+    "hardhat": "^2.22.18"
+  }
+}

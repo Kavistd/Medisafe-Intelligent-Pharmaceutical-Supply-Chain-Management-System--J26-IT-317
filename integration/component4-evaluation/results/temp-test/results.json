@@ -1,0 +1,562 @@
+{
+  "evaluatedAt": "2026-10-22T03:53:36.414Z",
+  "baseCommit": "6bd743d672a64b140bc384296e34bb53203e1b84",
+  "component": 4,
+  "student": "R.A.M.A. Ranasinghe (IT23142978)",
+  "samples": 2,
+  "environment": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpus": 8,
+    "nodeVersion": "v22.13.0",
+    "solidityVersion": "0.8.20",
+    "chainId": 31337
+  },
+  "summary": {
+    "operations": {
+      "issuePrescription": {
+        "gasUsed": {
+          "n": 2,
+          "min": 244045,
+          "max": 278245,
+          "mean": 261145,
+          "median": 261145,
+          "p95": 278245,
+          "sampleStdDev": 24183.051916579927
+        },
+        "prepareMs": {
+          "n": 2,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 2,
+          "min": 1.6554999999998472,
+          "max": 1.9855999999999767,
+          "mean": 1.820549999999912,
+          "median": 1.820549999999912,
+          "p95": 1.9855999999999767,
+          "sampleStdDev": 0.23341594846977093
+        },
+        "endToEndMs": {
+          "n": 2,
+          "min": 2.155499999999847,
+          "max": 2.4855999999999767,
+          "mean": 2.320549999999912,
+          "median": 2.320549999999912,
+          "p95": 2.4855999999999767,
+          "sampleStdDev": 0.23341594846977093
+        }
+      },
+      "verifyAndDispenseWithPatientHash": {
+        "gasUsed": {
+          "n": 2,
+          "min": 93813,
+          "max": 93813,
+          "mean": 93813,
+          "median": 93813,
+          "p95": 93813,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 2,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 2,
+          "min": 1.5189000000000306,
+          "max": 2.830600000000004,
+          "mean": 2.1747500000000173,
+          "median": 2.1747500000000173,
+          "p95": 2.830600000000004,
+          "sampleStdDev": 0.9275119648823756
+        },
+        "endToEndMs": {
+          "n": 2,
+          "min": 2.0189000000000306,
+          "max": 3.330600000000004,
+          "mean": 2.6747500000000173,
+          "median": 2.6747500000000173,
+          "p95": 3.330600000000004,
+          "sampleStdDev": 0.9275119648823756
+        }
+      },
+      "revokePrescription": {
+        "gasUsed": {
+          "n": 2,
+          "min": 53952,
+          "max": 53952,
+          "mean": 53952,
+          "median": 53952,
+          "p95": 53952,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 2,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 2,
+          "min": 1.3476000000000568,
+          "max": 1.4079999999999018,
+          "mean": 1.3777999999999793,
+          "median": 1.3777999999999793,
+          "p95": 1.4079999999999018,
+          "sampleStdDev": 0.04270924958355789
+        },
+        "endToEndMs": {
+          "n": 2,
+          "min": 1.8476000000000568,
+          "max": 1.9079999999999018,
+          "mean": 1.8777999999999793,
+          "median": 1.8777999999999793,
+          "p95": 1.9079999999999018,
+          "sampleStdDev": 0.04270924958355789
+        }
+      },
+      "verifyAndDispense": {
+        "gasUsed": {
+          "n": 2,
+          "min": 93082,
+          "max": 93082,
+          "mean": 93082,
+          "median": 93082,
+          "p95": 93082,
+          "sampleStdDev": 0
+        },
+        "prepareMs": {
+          "n": 2,
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "p95": 0.5,
+          "sampleStdDev": 0
+        },
+        "broadcastToReceiptMs": {
+          "n": 2,
+          "min": 0.7918999999999414,
+          "max": 2.332300000000032,
+          "mean": 1.5620999999999867,
+          "median": 1.5620999999999867,
+          "p95": 2.332300000000032,
+          "sampleStdDev": 1.089227285739822
+        },
+        "endToEndMs": {
+          "n": 2,
+          "min": 1.2918999999999414,
+          "max": 2.832300000000032,
+          "mean": 2.0620999999999867,
+          "median": 2.0620999999999867,
+          "p95": 2.832300000000032,
+          "sampleStdDev": 1.089227285739822
+        }
+      }
+    },
+    "crypto": {
+      "canonicalizeAndHashMs": {
+        "n": 2,
+        "min": 0.05989999999997053,
+        "max": 0.19049999999970169,
+        "mean": 0.1251999999998361,
+        "median": 0.1251999999998361,
+        "p95": 0.19049999999970169,
+        "sampleStdDev": 0.092348145622773
+      },
+      "encryptionWithKdfMs": {
+        "n": 2,
+        "min": 123.74420000000009,
+        "max": 128.6543999999999,
+        "mean": 126.1993,
+        "median": 126.1993,
+        "p95": 128.6543999999999,
+        "sampleStdDev": 3.4720357169820475
+      },
+      "decryptionWithKdfMs": {
+        "n": 2,
+        "min": 118.9717999999998,
+        "max": 120.52839999999969,
+        "mean": 119.75009999999975,
+        "median": 119.75009999999975,
+        "p95": 120.52839999999969,
+        "sampleStdDev": 1.1006824155949015
+      }
+    },
+    "baseline": {
+      "issuePrescription": {
+        "centralizedLatencyMs": {
+          "n": 2,
+          "min": 0.02179999999998472,
+          "max": 0.03170000000000073,
+          "mean": 0.026749999999992724,
+          "median": 0.026749999999992724,
+          "p95": 0.03170000000000073,
+          "sampleStdDev": 0.00700035713375814
+        },
+        "blockchainLatencyMs": {
+          "n": 2,
+          "min": 2.155499999999847,
+          "max": 2.4855999999999767,
+          "mean": 2.320549999999912,
+          "median": 2.320549999999912,
+          "p95": 2.4855999999999767,
+          "sampleStdDev": 0.23341594846977093
+        }
+      },
+      "dispensePrescription": {
+        "centralizedLatencyMs": {
+          "n": 2,
+          "min": 0.01290000000017244,
+          "max": 0.014599999999973079,
+          "mean": 0.01375000000007276,
+          "median": 0.01375000000007276,
+          "p95": 0.014599999999973079,
+          "sampleStdDev": 0.0012020815278761612
+        },
+        "blockchainLatencyMs": {
+          "n": 2,
+          "min": 2.0189000000000306,
+          "max": 3.330600000000004,
+          "mean": 2.6747500000000173,
+          "median": 2.6747500000000173,
+          "p95": 3.330600000000004,
+          "sampleStdDev": 0.9275119648823756
+        }
+      },
+      "revokePrescription": {
+        "centralizedLatencyMs": {
+          "n": 2,
+          "min": 0.003400000000056025,
+          "max": 0.004999999999881766,
+          "mean": 0.004199999999968895,
+          "median": 0.004199999999968895,
+          "p95": 0.004999999999881766,
+          "sampleStdDev": 0.0011313708497752563
+        },
+        "blockchainLatencyMs": {
+          "n": 2,
+          "min": 1.8476000000000568,
+          "max": 1.9079999999999018,
+          "mean": 1.8777999999999793,
+          "median": 1.8777999999999793,
+          "p95": 1.9079999999999018,
+          "sampleStdDev": 0.04270924958355789
+        }
+      }
+    },
+    "rules": {
+      "all": {
+        "n": 34,
+        "passed": 34,
+        "accuracy": 1
+      },
+      "allowed": {
+        "n": 8,
+        "passed": 8,
+        "accuracy": 1
+      },
+      "denied": {
+        "n": 26,
+        "passed": 26,
+        "accuracy": 1
+      }
+    },
+    "concurrencyVulnerability": {
+      "doubleDispenseVulnerabilityOccurred": false
+    }
+  },
+  "transactions": [
+    {
+      "replica": 1,
+      "method": "issuePrescription",
+      "txHash": "0x7b17973667e503c12d8461eafe7fcd3a152ec4dc814c61bc595c9e179181c673",
+      "gasUsed": "278245",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.6554999999998472,
+      "endToEndMs": 2.155499999999847
+    },
+    {
+      "replica": 1,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x7c9568dd87be418c2d29433ed09a99087c56110a2450b2021dca9dda086f1ad4",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.830600000000004,
+      "endToEndMs": 3.330600000000004
+    },
+    {
+      "replica": 1,
+      "method": "revokePrescription",
+      "txHash": "0x6e6f088a41376f42ea837c36393280a35b5e4dc4e4bd80084091e405a2e486e2",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.4079999999999018,
+      "endToEndMs": 1.9079999999999018
+    },
+    {
+      "replica": 1,
+      "method": "verifyAndDispense",
+      "txHash": "0x4910edd2c2a4c7310a538f6800f149e42e57de48447528afacd03b85be35fdf5",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 2.332300000000032,
+      "endToEndMs": 2.832300000000032
+    },
+    {
+      "replica": 2,
+      "method": "issuePrescription",
+      "txHash": "0xc86fdcc2b25800737d57d7d1b8225ca15bf48b21f461810da66635636e1e633b",
+      "gasUsed": "244045",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.9855999999999767,
+      "endToEndMs": 2.4855999999999767
+    },
+    {
+      "replica": 2,
+      "method": "verifyAndDispenseWithPatientHash",
+      "txHash": "0x425ddfa677a07a86fe01214d6c4241b1ed173b109786ba33211efdab5d878664",
+      "gasUsed": "93813",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.5189000000000306,
+      "endToEndMs": 2.0189000000000306
+    },
+    {
+      "replica": 2,
+      "method": "revokePrescription",
+      "txHash": "0x5d5ad527adebe9283d9a8961ac880ca7fce8b020a068f36d86e42f80d744976c",
+      "gasUsed": "53952",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 1.3476000000000568,
+      "endToEndMs": 1.8476000000000568
+    },
+    {
+      "replica": 2,
+      "method": "verifyAndDispense",
+      "txHash": "0xd923fb885be84b321583208762761842893f56475bf3af6ccfcdc5abe9ddf4c7",
+      "gasUsed": "93082",
+      "prepareMs": 0.5,
+      "broadcastToReceiptMs": 0.7918999999999414,
+      "endToEndMs": 1.2918999999999414
+    }
+  ],
+  "rules": [
+    {
+      "replica": 1,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 1,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "issue_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispense_prescription_single_use",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "revoke_prescription_doctor",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispense_prescription_direct",
+      "expected": "allow",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_doctor_issuance_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "duplicate_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "zero_prescription_id_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "zero_patient_hash_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "issuance_expired_timestamp_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_pharmacy_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "double_dispensing_used_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "dispensing_revoked_prescription_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "mismatched_patient_hash_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "high_c2_risk_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unassessed_c2_batch_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "low_c3_pharmacy_trust_dispensing_blocked",
+      "expected": "deny",
+      "passed": true
+    },
+    {
+      "replica": 2,
+      "scenario": "unauthorized_revocation_blocked",
+      "expected": "deny",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+node_modules/
+# Local environment and wallet material. Keep the committed template available.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.priv
+*.keystore
+*.mnemonic
+*.seed
+private_key*
+private-key*
+*privatekey*
