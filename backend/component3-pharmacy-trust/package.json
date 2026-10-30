@@ -1,0 +1,21 @@
+{
+  "name": "component3-pharmacy-trust",
+  "version": "1.0.0",
+  "description": "## Purpose and scope",
+  "main": "run-local.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js tests/live/*.test.js",
+    "start": "node run-local.js",
+    "start:live": "node run-live.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "pg": "^8.23.1"
+  }
+}

@@ -1,0 +1,49 @@
+# SYNTHETIC DATA - NOT REAL PHARMACY DATA.
+# Proposed weights (D 0.35, R 0.30, C 0.20, I 0.15) and tier thresholds (80 / 60 / 40) are research parameters, not NMRA-prescribed values.
+# These results show computational correctness and robustness to weight assumptions only. They do not show real-world accuracy.
+case,check,expected,observed,abs_diff,pass
+T01,delivery status,ASSESSABLE,ASSESSABLE,,true
+T01,D,70,70,0,true
+T02,recall status,ASSESSABLE,ASSESSABLE,,true
+T02,R,75,75,0,true
+T03,complaint status,ASSESSABLE,ASSESSABLE,,true
+T03,C (= 200/3),66.66666666666667,66.66666666666667,0,true
+T03,C rounded to 2 dp,66.67,66.67,,true
+T04,inspection status,ASSESSABLE,ASSESSABLE,,true
+T04,I,80,80,0,true
+T05,"TS (80,80,70,80)",78,78,0,true
+T05,tier at 78,TRUSTED,TRUSTED,,true
+T05,"TS (70,75,66.67,80)",72.334,72.334,0,true
+T05,"TS (70,75,200/3,80) = 217/3",72.33333333333333,72.33333333333334,1.4210854715202004e-14,true
+T06,recall status,NOT_ASSESSABLE,NOT_ASSESSABLE,,true
+T06,"recall value (not 100, not 0)",,,,true
+T06,overall status,NOT_ASSESSABLE,NOT_ASSESSABLE,,true
+T06,overall score,,,,true
+T06,tier,NOT_ASSESSABLE,NOT_ASSESSABLE,,true
+T06,missing indicators,"[""recall""]","[""recall""]",,true
+T06,no renormalised score produced,false,false,,true
+T07,raw delivery records submitted,11,11,0,true
+T07,duplicates detected,1,1,0,true
+T07,numerator (on-time),7,7,0,true
+T07,denominator (eligible),10,10,0,true
+T07,D,70,70,0,true
+T07,service duplicateCount,1,1,0,true
+T07,calculator rejects duplicate IDs,true,true,,true
+T08,score with finding,93.5,93.5,0,true
+T08,score >= 80,true,true,,true
+T08,escalation required,true,true,,true
+T08,score identical without finding,93.5,93.5,0,true
+T08,tier unchanged by finding,HIGHLY_TRUSTED,HIGHLY_TRUSTED,,true
+T08,no escalation without finding,false,false,,true
+T09,zero delivery status,ASSESSABLE,ASSESSABLE,,true
+T09,zero delivery value,0,0,0,true
+T09,overall score with D = 0,50,50,0,true
+T09,missing delivery status,NOT_ASSESSABLE,NOT_ASSESSABLE,,true
+T09,missing delivery overall score,,,,true
+T10,80,HIGHLY_TRUSTED,HIGHLY_TRUSTED,,true
+T10,79.99,TRUSTED,TRUSTED,,true
+T10,60,TRUSTED,TRUSTED,,true
+T10,59.99,UNDER_REVIEW,UNDER_REVIEW,,true
+T10,40,UNDER_REVIEW,UNDER_REVIEW,,true
+T10,39.99,ESCALATION_ALERT,ESCALATION_ALERT,,true
+T10,null,NOT_ASSESSABLE,NOT_ASSESSABLE,,true
